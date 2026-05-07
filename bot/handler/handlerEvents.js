@@ -649,7 +649,8 @@ const isAdminBot = isAdmin(senderID);
                 return;
             }
 
-            const aliasesData = threadData.data.aliases || {};
+            const aliasesData =
+    threadData?.data?.aliases || {};
             for (const cmdName in aliasesData) {
                 if (aliasesData[cmdName].includes(commandName)) {
                     command = GoatBot.commands.get(cmdName);
