@@ -1,103 +1,118 @@
-module.exports = {
-  config: {
-    name: "spamkick",
-    version: "3.0",
-    author: "Rakib",
-    role: 1,
-    description: {
-      en: "Kick users who spam emojis"
-    },
-    category: "box chat",
-    guide: {
-      en: "{pn} off/on"
-    }
+module.exports.config = {
+  name: "spamkick",
+  version: "2.0.0",
+  role: 0,
+  author: "Rakib",
+  usePrefix: true,
+  description: {
+    en: "Auto kick spammer (auto enabled on restart)"
   },
-
-  onStart: async ({ api, event, args }) => {
-    if (!global.emojiSpam) global.emojiSpam = new Map();
-
-    if (args[0] == "off") {
-      global.emojiSpam.set(event.threadID, { off: true, users: {} });
-      return api.sendMessage("❎ | Emoji Spam Kick disabled.", event.threadID);
-    }
-
-    if (args[0] == "on") {
-      global.emojiSpam.set(event.threadID, { off: false, users: {} });
-      return api.sendMessage("✅ | Emoji Spam Kick enabled.", event.threadID);
-    }
-
-    return api.sendMessage("Use: spamkick off / on", event.threadID);
+  category: "group",
+  guide: {
+    en: "[on/off]"
   },
+  countDown: 5
+};
 
-  onEvent: async ({ api, event, usersData }) => {
-  const { threadID, senderID, body, attachments } = event;
+// 🔥 AUTO ENABLE SYSTEM (IMPORTANT)
+if (!global.antispam) global.antispam = new Map();
 
-  if (!global.emojiSpam) global.emojiSpam = new Map();
+module.exports.onChat = async ({ api, event, usersData, commandName }) => {
+  const { senderID, threadID } = event;
 
-  // default ON
-  if (!global.emojiSpam.has(threadID)) {
-    global.emojiSpam.set(threadID, { off: false, users: {} });
+  // 👉 Always auto enable after restart
+  if (!global.antispam.has(threadID)) {
+    global.antispam.set(threadID, { users: {} });
   }
 
-  const threadData = global.emojiSpam.get(threadID);
-  if (threadData.off) return;
+  const threadInfo = global.antispam.get(threadID);
 
-  if (!threadData.users[senderID]) {
-    threadData.users[senderID] = {
-      count: 0,
-      time: Date.now(),
-      warn: 0
-    };
+  if (!(senderID in threadInfo.users)) {
+    threadInfo.users[senderID] = { count: 1, time: Date.now() };
+  } else {
+    threadInfo.users[senderID].count++;
+
+    const timePassed = Date.now() - threadInfo.users[senderID].time;
+    const messages = threadInfo.users[senderID].count;
+
+    const timeLimit = 80000; // 80 sec
+    const messageLimit = 14;
+
+    if (messages > messageLimit && timePassed < timeLimit) {
+
+      // ❌ bot admin kick করবে না
+      if (global.GoatBot.config.adminBot.includes(senderID)) return;
+
+      api.removeUserFromGroup(senderID, threadID, async (err) => {
+        if (err) return console.error(err);
+
+        const name = await usersData.getName(senderID);
+
+        api.sendMessage({
+          body: `🚫 ${name} has been removed for spamming.\nUID: ${senderID}\n👉 React to add again.`
+        }, threadID, (error, info) => {
+
+          global.GoatBot.onReaction.set(info.messageID, {
+            commandName,
+            uid: senderID,
+            messageID: info.messageID
+          });
+
+        });
+      });
+
+      // reset
+      threadInfo.users[senderID] = { count: 1, time: Date.now() };
+
+    } else if (timePassed > timeLimit) {
+      threadInfo.users[senderID] = { count: 1, time: Date.now() };
+    }
   }
 
-  const user = threadData.users[senderID];
+  global.antispam.set(threadID, threadInfo);
+};
 
-  const emojiRegex = /\p{Emoji}/gu;
-  const onlyEmoji = body ? body.replace(emojiRegex, "").trim() === "" : false;
+module.exports.onReaction = async ({ api, event, Reaction, threadsData, usersData, role }) => {
+  const { uid, messageID } = Reaction;
 
-  const isGif = attachments?.some(att => att.type === "animated_image");
-  const isSticker = attachments?.some(att => att.type === "sticker");
+  if (role < 1) return;
 
-  if (!onlyEmoji && !isGif && !isSticker) return;
+  const { adminIDs, approvalMode } = await threadsData.get(event.threadID);
+  const botID = api.getCurrentUserID();
 
-  user.count++;
+  try {
+    await api.addUserToGroup(uid, event.threadID);
 
-  const limit = 8;
-  const timeLimit = 15000;
-
-  if (Date.now() - user.time > timeLimit) {
-    user.count = 1;
-    user.time = Date.now();
-    return;
-  }
-
-  if (user.count >= limit) {
-
-    const threadInfo = await api.getThreadInfo(threadID);
-
-    const isAdmin = threadInfo.adminIDs.some(a => a.id == senderID);
-    const isOwner = global.GoatBot.config.ownerBot.includes(senderID);
-
-    if (isAdmin || isOwner) return;
-
-    user.warn++;
-
-    if (user.warn >= 3) {
-      api.removeUserFromGroup(senderID, threadID);
-      return api.sendMessage(
-        `🚫 ${await usersData.getName(senderID)} kicked for spam`,
-        threadID
-      );
+    if (approvalMode === true && !adminIDs.includes(botID)) {
+      await api.unsendMessage(messageID);
     } else {
-      api.sendMessage(
-        `⚠️ Warning ${user.warn}/3`,
-        threadID
-      );
+      await api.unsendMessage(messageID);
     }
 
-    user.count = 0;
-    user.time = Date.now();
+  } catch (err) {
+    console.log("Failed to re-add user");
   }
+};
 
-  global.emojiSpam.set(threadID, threadData);
+module.exports.onStart = async ({ api, event, args }) => {
+  switch (args[0]) {
+
+    case "on":
+      if (!global.antispam) global.antispam = new Map();
+      global.antispam.set(event.threadID, { users: {} });
+      api.sendMessage("✅ Spam kick is ON (Auto enabled always).", event.threadID);
+      break;
+
+    case "off":
+      if (global.antispam.has(event.threadID)) {
+        global.antispam.delete(event.threadID);
+        api.sendMessage("❌ Spam kick OFF (But will auto ON after restart 😏)", event.threadID);
+      } else {
+        api.sendMessage("Already OFF", event.threadID);
+      }
+      break;
+
+    default:
+      api.sendMessage("Use: spamkick on / off", event.threadID);
   }
+};
