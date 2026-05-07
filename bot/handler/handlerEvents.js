@@ -257,66 +257,141 @@ function getRoleConfig(utils, command, isGroup, threadData, commandName) {
     return roleConfig;
 }
 
-function isBannedOrOnlyAdmin(userData, threadData, senderID, threadID, isGroup, commandName, message, lang) {
+function isBannedOrOnlyAdmin(
+    userData,
+    threadData,
+    senderID,
+    threadID,
+    isGroup,
+    commandName,
+    message,
+    lang
+) {
     const config = global.GoatBot.config;
-    const { adminBot, hideNotiMessage } = config;
 
-    const infoBannedThread =
-    threadData?.banned || {};
+    const {
+        adminBot = [],
+        hideNotiMessage = {}
+    } = config;
 
-if (infoBannedThread?.status === true) {
-    const { reason, date } =
-        infoBannedThread;
+    // USER BANNED
+    const infoBannedUser =
+        userData?.banned || {};
 
-    if (hideNotiMessage.threadBanned == false)
-        message.reply(
-            getText(
-                "threadBanned",
-                reason,
-                date,
-                threadID,
-                lang
-            )
-        );
+    if (infoBannedUser?.status === true) {
+        const {
+            reason = "No reason",
+            date = "Unknown"
+        } = infoBannedUser;
 
-    return true;
-}
+        if (hideNotiMessage.userBanned == false) {
+            message.reply(
+                getText(
+                    "userBanned",
+                    reason,
+                    date,
+                    senderID,
+                    lang
+                )
+            );
+        }
 
-    if (
-        config.adminOnly.enable == true
-        && !adminBot.includes(senderID)
-        && !config.adminOnly.ignoreCommand.includes(commandName)
-    ) {
-        if (hideNotiMessage.adminOnly == false)
-            message.reply(getText("onlyAdminBot", null, null, null, lang));
         return true;
     }
 
-    if (isGroup == true) {
-      if (
-    threadData?.data?.onlyAdminBox === true
-    && !threadData.adminIDs.includes(senderID)
-    && !(
-        threadData.data
-            .ignoreCommanToOnlyAdminBox || []
-    ).includes(commandName)
+    // ADMIN ONLY MODE
+    if (
+        config.adminOnly?.enable === true &&
+        !adminBot.includes(senderID) &&
+        !(
+            config.adminOnly
+                ?.ignoreCommand || []
+        ).includes(commandName)
+    ) {
+        if (
+            hideNotiMessage.adminOnly ==
+            false
         ) {
-            if (!threadData.data.hideNotiMessageOnlyAdminBox)
-                message.reply(getText("onlyAdminBox", null, null, null, lang));
+            message.reply(
+                getText(
+                    "onlyAdminBot",
+                    null,
+                    null,
+                    null,
+                    lang
+                )
+            );
+        }
+
+        return true;
+    }
+
+    // GROUP CHECKS
+    if (isGroup === true) {
+
+        // ONLY ADMIN BOX
+        if (
+            threadData?.data
+                ?.onlyAdminBox === true &&
+            !(
+                threadData.adminIDs || []
+            ).includes(senderID) &&
+            !(
+                threadData.data
+                    ?.ignoreCommanToOnlyAdminBox || []
+            ).includes(commandName)
+        ) {
+            if (
+                !threadData.data
+                    ?.hideNotiMessageOnlyAdminBox
+            ) {
+                message.reply(
+                    getText(
+                        "onlyAdminBox",
+                        null,
+                        null,
+                        null,
+                        lang
+                    )
+                );
+            }
+
             return true;
         }
 
-        const infoBannedThread = threadData.banned;
-        if (infoBannedThread.status == true) {
-            const { reason, date } = infoBannedThread;
-            if (hideNotiMessage.threadBanned == false)
-                message.reply(getText("threadBanned", reason, date, threadID, lang));
+        // THREAD BANNED
+        const infoBannedThread =
+            threadData?.banned || {};
+
+        if (
+            infoBannedThread?.status === true
+        ) {
+            const {
+                reason = "No reason",
+                date = "Unknown"
+            } = infoBannedThread;
+
+            if (
+                hideNotiMessage.threadBanned ==
+                false
+            ) {
+                message.reply(
+                    getText(
+                        "threadBanned",
+                        reason,
+                        date,
+                        threadID,
+                        lang
+                    )
+                );
+            }
+
             return true;
         }
     }
+
     return false;
 }
-
 function createGetText2(langCode, pathCustomLang, prefix, command) {
     const commandType = command.config.countDown ? "command" : "command event";
     const commandName = command.config.name;
