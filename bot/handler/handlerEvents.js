@@ -246,9 +246,10 @@ function getRoleConfig(utils, command, isGroup, threadData, commandName) {
         };
     }
 
-    if (isGroup)
-        roleConfig.onStart = threadData.data.setRole?.[commandName] ?? roleConfig.onStart;
-
+  if (isGroup)
+    roleConfig.onStart =
+        threadData?.data?.setRole?.[commandName]
+        ?? roleConfig.onStart;
     for (const key of ["onChat", "onStart", "onReaction", "onReply"]) {
         if (roleConfig[key] == undefined)
             roleConfig[key] = roleConfig.onStart;
