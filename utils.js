@@ -1,13 +1,8 @@
 const axios = require("axios");
-const https = require("https");
-
-axios.defaults.timeout = 30000;
-axios.defaults.httpsAgent = new https.Agent({ keepAlive: true });
-
 const fs = require("fs-extra");
 const path = require("path");
 const cheerio = require("cheerio");
-
+const https = require("https");
 const agent = new https.Agent({
 	rejectUnauthorized: false
 });
@@ -211,9 +206,11 @@ class TaskQueue {
 		return this.queue.length;
 	}
 }
+
 function enableStderrClearLine(isEnable = true) {
 	process.stderr.clearLine = isEnable ? defaultStderrClearLine : () => { };
 }
+
 /* =========================
    SAFE BIGINT
 ========================= */
@@ -576,27 +573,25 @@ async function translateAPI(text, lang) {
 		throw new CustomError(err.response ? err.response.data : err);
 	}
 }
+
 async function downloadFile(url = "", path = "") {
 	if (!url || typeof url !== "string")
 		throw new Error(`The first argument (url) must be a string`);
 	if (!path || typeof path !== "string")
 		throw new Error(`The second argument (path) must be a string`);
-
 	let getFile;
 	try {
 		getFile = await axios.get(url, {
-			responseType: "arraybuffer",
-			timeout: 30000,
-			validateStatus: () => true
+			responseType: "arraybuffer"
 		});
 	}
 	catch (err) {
 		throw new CustomError(err.response ? err.response.data : err);
 	}
-
 	fs.writeFileSync(path, Buffer.from(getFile.data));
 	return path;
 }
+
 async function findUid(link) {
 	try {
 		const response = await axios.post(
@@ -652,6 +647,7 @@ async function getStreamsFromAttachment(attachments) {
 	}
 	return streams;
 }
+
 async function getStreamFromURL(url = "", pathName = "", options = {}) {
 	if (!options && typeof pathName === "object") {
 		options = pathName;
@@ -660,30 +656,22 @@ async function getStreamFromURL(url = "", pathName = "", options = {}) {
 	try {
 		if (!url || typeof url !== "string")
 			throw new Error(`The first argument (url) must be a string`);
-
 		const response = await axios({
 			url,
 			method: "GET",
 			responseType: "stream",
-			timeout: 30000,
-			validateStatus: () => true,
 			...options
 		});
-
 		if (!pathName)
-			pathName = utils.randomString(10) + (
-				response.headers["content-type"]
-				? '.' + utils.getExtFromMimeType(response.headers["content-type"])
-				: ".noext"
-			);
-
+			pathName = utils.randomString(10) + (response.headers["content-type"] ? '.' + utils.getExtFromMimeType(response.headers["content-type"]) : ".noext");
 		response.data.path = pathName;
 		return response.data;
 	}
 	catch (err) {
 		throw err;
 	}
-			}
+}
+
 async function translate(text, lang) {
 	if (typeof text !== "string")
 		throw new Error(`The first argument (text) must be a string`);
@@ -1167,17 +1155,18 @@ class GoatBotApis {
 const utils = {
 	CustomError,
 	TaskQueue,
-	formatMoney,
-	parseAmount,
-	indexToSuffix,
-	suffixToIndex,
-	safeBigInt,
-	applyWalletLimit,
+
 	colors,
 	convertTime,
 	createOraDots,
 	defaultStderrClearLine,
 	enableStderrClearLine,
+	formatMoney,
+    parseAmount,
+	indexToSuffix,
+    suffixToIndex,
+    safeBigInt,
+    applyWalletLimit,
 	getExtFromAttachmentType,
 	getExtFromMimeType,
 	getExtFromUrl,
@@ -1209,6 +1198,7 @@ const utils = {
 	uploadZippyshare,
 	uploadImgbb,
 	drive,
+
 	GoatBotApis
 };
 
