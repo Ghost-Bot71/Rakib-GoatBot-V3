@@ -292,10 +292,14 @@ if (infoBannedUser?.status === true) {
     }
 
     if (isGroup == true) {
-        if (
-            threadData.data.onlyAdminBox === true
-            && !threadData.adminIDs.includes(senderID)
-            && !(threadData.data.ignoreCommanToOnlyAdminBox || []).includes(commandName)
+      if (
+    threadData?.data?.onlyAdminBox === true
+    && !threadData.adminIDs.includes(senderID)
+    && !(
+        threadData.data
+            .ignoreCommanToOnlyAdminBox || []
+    ).includes(commandName)
+)
         ) {
             if (!threadData.data.hideNotiMessageOnlyAdminBox)
                 message.reply(getText("onlyAdminBox", null, null, null, lang));
