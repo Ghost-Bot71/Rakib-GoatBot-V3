@@ -1,343 +1,296 @@
 module.exports = {
-config: {
-name: "font",
-version: "8.0",
-author: "Rakib",
-countDown: 5,
-role: 0,
-category: "utility",
-guide: "{pn} <text> or reply text"
-},
+  config: {
+    name: "font",
+    version: "1.0",
+    author: "Rakib",
+    countDown: 5,
+    role: 0,
+    category: "utility",
+    guide: {
+      en:
+`font list
+font <number> <text>
 
-onStart: async function ({ message, event, args }) {
-
-let text = args.join(" ");
-
-if (!text && event.messageReply) {
-text = event.messageReply.body;
-}
-
-if (!text) {
-return message.reply("❌ | Please provide text or reply message.");
-}
-
-const fonts = getFonts();
-
-let msg = "✨ Choose a font (reply number)\n\n";
-
-fonts.forEach((font,i)=>{
-
-const styledName = convert(font.name,font.map);
-
-msg += `${i+1}. ${styledName}\n`;
-
-});
-
-message.reply(msg,(err,info)=>{
-
-global.GoatBot.onReply.set(info.messageID,{
-commandName:"font",
-author:event.senderID,
-text
-});
-
-});
-
-},
-
-onReply: async function ({ message,event,Reply }) {
-
-if (event.senderID != Reply.author) return;
-
-const fonts = getFonts();
-
-const choice = parseInt(event.body);
-
-if (isNaN(choice) || choice < 1 || choice > fonts.length) {
-return message.reply("❌ | Invalid font number.");
-}
-
-const font = fonts[choice-1];
-
-const result = convert(Reply.text,font.map);
-
-message.reply(result);
-
-}
-
-};
-
-function convert(text,mapStr){
-
-const alpha = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
-
-let result = "";
-
-for (const char of text){
-
-const index = alpha.indexOf(char);
-
-if (index !== -1 && mapStr[index]){
-result += mapStr[index];
-}else{
-result += char;
-}
-
-}
-
-return result;
-
-}
-
-function getFonts(){
-
-return [
-
-{
-name:"Bold",
-map:
-"𝐚𝐛𝐜𝐝𝐞𝐟𝐠𝐡𝐢𝐣𝐤𝐥𝐦𝐧𝐨𝐩𝐪𝐫𝐬𝐭𝐮𝐯𝐰𝐱𝐲𝐳"+
-"𝐀𝐁𝐂𝐃𝐄𝐅𝐆𝐇𝐈𝐉𝐊𝐋𝐌𝐍𝐎𝐏𝐐𝐑𝐒𝐓𝐔𝐕𝐖𝐗𝐘𝐙"
-},
-
-{
-name:"Italic",
-map:
-"𝘢𝘣𝘤𝘥𝘦𝘧𝘨𝘩𝘪𝘫𝘬𝘭𝘮𝘯𝘰𝘱𝘲𝘳𝘴𝘵𝘶𝘷𝘸𝘹𝘺𝘻"+
-"𝘈𝘉𝘊𝘋𝘌𝘍𝘎𝘏𝘐𝘑𝘒𝘓𝘔𝘕𝘖𝘗𝘘𝘙𝘚𝘛𝘜𝘝𝘞𝘟𝘠𝘡"
-},
-
-{
-name:"Script",
-map:
-"𝒶𝒷𝒸𝒹𝑒𝒻𝑔𝒽𝒾𝒿𝓀𝓁𝓂𝓃𝑜𝓅𝓆𝓇𝓈𝓉𝓊𝓋𝓌𝓍𝓎𝓏"+
-"𝒜𝐵𝒞𝒟𝐸𝐹𝒢𝐻𝐼𝒥𝒦𝐿𝑀𝒩𝒪𝒫𝒬𝑅𝒮𝒯𝒰𝒱𝒲𝒳𝒴𝒵"
-},
-
-{
-name:"Double",
-map:
-"𝕒𝕓𝕔𝕕𝕖𝕗𝕘𝕙𝕚𝕛𝕜𝕝𝕞𝕟𝕠𝕡𝕢𝕣𝕤𝕥𝕦𝕧𝕨𝕩𝕪𝕫"+
-"𝔸𝔹ℂ𝔻𝔼𝔽𝔾ℍ𝕀𝕁𝕂𝕃𝕄ℕ𝕆ℙℚℝ𝕊𝕋𝕌𝕍𝕎𝕏𝕐ℤ"
-},
-
-{
-name:"Fraktur",
-map:
-"𝔞𝔟𝔠𝔡𝔢𝔣𝔤𝔥𝔦𝔧𝔨𝔩𝔪𝔫𝔬𝔭𝔮𝔯𝔰𝔱𝔲𝔳𝔴𝔵𝔶𝔷"+
-"𝔄𝔅ℭ𝔇𝔈𝔉𝔊ℌℑ𝔍𝔎𝔏𝔐𝔑𝔒𝔓𝔔ℜ𝔖𝔗𝔘𝔙𝔚𝔛𝔜ℨ"
-},
-
-{
-name:"Mono",
-map:
-"𝚊𝚋𝚌𝚍𝚎𝚏𝚐𝚑𝚒𝚓𝚔𝚕𝚖𝚗𝚘𝚙𝚚𝚛𝚜𝚝𝚞𝚟𝚠𝚡𝚢𝚣"+
-"𝙰𝙱𝙲𝙳𝙴𝙵𝙶𝙷𝙸𝙹𝙺𝙻𝙼𝙽𝙾𝙿𝚀𝚁𝚂𝚃𝚄𝚅𝚆𝚇𝚈𝚉"
-},
-
-{
-name:"Sans Bold",
-map:
-"𝗮𝗯𝗰𝗱𝗲𝗳𝗴𝗵𝗶𝗷𝗸𝗹𝗺𝗻𝗼𝗽𝗾𝗿𝘀𝘁𝘂𝘃𝘄𝘅𝘆𝘇"+
-"𝗔𝗕𝗖𝗗𝗘𝗙𝗚𝗛𝗜𝗝𝗞𝗟𝗠𝗡𝗢𝗣𝗤𝗥𝗦𝗧𝗨𝗩𝗪𝗫𝗬𝗭"
-},
-
-{
-name:"Sans Italic",
-map:
-"𝘢𝘣𝘤𝘥𝘦𝘧𝘨𝘩𝘪𝘫𝘬𝘭𝘮𝘯𝘰𝘱𝘲𝘳𝘴𝘵𝘶𝘷𝘸𝘹𝘺𝘻"+
-"𝘈𝘉𝘊𝘋𝘌𝘍𝘎𝘏𝘐𝘑𝘒𝘓𝘔𝘕𝘖𝘗𝘘𝘙𝘚𝘛𝘜𝘝𝘞𝘟𝘠𝘡"
-},
-
-{
-name:"Fullwidth",
-map:
-"ａｂｃｄｅｆｇｈｉｊｋｌｍｎｏｐｑｒｓｔｕｖｗｘｙｚ"+
-"ＡＢＣＤＥＦＧＨＩＪＫＬＭＮＯＰＱＲＳＴＵＶＷＸＹＺ"
-},
-
-{
-name:"Circled",
-map:
-"ⓐⓑⓒⓓⓔⓕⓖⓗⓘⓙⓚⓛⓜⓝⓞⓟⓠⓡⓢⓣⓤⓥⓦⓧⓨⓩ"+
-"ⒶⒷⒸⒹⒺⒻⒼⒽⒾⒿⓀⓁⓂⓃⓄⓅⓆⓇⓈⓉⓊⓋⓌⓍⓎⓏ"
-},
-
-{
-name:"Tiny",
-map:
-"ᵃᵇᶜᵈᵉᶠᵍʰᶦʲᵏˡᵐⁿᵒᵖᑫʳˢᵗᵘᵛʷˣʸᶻ"+
-"ᴬᴮᶜᴰᴱᶠᴳᴴᴵᴶᴷᴸᴹᴺᴼᴾQᴿˢᵀᵁⱽᵂˣʸᶻ"
-},
-
-{
-name:"Bubble",
-map:
-"🅐🅑🅒🅓🅔🅕🅖🅗🅘🅙🅚🅛🅜🅝🅞🅟🅠🅡🅢🅣🅤🅥🅦🅧🅨🅩"+
-"🅐🅑🅒🅓🅔🅕🅖🅗🅘🅙🅚🅛🅜🅝🅞🅟🅠🅡🅢🅣🅤🅥🅦🅧🅨🅩"
-},
-
-{
-name:"Regional",
-map:
-"🇦🇧🇨🇩🇪🇫🇬🇭🇮🇯🇰🇱🇲🇳🇴🇵🇶🇷🇸🇹🇺🇻🇼🇽🇾🇿"+
-"🇦🇧🇨🇩🇪🇫🇬🇭🇮🇯🇰🇱🇲🇳🇴🇵🇶🇷🇸🇹🇺🇻🇼🇽🇾🇿"
-},
-
-{
-name:"Outline",
-map:
-"𝕒𝕓𝕔𝕕𝕖𝕗𝕘𝕙𝕚𝕛𝕜𝕝𝕞𝕟𝕠𝕡𝕢𝕣𝕤𝕥𝕦𝕧𝕨𝕩𝕪𝕫"+
-"𝔸𝔹ℂ𝔻𝔼𝔽𝔾ℍ𝕀𝕁𝕂𝕃𝕄ℕ𝕆ℙℚℝ𝕊𝕋𝕌𝕍𝕎𝕏𝕐ℤ"
-},
-
-  {
-name:"Sans Bold Italic",
-map:
-"𝙖𝙗𝙘𝙙𝙚𝙛𝙜𝙝𝙞𝙟𝙠𝙡𝙢𝙣𝙤𝙥𝙦𝙧𝙨𝙩𝙪𝙫𝙬𝙭𝙮𝙯"+
-"𝘼𝘽𝘾𝘿𝙀𝙁𝙂𝙃𝙄𝙅𝙆𝙇𝙈𝙉𝙊𝙋𝙌𝙍𝙎𝙏𝙐𝙑𝙒𝙓𝙔𝙕"
-},
-
-{
-name:"Wide",
-map:
-"ａｂｃｄｅｆｇｈｉｊｋｌｍｎｏｐｑｒｓｔｕｖｗｘｙｚ"+
-"ＡＢＣＤＥＦＧＨＩＪＫＬＭＮＯＰＱＲＳＴＵＶＷＸＹＺ"
-},
-
-{
-name:"Squared",
-map:
-"🄰🄱🄲🄳🄴🄵🄶🄷🄸🄹🄺🄻🄼🄽🄾🄿🅀🅁🅂🅃🅄🅅🅆🅇🅈🅉"+
-"🄰🄱🄲🄳🄴🄵🄶🄷🄸🄹🄺🄻🄼🄽🄾🄿🅀🅁🅂🅃🅄🅅🅆🅇🅈🅉"
-},
-
-{
-name:"Circled Caps",
-map:
-"ⓐⓑⓒⓓⓔⓕⓖⓗⓘⓙⓚⓛⓜⓝⓞⓟⓠⓡⓢⓣⓤⓥⓦⓧⓨⓩ"+
-"ⒶⒷⒸⒹⒺⒻⒼⒽⒾⒿⓀⓁⓂⓃⓄⓅⓆⓇⓈⓉⓊⓋⓌⓍⓎⓏ"
-},
-
-{
-name:"Parenthesized",
-map:
-"⒜⒝⒞⒟⒠⒡⒢⒣⒤⒥⒦⒧⒨⒩⒪⒫⒬⒭⒮⒯⒰⒱⒲⒳⒴⒵"+
-"⒜⒝⒞⒟⒠⒡⒢⒣⒤⒥⒦⒧⒨⒩⒪⒫⒬⒭⒮⒯⒰⒱⒲⒳⒴⒵"
-},
-
-{
-name:"Regional",
-map:
-"🇦🇧🇨🇩🇪🇫🇬🇭🇮🇯🇰🇱🇲🇳🇴🇵🇶🇷🇸🇹🇺🇻🇼🇽🇾🇿"+
-"🇦🇧🇨🇩🇪🇫🇬🇭🇮🇯🇰🇱🇲🇳🇴🇵🇶🇷🇸🇹🇺🇻🇼🇽🇾🇿"
-},
-
-{
-name:"Tiny",
-map:
-"ᵃᵇᶜᵈᵉᶠᵍʰᶦʲᵏˡᵐⁿᵒᵖᑫʳˢᵗᵘᵛʷˣʸᶻ"+
-"ᴬᴮᶜᴰᴱᶠᴳᴴᴵᴶᴷᴸᴹᴺᴼᴾQᴿˢᵀᵁⱽᵂˣʸᶻ"
-},
-
-{
-name:"Mirror",
-map:
-"ɐqɔpǝɟɓɥᴉɾʞןɯuno dqbɹsʇnʌʍxʎz".replace(/ /g,"")+
-"∀𐐒ƆᗡƎℲ⅁HIſꓘ⅂WNOԀΌᴚS⊥∩ΛMX⅄Z"
-},
-
-{
-name:"Greek",
-map:
-"αβ¢δεƒɢнιנкℓмησρզяѕтυνωχγζ"+
-"ΑΒCΔΕFGΗΙJΚLΜΝΟΡQRSΤUVWΧΥΖ"
-},
-
-{
-name:"Mono Bold",
-map:
-"𝙖𝙗𝙘𝙙𝙚𝙛𝙜𝙝𝙞𝙟𝙠𝙡𝙢𝙣𝙤𝙥𝙦𝙧𝙨𝙩𝙪𝙫𝙬𝙭𝙮𝙯"+
-"𝘼𝘽𝘾𝘿𝙀𝙁𝙂𝙃𝙄𝙅𝙆𝙇𝙈𝙉𝙊𝙋𝙌𝙍𝙎𝙏𝙐𝙑𝙒𝙓𝙔𝙕"
-},
-
-{
-name:"Outline Bold",
-map:
-"𝕒𝕓𝕔𝕕𝕖𝕗𝕘𝕙𝕚𝕛𝕜𝕝𝕞𝕟𝕠𝕡𝕢𝕣𝕤𝕥𝕦𝕧𝕨𝕩𝕪𝕫"+
-"𝔸𝔹ℂ𝔻𝔼𝔽𝔾ℍ𝕀𝕁𝕂𝕃𝕄ℕ𝕆ℙℚℝ𝕊𝕋𝕌𝕍𝕎𝕏𝕐ℤ"
+Example:
+font 1 hello
+font 2 Rakib`
+    }
   },
 
-  {
-name:"Math Bold",
-map:
-"𝐚𝐛𝐜𝐝𝐞𝐟𝐠𝐡𝐢𝐣𝐤𝐥𝐦𝐧𝐨𝐩𝐪𝐫𝐬𝐭𝐮𝐯𝐰𝐱𝐲𝐳"+
-"𝐀𝐁𝐂𝐃𝐄𝐅𝐆𝐇𝐈𝐉𝐊𝐋𝐌𝐍𝐎𝐏𝐐𝐑𝐒𝐓𝐔𝐕𝐖𝐗𝐘𝐙"
-},
+  onStart: async function ({ message, args }) {
 
-{
-name:"Math Italic",
-map:
-"𝑎𝑏𝑐𝑑𝑒𝑓𝑔𝒉𝒊𝒋𝑘𝑙𝑚𝑛𝑜𝑝𝑞𝑟𝑠𝑡𝑢𝑣𝑤𝑥𝑦𝑧"+
-"𝐴𝐵𝐶𝐷𝐸𝐹𝐺𝐻𝐼𝐽𝐾𝐿𝑀𝑁𝑂𝑃𝑄𝑅𝑆𝑇𝑈𝑉𝑊𝑋𝑌𝑍"
-},
+    if (!args[0]) {
+      return message.reply(
+        "❌ | Use:\nfont list\nfont <number> <text>"
+      );
+    }
 
-{
-name:"Math Bold Italic",
-map:
-"𝒂𝒃𝒄𝒅𝒆𝒇𝒈𝒉𝒊𝒋𝒌𝒍𝒎𝒏𝒐𝒑𝒒𝒓𝒔𝒕𝒖𝒗𝒘𝒙𝒚𝒛"+
-"𝑨𝑩𝑪𝑫𝑬𝑭𝑮𝑯𝑰𝑱𝑲𝑳𝑴𝑵𝑶𝑷𝑸𝑹𝑺𝑻𝑼𝑽𝑾𝑿𝒀𝒁"
-},
+    const fonts = getFonts();
 
-{
-name:"Script Bold",
-map:
-"𝓪𝓫𝓬𝓭𝓮𝓯𝓰𝓱𝓲𝓳𝓴𝓵𝓶𝓷𝓸𝓹𝓺𝓻𝓼𝓽𝓾𝓿𝔀𝔁𝔂𝔃"+
-"𝓐𝓑𝓒𝓓𝓔𝓕𝓖𝓗𝓘𝓙𝓚𝓛𝓜𝓝𝓞𝓟𝓠𝓡𝓢𝓣𝓤𝓥𝓦𝓧𝓨𝓩"
-},
+    /* ================= LIST ================= */
 
-{
-name:"Double Outline",
-map:
-"𝕒𝕓𝕔𝕕𝕖𝕗𝕘𝕙𝕚𝕛𝕜𝕝𝕞𝕟𝕠𝕡𝕢𝕣𝕤𝕥𝕦𝕧𝕨𝕩𝕪𝕫"+
-"𝔸𝔹ℂ𝔻𝔼𝔽𝔾ℍ𝕀𝕁𝕂𝕃𝕄ℕ𝕆ℙℚℝ𝕊𝕋𝕌𝕍𝕎𝕏𝕐ℤ"
-},
+    if (args[0].toLowerCase() === "list") {
 
-{
-name:"Serif Bold",
-map:
-"𝐚𝐛𝐜𝐝𝐞𝐟𝐠𝐡𝐢𝐣𝐤𝐥𝐦𝐧𝐨𝐩𝐪𝐫𝐬𝐭𝐮𝐯𝐰𝐱𝐲𝐳"+
-"𝐀𝐁𝐂𝐃𝐄𝐅𝐆𝐇𝐈𝐉𝐊𝐋𝐌𝐍𝐎𝐏𝐐𝐑𝐒𝐓𝐔𝐕𝐖𝐗𝐘𝐙"
-},
+  let msg = `✨ you'r font list\n\n`;
 
-{
-name:"Serif Italic",
-map:
-"𝑎𝑏𝑐𝑑𝑒𝑓𝑔𝒉𝒊𝒋𝑘𝑙𝑚𝑛𝑜𝑝𝑞𝑟𝑠𝑡𝑢𝑣𝑤𝑥𝑦𝑧"+
-"𝐴𝐵𝐶𝐷𝐸𝐹𝐺𝐻𝐼𝐽𝐾𝐿𝑀𝑁𝑂𝑃𝑄𝑅𝑆𝑇𝑈𝑉𝑊𝑋𝑌𝑍"
-},
+  fonts.forEach((font, index) => {
 
-{
-name:"Serif Bold Italic",
-map:
-"𝒂𝒃𝒄𝒅𝒆𝒇𝒈𝒉𝒊𝒋𝒌𝒍𝒎𝒏𝒐𝒑𝒒𝒓𝒔𝒕𝒖𝒗𝒘𝒙𝒚𝒛"+
-"𝑨𝑩𝑪𝑫𝑬𝑭𝑮𝑯𝑰𝑱𝑲𝑳𝑴𝑵𝑶𝑷𝑸𝑹𝑺𝑻𝑼𝑽𝑾𝑿𝒀𝒁"
-},
+    const styledName = font.convert(font.name);
 
-{
-name:"Rounded",
-map:
-"ⓐⓑⓒⓓⓔⓕⓖⓗⓘⓙⓚⓛⓜⓝⓞⓟⓠⓡⓢⓣⓤⓥⓦⓧⓨⓩ"+
-"ⒶⒷⒸⒹⒺⒻⒼⒽⒾⒿⓀⓁⓂⓃⓄⓅⓆⓇⓈⓉⓊⓋⓌⓍⓎⓏ"
-},
+    msg += `${index + 1}. ${styledName}\n`;
 
-{
-name:"Block",
-map:
-"🄰🄱🄲🄳🄴🄵🄶🄷🄸🄹🄺🄻🄼🄽🄾🄿🅀🅁🅂🅃🅄🅅🅆🅇🅈🅉"+
-"🄰🄱🄲🄳🄴🄵🄶🄷🄸🄹🄺🄻🄼🄽🄾🄿🅀🅁🅂🅃🅄🅅🅆🅇🅈🅉"
-  }
+  });
 
-];
+  return message.reply(msg.trim());
+}
+
+    /* ================= CONVERT ================= */
+
+    const fontNumber = parseInt(args[0]);
+
+    if (
+      isNaN(fontNumber) ||
+      fontNumber < 1 ||
+      fontNumber > fonts.length
+    ) {
+      return message.reply(
+        "❌ | Invalid font number."
+      );
+    }
+
+    const text = args.slice(1).join(" ");
+
+    if (!text) {
+      return message.reply(
+        "❌ | Please provide text."
+      );
+    }
+
+    const selectedFont = fonts[fontNumber - 1];
+
+    const result = selectedFont.convert(text);
+
+    return message.reply(result);
 
   }
+};
+
+/* ================= FONTS ================= */
+
+function getFonts() {
+
+  return [
+
+    {
+      name: "Bold",
+      convert: boldFont
+    },
+
+    {
+      name: "Italic",
+      convert: italicFont
+    },
+
+    {
+      name: "Mono",
+      convert: monoFont
+    },
+
+    {
+      name: "Script",
+      convert: scriptFont
+    },
+
+    {
+      name: "Bubble",
+      convert: bubbleFont
+    },
+
+    {
+      name: "Tiny",
+      convert: tinyFont
+    },
+
+    {
+      name: "Fullwidth",
+      convert: fullWidthFont
+    },
+
+    {
+      name: "Squared",
+      convert: squaredFont
+    },
+
+    {
+      name: "Circled",
+      convert: circledFont
+    }
+
+  ];
+
+}
+
+/* ================= FONT FUNCTIONS ================= */
+
+function boldFont(text) {
+
+  const chars = {
+    A:"𝐀",B:"𝐁",C:"𝐂",D:"𝐃",E:"𝐄",
+    F:"𝐅",G:"𝐆",H:"𝐇",I:"𝐈",J:"𝐉",
+    K:"𝐊",L:"𝐋",M:"𝐌",N:"𝐍",O:"𝐎",
+    P:"𝐏",Q:"𝐐",R:"𝐑",S:"𝐒",T:"𝐓",
+    U:"𝐔",V:"𝐕",W:"𝐖",X:"𝐗",Y:"𝐘",
+    Z:"𝐙",
+
+    a:"𝐚",b:"𝐛",c:"𝐜",d:"𝐝",e:"𝐞",
+    f:"𝐟",g:"𝐠",h:"𝐡",i:"𝐢",j:"𝐣",
+    k:"𝐤",l:"𝐥",m:"𝐦",n:"𝐧",o:"𝐨",
+    p:"𝐩",q:"𝐪",r:"𝐫",s:"𝐬",t:"𝐭",
+    u:"𝐮",v:"𝐯",w:"𝐰",x:"𝐱",y:"𝐲",
+    z:"𝐳",
+
+    0:"𝟎",1:"𝟏",2:"𝟐",3:"𝟑",4:"𝟒",
+    5:"𝟓",6:"𝟔",7:"𝟕",8:"𝟖",9:"𝟗"
+  };
+
+  return convertText(text, chars);
+}
+
+function italicFont(text) {
+
+  const chars = {
+    A:"𝘈",B:"𝘉",C:"𝘊",D:"𝘋",E:"𝘌",
+    F:"𝘍",G:"𝘎",H:"𝘏",I:"𝘐",J:"𝘑",
+    K:"𝘒",L:"𝘓",M:"𝘔",N:"𝘕",O:"𝘖",
+    P:"𝘗",Q:"𝘘",R:"𝘙",S:"𝘚",T:"𝘛",
+    U:"𝘜",V:"𝘝",W:"𝘞",X:"𝘟",Y:"𝘠",
+    Z:"𝘡",
+
+    a:"𝘢",b:"𝘣",c:"𝘤",d:"𝘥",e:"𝘦",
+    f:"𝘧",g:"𝘨",h:"𝘩",i:"𝘪",j:"𝘫",
+    k:"𝘬",l:"𝘭",m:"𝘮",n:"𝘯",o:"𝘰",
+    p:"𝘱",q:"𝘲",r:"𝘳",s:"𝘴",t:"𝘵",
+    u:"𝘶",v:"𝘷",w:"𝘸",x:"𝘹",y:"𝘺",
+    z:"𝘻"
+  };
+
+  return convertText(text, chars);
+}
+
+function monoFont(text) {
+
+  const chars = {
+    A:"𝙰",B:"𝙱",C:"𝙲",D:"𝙳",E:"𝙴",
+    F:"𝙵",G:"𝙶",H:"𝙷",I:"𝙸",J:"𝙹",
+    K:"𝙺",L:"𝙻",M:"𝙼",N:"𝙽",O:"𝙾",
+    P:"𝙿",Q:"𝚀",R:"𝚁",S:"𝚂",T:"𝚃",
+    U:"𝚄",V:"𝚅",W:"𝚆",X:"𝚇",Y:"𝚈",
+    Z:"𝚉",
+
+    a:"𝚊",b:"𝚋",c:"𝚌",d:"𝚍",e:"𝚎",
+    f:"𝚏",g:"𝚐",h:"𝚑",i:"𝚒",j:"𝚓",
+    k:"𝚔",l:"𝚕",m:"𝚖",n:"𝚗",o:"𝚘",
+    p:"𝚙",q:"𝚚",r:"𝚛",s:"𝚜",t:"𝚝",
+    u:"𝚞",v:"𝚟",w:"𝚠",x:"𝚡",y:"𝚢",
+    z:"𝚣"
+  };
+
+  return convertText(text, chars);
+}
+
+function scriptFont(text) {
+
+  const chars = {
+    A:"𝒜",B:"𝐵",C:"𝒞",D:"𝒟",E:"𝐸",
+    F:"𝐹",G:"𝒢",H:"𝐻",I:"𝐼",J:"𝒥",
+    K:"𝒦",L:"𝐿",M:"𝑀",N:"𝒩",O:"𝒪",
+    P:"𝒫",Q:"𝒬",R:"𝑅",S:"𝒮",T:"𝒯",
+    U:"𝒰",V:"𝒱",W:"𝒲",X:"𝒳",Y:"𝒴",
+    Z:"𝒵",
+
+    a:"𝒶",b:"𝒷",c:"𝒸",d:"𝒹",e:"𝑒",
+    f:"𝒻",g:"𝑔",h:"𝒽",i:"𝒾",j:"𝒿",
+    k:"𝓀",l:"𝓁",m:"𝓂",n:"𝓃",o:"𝑜",
+    p:"𝓅",q:"𝓆",r:"𝓇",s:"𝓈",t:"𝓉",
+    u:"𝓊",v:"𝓋",w:"𝓌",x:"𝓍",y:"𝓎",
+    z:"𝓏"
+  };
+
+  return convertText(text, chars);
+}
+
+function bubbleFont(text) {
+  return text.replace(/[A-Za-z]/g, c =>
+    String.fromCodePoint(
+      c <= "Z"
+        ? 0x1F150 + (c.charCodeAt(0) - 65)
+        : 0x1F150 + (c.charCodeAt(0) - 97)
+    )
+  );
+}
+
+function tinyFont(text) {
+
+  const chars = {
+    a:"ᵃ",b:"ᵇ",c:"ᶜ",d:"ᵈ",e:"ᵉ",
+    f:"ᶠ",g:"ᵍ",h:"ʰ",i:"ᶦ",j:"ʲ",
+    k:"ᵏ",l:"ˡ",m:"ᵐ",n:"ⁿ",o:"ᵒ",
+    p:"ᵖ",q:"ᑫ",r:"ʳ",s:"ˢ",t:"ᵗ",
+    u:"ᵘ",v:"ᵛ",w:"ʷ",x:"ˣ",y:"ʸ",
+    z:"ᶻ"
+  };
+
+  return convertText(text.toLowerCase(), chars);
+}
+
+function fullWidthFont(text) {
+
+  return text.replace(/[A-Za-z0-9]/g, c =>
+    String.fromCharCode(c.charCodeAt(0) + 0xFEE0)
+  );
+}
+
+function squaredFont(text) {
+
+  const chars = {
+    A:"🄰",B:"🄱",C:"🄲",D:"🄳",E:"🄴",
+    F:"🄵",G:"🄶",H:"🄷",I:"🄸",J:"🄹",
+    K:"🄺",L:"🄻",M:"🄼",N:"🄽",O:"🄾",
+    P:"🄿",Q:"🅀",R:"🅁",S:"🅂",T:"🅃",
+    U:"🅄",V:"🅅",W:"🅆",X:"🅇",Y:"🅈",
+    Z:"🅉"
+  };
+
+  return convertText(text.toUpperCase(), chars);
+}
+
+function circledFont(text) {
+
+  const chars = {
+    A:"Ⓐ",B:"Ⓑ",C:"Ⓒ",D:"Ⓓ",E:"Ⓔ",
+    F:"Ⓕ",G:"Ⓖ",H:"Ⓗ",I:"Ⓘ",J:"Ⓙ",
+    K:"Ⓚ",L:"Ⓛ",M:"Ⓜ",N:"Ⓝ",O:"Ⓞ",
+    P:"Ⓟ",Q:"Ⓠ",R:"Ⓡ",S:"Ⓢ",T:"Ⓣ",
+    U:"Ⓤ",V:"Ⓥ",W:"Ⓦ",X:"Ⓧ",Y:"Ⓨ",
+    Z:"Ⓩ",
+
+    a:"ⓐ",b:"ⓑ",c:"ⓒ",d:"ⓓ",e:"ⓔ",
+    f:"ⓕ",g:"ⓖ",h:"ⓗ",i:"ⓘ",j:"ⓙ",
+    k:"ⓚ",l:"ⓛ",m:"ⓜ",n:"ⓝ",o:"ⓞ",
+    p:"ⓟ",q:"ⓠ",r:"ⓡ",s:"ⓢ",t:"ⓣ",
+    u:"ⓤ",v:"ⓥ",w:"ⓦ",x:"ⓧ",y:"ⓨ",
+    z:"ⓩ"
+  };
+
+  return convertText(text, chars);
+}
+
+/* ================= COMMON ================= */
+
+function convertText(text, chars) {
+
+  return text.replace(/[A-Za-z0-9]/g, char => {
+    return chars[char] || char;
+  });
+
+    }
