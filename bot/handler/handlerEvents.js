@@ -300,7 +300,6 @@ if (infoBannedThread?.status === true) {
         threadData.data
             .ignoreCommanToOnlyAdminBox || []
     ).includes(commandName)
-)
         ) {
             if (!threadData.data.hideNotiMessageOnlyAdminBox)
                 message.reply(getText("onlyAdminBox", null, null, null, lang));
