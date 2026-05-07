@@ -261,19 +261,20 @@ function isBannedOrOnlyAdmin(userData, threadData, senderID, threadID, isGroup, 
     const config = global.GoatBot.config;
     const { adminBot, hideNotiMessage } = config;
 
-    const infoBannedUser =
-    userData?.banned || {};
+    const infoBannedThread =
+    threadData?.banned || {};
 
-if (infoBannedUser?.status === true) {
-    const { reason, date } = infoBannedUser;
+if (infoBannedThread?.status === true) {
+    const { reason, date } =
+        infoBannedThread;
 
-    if (hideNotiMessage.userBanned == false)
+    if (hideNotiMessage.threadBanned == false)
         message.reply(
             getText(
-                "userBanned",
+                "threadBanned",
                 reason,
                 date,
-                senderID,
+                threadID,
                 lang
             )
         );
