@@ -455,9 +455,6 @@ module.exports = function (api, threadModel, userModel, dashBoardModel, globalMo
 ) {
     hideNotiMessage =
         threadData.settings.hideNotiMessage;
-        } {
-    hideNotiMessage =
-        threadData.settings.hideNotiMessage;
         }
         const prefix = getPrefix(threadID);
         const role = getRole(threadData, senderID);
