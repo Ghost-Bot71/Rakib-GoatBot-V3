@@ -473,7 +473,10 @@ module.exports = function (api, threadModel, userModel, dashBoardModel, globalMo
                 return body_.replace(new RegExp(`^${prefix_}(\\s+|)${commandName_}`, "i"), "").trim();
             }
         };
-        const langCode = threadData.data.lang || config.language || "en";
+        const langCode =
+    threadData?.data?.lang ||
+    config.language ||
+    "en";
 
         function createMessageSyntaxError(commandName) {
             message.SyntaxError = async function () {
