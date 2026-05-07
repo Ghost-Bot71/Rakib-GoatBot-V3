@@ -375,9 +375,12 @@ module.exports = function (api, threadModel, userModel, dashBoardModel, globalMo
         }
 
         if (
-    threadData.settings &&
+    threadData?.settings &&
     typeof threadData.settings.hideNotiMessage == "object"
 ) {
+    hideNotiMessage =
+        threadData.settings.hideNotiMessage;
+        } {
     hideNotiMessage =
         threadData.settings.hideNotiMessage;
         }
