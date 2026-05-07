@@ -64,7 +64,9 @@ function centerText(text, length) {
 }
 
 // logo
-const title = 
+const maxWidth = process.stdout.columns;
+
+const title =
 "██████╗   █████╗   ██╗  ██╗ ██╗ ██████╗ \n" +
 "██╔══██╗ ██╔══██╗ ██║ ██╔╝ ██║ ██╔══██╗\n" +
 "██████╔╝ ███████║ █████╔╝  ██║ ██████╔╝\n" +
