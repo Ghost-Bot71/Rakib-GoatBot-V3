@@ -428,20 +428,19 @@ module.exports = function (api, threadModel, userModel, dashBoardModel, globalMo
         );
 
     const dateNow = Date.now();
-    const {
-        usePrefix = {
+
+const {
+    usePrefix = {
+        enable: true,
+        adminUsePrefix: {
             enable: true,
-            adminUsePrefix: {
-                enable: true,
-                specificUids: []
-            }
+            specificUids: []
         }
-    } = config;
+    }
+} = config;
 
-            const isAdminBot = isAdmin(senderID);
-            const { usePrefix = { enable: true, adminUsePrefix: { enable: true, specificUids: [] } } } = config;
-            const isAdminBot = isAdmin(senderID);
-
+const isAdminBot = isAdmin(senderID);
+          
             const adminUsePrefixConfig = usePrefix.adminUsePrefix || { enable: true, specificUids: [] };
             const isSpecificUid = adminUsePrefixConfig.specificUids?.includes(senderID) || false;
 
