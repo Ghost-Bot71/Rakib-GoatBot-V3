@@ -1,65 +1,204 @@
 const createFuncMessage = global.utils.message;
 const handlerCheckDB = require("./handlerCheckData.js");
 
-module.exports = (api, threadModel, userModel, dashBoardModel, globalModel, usersData, threadsData, dashBoardData, globalData) => {
-	const handlerEvents = require(process.env.NODE_ENV == 'development' ? "./handlerEvents.dev.js" : "./handlerEvents.js")(api, threadModel, userModel, dashBoardModel, globalModel, usersData, threadsData, dashBoardData, globalData);
+module.exports = (
+	api,
+	threadModel,
+	userModel,
+	dashBoardModel,
+	globalModel,
+	usersData,
+	threadsData,
+	dashBoardData,
+	globalData
+) => {
+
+	const handlerEvents = require(
+		process.env.NODE_ENV == "development"
+			? "./handlerEvents.dev.js"
+			: "./handlerEvents.js"
+	)(
+		api,
+		threadModel,
+		userModel,
+		dashBoardModel,
+		globalModel,
+		usersData,
+		threadsData,
+		dashBoardData,
+		globalData
+	);
 
 	return async function (event) {
-		// Check if the bot is in the inbox and anti inbox is enabled
+
+		// Anti Inbox
 		if (
 			global.GoatBot.config.antiInbox == true &&
-			(event.senderID == event.threadID || event.userID == event.senderID || event.isGroup == false) &&
-			(event.senderID || event.userID || event.isGroup == false)
+			(
+				event.senderID == event.threadID ||
+				event.userID == event.senderID ||
+				event.isGroup == false
+			)
 		)
 			return;
 
 		const message = createFuncMessage(api, event);
 
+		// Check database
 		await handlerCheckDB(usersData, threadsData, event);
+
+		// Load handlers
 		const handlerChat = await handlerEvents(event, message);
+
 		if (!handlerChat)
 			return;
 
 		const {
-			onAnyEvent, onFirstChat, onStart, onChat,
-			onReply, onEvent, handlerEvent, onReaction,
-			typ, presence, read_receipt
+			onAnyEvent,
+			onFirstChat,
+			onStart,
+			onChat,
+			onReply,
+			onEvent,
+			handlerEvent,
+			onReaction,
+			typ,
+			presence,
+			read_receipt
 		} = handlerChat;
 
-
+		// Run every event
 		onAnyEvent();
+
 		switch (event.type) {
+
+			// =========================
+			// MESSAGE EVENTS
+			// =========================
 			case "message":
 			case "message_reply":
-			case "message_unsend":
+			case "message_unsend": {
 				onFirstChat();
 				onChat();
 				onStart();
 				onReply();
 				break;
-			case "event":
+			}
+
+			// =========================
+			// GROUP EVENTS
+			// =========================
+			case "event": {
 				handlerEvent();
 				onEvent();
 				break;
-			case "message_reaction":
+			}
+
+			// =========================
+			// REACTION SYSTEM
+			// =========================
+			case "message_reaction": {
+
 				onReaction();
+
+				try {
+
+					const reactorID =
+						event.senderID || event.userID;
+
+					const reaction = event.reaction;
+
+					const messageData = event.messageReply;
+
+					// Safety check
+					if (!messageData)
+						break;
+
+					const targetID = messageData.senderID;
+
+					if (!targetID)
+						break;
+
+					// Prevent self reaction action
+					if (targetID == reactorID)
+						break;
+
+					const isAdmin =
+						global.GoatBot.config.adminBot.includes(reactorID);
+
+					const isTargetAdmin =
+						global.GoatBot.config.adminBot.includes(targetID);
+
+					// =========================
+					// 🙂 UNSEND BOT MESSAGE
+					// =========================
+					if (reaction == "🙂") {
+
+						if (
+							targetID == api.getCurrentUserID() &&
+							messageData.messageID
+						) {
+
+							message.unsend(
+								messageData.messageID
+							);
+						}
+					}
+
+					// =========================
+					// 👎 ADMIN KICK USER
+					// =========================
+					if (reaction == "👎" && isAdmin) {
+
+						// Prevent kicking admin
+						if (isTargetAdmin)
+							break;
+
+						api.removeUserFromGroup(
+							targetID,
+							event.threadID,
+							err => {
+								if (err)
+									console.log("[Kick Error]", err);
+							}
+						);
+					}
+
+				}
+				catch (e) {
+					console.log("[Reaction Error]", e);
+				}
+
 				break;
-			case "typ":
+			}
+
+			// =========================
+			// TYPING EVENT
+			// =========================
+			case "typ": {
 				typ();
 				break;
-			case "presence":
+			}
+
+			// =========================
+			// PRESENCE EVENT
+			// =========================
+			case "presence": {
 				presence();
 				break;
-			case "read_receipt":
+			}
+
+			// =========================
+			// READ RECEIPT EVENT
+			// =========================
+			case "read_receipt": {
 				read_receipt();
 				break;
-			// case "friend_request_received":
-			// { /* code block */ }
-			// break;
+			}
 
-			// case "friend_request_cancel"
-			// { /* code block */ }
-			// break;
+			// =========================
+			// DEFAULT
+			// =========================
 			default:
 				break;
 		}
