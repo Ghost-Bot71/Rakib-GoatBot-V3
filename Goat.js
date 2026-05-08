@@ -410,28 +410,31 @@ if (accessToken) {
 		});
 }
 	async function sendMail({
+	to,
+	subject,
+	text,
+	html,
+	attachments
+}) {
+	if (!transporter)
+		return null;
+
+	const mailOptions = {
+		from: email,
 		to,
 		subject,
 		text,
 		html,
 		attachments
-	}) {
-		const mailOptions = {
-			from: email,
-			to,
-			subject,
-			text,
-			html,
-			attachments
-		};
+	};
 
-		const info = await transporter.sendMail(
+	const info =
+		await transporter.sendMail(
 			mailOptions
 		);
 
-		return info;
+	return info;
 	}
-
 	global.utils.sendMail = sendMail;
 	global.utils.transporter = transporter;
 
