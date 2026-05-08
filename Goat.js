@@ -3,10 +3,27 @@
  * ! The source code is written by NTKhang, please don't change the author's name everywhere.
  * ! Official source code: https://github.com/ntkhang03/Goat-Bot-V2
  */
+//modified by rakib.... 
 
-process.on("unhandledRejection", error => console.log(error));
-process.on("uncaughtException", error => console.log(error));
+process.on(
+	"unhandledRejection",
+	error => {
+		console.log(
+			"[ UNHANDLED_REJECTION ]",
+			error
+		);
+	}
+);
 
+process.on(
+	"uncaughtException",
+	error => {
+		console.log(
+			"[ UNCAUGHT_EXCEPTION ]",
+			error
+		);
+	}
+);
 const axios = require("axios");
 const fs = require("fs-extra");
 const google = require("googleapis").google;
