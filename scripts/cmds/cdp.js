@@ -1,66 +1,50 @@
 const axios = require("axios");
 
-const mahmud = async () => {
-  const base = await axios.get("https://raw.githubusercontent.com/mahmudx7/HINATA/main/baseApiUrl.json");
-  return base.data.mahmud;
-};
-
-/**
-* @author: do not delete it
-*/
-
 module.exports = {
-  config: {
-    name: "cdp",
-    version: "1.7",
-    author: "Rakib",
-    countDown: 5,
-    role: 0,
-    category: "love",
-    guide: "{pn} Get a random Couple DP\n{pn} list  Show total number of Couple DPs"
-  },
+	config: {
+		name: "cdps",
+		aliases: ["coupledp"],
+		version: "1.0",
+		author: "Rakib Hasan",
+		countDown: 5,
+		role: 0,
+		shortDescription: {
+			en: "Send random couple dp"
+		},
+		longDescription: {
+			en: "Send random couple dp pair"
+		},
+		category: "image",
+		guide: {
+			en: "{pn}"
+		}
+	},
 
-  onStart: async function ({ message, args, event, api }) {
-    if (module.exports.config.author !== obfuscatedAuthor) {
-      return api.sendMessage("You are not authorized to change the author name.", event.threadID, event.messageID);
-    }
+	onStart: async function ({ message }) {
+		try {
+			const jsonURL = "https://raw.githubusercontent.com/bdrakib123/bot-api-base/main/cdp.json";
 
-    try {
-      const baseURL = await mahmud();
+			const res = await axios.get(jsonURL);
+			const data = res.data;
 
-      if (args[0] === "list") {
-        const res = await axios.get(`${baseURL}/api/cdp/list`);
-        const { total } = res.data;
-        return message.reply(`🎀 𝐓𝐨𝐭𝐚𝐥 𝐂𝐨𝐮𝐩𝐥𝐞 𝐃𝐏: ${total}`);
-      }
+			if (!Array.isArray(data) || data.length === 0)
+				return message.reply("❌ No data found in JSON.");
 
-      const res = await axios.get(`${baseURL}/api/cdp`);
-      const { boy, girl } = res.data;
-      if (!boy || !girl) return message.reply("⚠ No Couple DP found.");
+			const randomPair = data[Math.floor(Math.random() * data.length)];
 
-      const getStream = async (url) => {
-        const response = await axios({
-          method: "GET",
-          url,
-          responseType: "stream",
-          headers: { 'User-Agent': 'Mozilla/5.0' }
-        });
-        return response.data;
-      };
+			const attachments = await Promise.all([
+				global.utils.getStreamFromURL(randomPair.img1),
+				global.utils.getStreamFromURL(randomPair.img2)
+			]);
 
-      const attachments = [
-        await getStream(boy),
-        await getStream(girl)
-      ];
-
-      message.reply({
-        body: "🎀 | 𝐇𝐞𝐫𝐞'𝐬 𝐲𝐨𝐮𝐫 𝐜𝐝𝐩 𝐛𝐚𝐛𝐲",
-        attachment: attachments
-      });
-
-    } catch (error) {
-      console.error("CDP command error:", error.message || error);
-      message.reply("🥹error, contact tessa.");
-    }
-  }
+			await message.reply({
+				body: `💞 Couple DP #${randomPair.id}`,
+				attachment: attachments
+			});
+		}
+		catch (err) {
+			console.log(err);
+			message.reply("❌ Failed to fetch couple dp.");
+		}
+	}
 };
