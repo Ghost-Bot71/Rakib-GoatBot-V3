@@ -16,50 +16,28 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 let child = null;
-let lastHeartbeat = Date.now();
 let restarting = false;
 
 // ===============================
 // EXPRESS SERVER
 // ===============================
 app.get("/", (req, res) => {
-	res.send(`
-		<!DOCTYPE html>
-		<html>
-		<head>
-			<title>Rakib Goat Bot</title>
+	res.status(200).send("Rakib Goat Bot Running");
+});
 
-			<style>
-				*{
-					margin:0;
-					padding:0;
-					box-sizing:border-box;
-				}
-
-				html,body{
-					width:100%;
-					height:100%;
-					overflow:hidden;
-					background:#000;
-				}
-
-				iframe{
-					width:100%;
-					height:100%;
-					border:none;
-				}
-			</style>
-		</head>
-
-		<body>
-			<iframe src="https://bdrakib6t9.vercel.app"></iframe>
-		</body>
-		</html>
-	`);
+app.get("/ping", (req, res) => {
+	res.status(200).json({
+		status: "online",
+		uptime: process.uptime(),
+		time: new Date()
+	});
 });
 
 app.listen(PORT, () => {
-	log.info("WEB SERVER", `Running on port ${PORT}`);
+	log.info(
+		"WEB SERVER",
+		`Running on port ${PORT}`
+	);
 });
 
 // ===============================
@@ -78,7 +56,10 @@ process.on("uncaughtException", err => {
 		return;
 	}
 
-	log.err("UNCAUGHT_EXCEPTION", err);
+	log.err(
+		"UNCAUGHT_EXCEPTION",
+		err
+	);
 });
 
 process.on("unhandledRejection", err => {
@@ -94,7 +75,10 @@ process.on("unhandledRejection", err => {
 		return;
 	}
 
-	log.err("UNHANDLED_REJECTION", err);
+	log.err(
+		"UNHANDLED_REJECTION",
+		err
+	);
 });
 
 // ===============================
@@ -111,7 +95,7 @@ function startProject() {
 		"Starting Goat Bot..."
 	);
 
-	child = spawn("node", ["Goat.js"], {
+	child = spawn("node", ["./Goat.js"], {
 		cwd: __dirname,
 
 		stdio: [
@@ -122,17 +106,6 @@ function startProject() {
 		],
 
 		shell: true
-	});
-
-	lastHeartbeat = Date.now();
-
-	// ===========================
-	// HEARTBEAT RECEIVE
-	// ===========================
-	child.on("message", msg => {
-		if (msg === "heartbeat") {
-			lastHeartbeat = Date.now();
-		}
 	});
 
 	// ===========================
@@ -160,28 +133,6 @@ function startProject() {
 		restarting = false;
 	});
 }
-
-// ===============================
-// HEARTBEAT WATCHDOG
-// ===============================
-setInterval(() => {
-	const heartbeatTimeout =
-		1000 * 60 * 5;
-
-	if (
-		Date.now() - lastHeartbeat >
-		heartbeatTimeout
-	) {
-		log.warn(
-			"WATCHDOG",
-			"Heartbeat lost, restarting..."
-		);
-
-		if (child) {
-			child.kill();
-		}
-	}
-}, 1000 * 60);
 
 // ===============================
 // SAFE SHUTDOWN
