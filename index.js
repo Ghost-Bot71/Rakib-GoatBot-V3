@@ -3,6 +3,10 @@
  * ! Official source code: https://github.com/ntkhang03/Goat-Bot-V2
  * ! Do not remove author credit
  */
+//modified by rakib...
+
+process.env.NODE_ENV = "production";
+process.env.EXPRESS_NO_WARNINGS = "true";
 
 const { spawn } = require("child_process");
 const log = require("./logger/log.js");
