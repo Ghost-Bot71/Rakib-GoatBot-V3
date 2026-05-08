@@ -1,47 +1,48 @@
 const axios = require("axios");
 
-const mahmud = async () => {
-  const base = await axios.get("https://raw.githubusercontent.com/mahmudx7/HINATA/main/baseApiUrl.json");
-  return base.data.mahmud;
-};
-
 module.exports = {
-  config: {
-    name: "meme",
-    aliases: ["memes"],
-    version: "1.7",
-    author: "Rakib",
-    countDown: 10,
-    role: 0,
-    category: "fun",
-    guide: "{pn}"
-  },
+	config: {
+		name: "meme",
+		version: "1.0",
+		author: "Rakib Hasan",
+		countDown: 5,
+		role: 0,
+		shortDescription: {
+			en: "Send random meme"
+		},
+		longDescription: {
+			en: "Send a random meme image from json"
+		},
+		category: "fun",
+		guide: {
+			en: "{pn}"
+		}
+	},
 
-  onStart: async function ({ message, event, api }) {
-    try {
-      const apiUrl = await mahmud();
-      const res = await axios.get(`${apiUrl}/api/meme`);
-      const imageUrl = res.data?.imageUrl;
+	onStart: async function ({ message }) {
+		try {
+			const jsonURL = "https://raw.githubusercontent.com/bdrakib123/bot-api-base/main/meme.json";
 
-      if (!imageUrl) {
-        return message.reply("Could not fetch meme. Please try again later.");
-      }
+			const response = await axios.get(jsonURL);
+			const memes = response.data;
 
-      const stream = await axios({
-        method: "GET",
-        url: imageUrl,
-        responseType: "stream",
-        headers: { 'User-Agent': 'Mozilla/5.0' }
-      });
+			if (!Array.isArray(memes) || memes.length === 0)
+				return message.reply("❌ Meme list is empty.");
 
-      await api.sendMessage({
-        body: "🐸 | 𝐇𝐞𝐫𝐞'𝐬 𝐲𝐨𝐮𝐫 𝐫𝐚𝐧𝐝𝐨𝐦 𝐦𝐞𝐦𝐞",
-        attachment: stream.data
-      }, event.threadID, event.messageID);
+			const randomMeme = memes[Math.floor(Math.random() * memes.length)];
 
-      return;
-    } catch (error) {
-      return message.reply("An error occurred while fetching meme.");
-    }
-  }
+			const img = (await axios.get(randomMeme, {
+				responseType: "stream"
+			})).data;
+
+			await message.reply({
+				body: "😂 Random Meme",
+				attachment: img
+			});
+		}
+		catch (err) {
+			console.error(err);
+			message.reply("❌ Failed to load meme.");
+		}
+	}
 };
