@@ -24,7 +24,7 @@ process.on(
 		);
 	}
 );
-const axios = require("axios");
+
 const fs = require("fs-extra");
 const google = require("googleapis").google;
 const nodemailer = require("nodemailer");
@@ -211,7 +211,6 @@ const utils = require("./utils.js");
 
 global.utils = utils;
 
-const { colors } = utils;
 
 // ===============================
 // TEMP
