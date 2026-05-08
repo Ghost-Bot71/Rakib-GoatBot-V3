@@ -2,7 +2,7 @@ const axios = require("axios");
 
 module.exports = {
 	config: {
-		name: "cdps",
+		name: "cdp",
 		aliases: ["coupledp"],
 		version: "1.0",
 		author: "Rakib Hasan",
