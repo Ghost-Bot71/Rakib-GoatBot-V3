@@ -464,24 +464,6 @@ catch (err) {
 })();
 
 // ===============================
-// VERSION COMPARE
-// ===============================
-function compareVersion(version1, version2) {
-	const v1 = version1.split(".");
-	const v2 = version2.split(".");
-
-	for (let i = 0; i < 3; i++) {
-		if (parseInt(v1[i]) > parseInt(v2[i]))
-			return 1;
-
-		if (parseInt(v1[i]) < parseInt(v2[i]))
-			return -1;
-	}
-
-	return 0;
-}
-
-// ===============================
 // HEARTBEAT SIGNAL
 // ===============================
 setInterval(() => {
