@@ -434,13 +434,21 @@ if (config.autoRestart) {
 	// ===========================
 	// GOOGLE DRIVE
 	// ===========================
+	try {
 	const parentIdGoogleDrive =
 		await utils.drive.checkAndCreateParentFolder(
 			"GoatBot"
 		);
 
-	utils.drive.parentID = parentIdGoogleDrive;
-
+	utils.drive.parentID =
+		parentIdGoogleDrive;
+}
+catch (err) {
+	log.warn(
+		"GOOGLE_DRIVE",
+		"Google Drive setup failed"
+	);
+}
 	// ===========================
 	// LOGIN
 	// ===========================
