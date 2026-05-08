@@ -391,20 +391,24 @@ catch (err) {
 
 	accessToken = null;
 }
-	const transporter = nodemailer.createTransport({
-		host: "smtp.gmail.com",
-		service: "Gmail",
+	let transporter = null;
 
-		auth: {
-			type: "OAuth2",
-			user: email,
-			clientId,
-			clientSecret,
-			refreshToken,
-			accessToken
-		}
-	});
+if (accessToken) {
+	transporter =
+		nodemailer.createTransport({
+			host: "smtp.gmail.com",
+			service: "Gmail",
 
+			auth: {
+				type: "OAuth2",
+				user: email,
+				clientId,
+				clientSecret,
+				refreshToken,
+				accessToken
+			}
+		});
+}
 	async function sendMail({
 		to,
 		subject,
