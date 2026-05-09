@@ -1,56 +1,159 @@
-const axios = require("axios");
-const fs = require("fs");
+const Canvas = require("canvas");
+const fs = require("fs-extra");
 const path = require("path");
-
-const baseApiUrl = async () => {
-  const base = await axios.get(
-    "https://raw.githubusercontent.com/mahmudx7/HINATA/main/baseApiUrl.json"
-  );
-  return base.data.mahmud;
-};
-
-/**
-* @author: do not delete it
-*/
+const { getAvatarUrl } = require("../../rakib/customApi/getAvatarUrl");
 
 module.exports = {
   config: {
     name: "trash",
-    aliases: [],
-    version: "1.7",
+    aliases: ["dustbin", "trash"],
+    version: "2.1.0",
     author: "Rakib",
+    countDown: 5,
     role: 0,
+    shortDescription: "কাউকে ডাস্টবিনে ফেলার ছবি",
+    longDescription: "Create a Trash image with user avatar in a dustbin",
     category: "fun",
-    cooldown: 10,
-    guide: "rip [mention-reply-UID]",
+    guide: {
+      en: "{pn} [@mention / reply / UID]"
+    }
   },
 
   onStart: async function ({ api, event, args }) {
-     if (module.exports.config.author !== obfuscatedAuthor) {
-     return api.sendMessage(
-     "You are not authorized to change the author name.", event.threadID, event.messageID );
-   }
 
-    const { threadID, messageID, messageReply, mentions } = event;
-    let id2; if (messageReply) { id2 = messageReply.senderID; } else if (Object.keys(mentions).length > 0) {
-    id2 = Object.keys(mentions)[0];  } else if (args[0]) {  id2 = args[0]; } else {
-    return api.sendMessage( "baby, Mention, reply, or provide UID of the target.", threadID, messageID );
-  }
+    const {
+      threadID,
+      messageID,
+      mentions,
+      type,
+      messageReply,
+      senderID
+    } = event;
 
-   try {
-    const url = `${await baseApiUrl()}/api/dig?type=trash&user=${id2}`;
-    const response = await axios.get(url, { responseType: "arraybuffer" });
-    const filePath = path.join(__dirname, `trash_${id2}.png`);
-    fs.writeFileSync(filePath, response.data);
+    let targetID;
 
-     
-    api.sendMessage({ attachment: fs.createReadStream(filePath),
-    body: `𝐄𝐟𝐟𝐞𝐜𝐭 trash 𝐬𝐮𝐜𝐜𝐞𝐬𝐬𝐟𝐮𝐥 🐸`,
-     },
-    threadID, () => fs.unlinkSync(filePath),  messageID );
-  } catch (err) {
-    console.error(err);
-    api.sendMessage(`🥹error, contact hoon.`, threadID, messageID);
+    // target detect
+    if (type === "message_reply") {
+      targetID = messageReply.senderID;
     }
-  },
+    else if (Object.keys(mentions).length > 0) {
+      targetID = Object.keys(mentions)[0];
+    }
+    else if (args.length > 0 && !isNaN(args[0])) {
+      targetID = args[0];
+    }
+    else {
+      targetID = senderID;
+    }
+
+    try {
+
+      api.sendMessage(
+        "🗑️ ডাস্টবিন প্রস্তুত করা হচ্ছে...",
+        threadID,
+        messageID
+      );
+
+      // avatar url
+      const avatarURL = await getAvatarUrl(targetID);
+
+      // load images
+      const background = await Canvas.loadImage(
+        "https://drive.google.com/uc?export=download&id=1FzLP234EqkaKv7QyxlTbqTObUmyES-lN"
+      );
+
+      const avatar = await Canvas.loadImage(avatarURL);
+
+      // original template size
+      const canvas = Canvas.createCanvas(
+        background.width,
+        background.height
+      );
+
+      const ctx = canvas.getContext("2d");
+
+      // draw background
+      ctx.drawImage(
+        background,
+        0,
+        0,
+        background.width,
+        background.height
+      );
+
+      // =========================
+      // BLUR AVATAR (50%)
+      // =========================
+
+      ctx.save();
+
+      // blur amount
+      ctx.filter = "blur(5px)";
+
+      // exact trash position
+      ctx.translate(309, 0);
+
+      // avatar size
+      ctx.drawImage(
+        avatar,
+        0,
+        0,
+        310,
+        310
+      );
+
+      ctx.restore();
+
+      // =========================
+
+      // cache folder
+      const cacheDir = path.join(__dirname, "cache");
+
+      if (!fs.existsSync(cacheDir)) {
+        fs.mkdirSync(cacheDir, { recursive: true });
+      }
+
+      // save path
+      const pathSave = path.join(
+        cacheDir,
+        `trash_${targetID}.png`
+      );
+
+      // save image
+      fs.writeFileSync(
+        pathSave,
+        canvas.toBuffer()
+      );
+
+      // user info
+      const userInfo = await api.getUserInfo(targetID);
+      const name = userInfo[targetID]?.name || "Unknown";
+
+      // send
+      return api.sendMessage({
+        body: `🗑️ ${name} কে সফলভাবে ডাস্টবিনে ফেলে দেওয়া হয়েছে।`,
+        attachment: fs.createReadStream(pathSave)
+      },
+      threadID,
+      () => {
+
+        if (fs.existsSync(pathSave)) {
+          fs.unlinkSync(pathSave);
+        }
+
+      },
+      messageID);
+
+    }
+    catch (error) {
+
+      console.error(error);
+
+      return api.sendMessage(
+        "❌ command error",
+        threadID,
+        messageID
+      );
+    }
+  }
 };
