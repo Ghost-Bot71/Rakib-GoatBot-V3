@@ -88,7 +88,7 @@ module.exports = {
 
       const cardMessage = `
 ╔════════════════════╗
-║ 🚀 PROFILE INSIGHT ║
+║ 🚀 𝐏𝐑𝐎𝐅𝐈𝐋𝐄 𝐈𝐍𝐒𝐈𝐆𝐇𝐓 ║
 ╚════════════════════╝
 
 👤 𝐍𝐚𝐦𝐞       : ${fullName}
@@ -108,7 +108,7 @@ module.exports = {
 
 🔗 𝐏𝐫𝐨𝐟𝐢𝐥𝐞     : https://www.facebook.com/${targetID}
 
-✨ Requested by: ${requesterName}
+✨ 𝐑𝐞𝐪𝐮𝐞𝐬𝐭𝐞𝐝 𝐛𝐲: ${requesterName}
 ────────────────────────────
 `;
 
