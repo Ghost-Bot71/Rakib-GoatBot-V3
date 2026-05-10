@@ -1,100 +1,129 @@
-const fs = require("fs");
 const { getAvatarUrl } = require("../../rakib/customApi/getAvatarUrl");
 
 module.exports = {
   config: {
     name: "spy",
-    version: "1.1",
+    version: "1.5",
     author: "Rakib",
-    countDown: 60,
     role: 0,
-    shortDescription: "Get user information and avatar",
-    longDescription: "Get user information and avatar by mentioning",
-    category: "image",
+    countDown: 5,
+    shortDescription: "Deep dive into user stats",
+    longDescription: "Fetch complete profile details including UID, balance, level, rank, location, with reactions.",
+    category: "utility",
   },
 
-  onStart: async function ({ event, message, usersData, api, args }) {
+  onStart: async function ({ event, message, api, usersData, args }) {
+    const requesterID = event.senderID;
+    const mentionIDs = Object.keys(event.mentions || {});
+    let targetID = mentionIDs[0];
+
+    api.setMessageReaction("🕜", event.messageID, () => {}, true);
+
+    if (args[0]) {
+      const numeric = /^\d+$/.test(args[0]) ? args[0] : null;
+      const linkMatch = args[0].match(/profile\.php\?id=(\d+)/);
+      targetID = numeric || (linkMatch ? linkMatch[1] : targetID);
+    }
+
+    if (!targetID)
+      targetID =
+        event.type === "message_reply"
+          ? event.messageReply.senderID
+          : requesterID;
+
     try {
-      const uid1 = event.senderID;
-      const uid2 = Object.keys(event.mentions || {})[0];
-      let uid;
-
-      // -------------------------
-      // UID FROM ARG / LINK
-      // -------------------------
-      if (args[0]) {
-        // numeric UID
-        if (/^\d+$/.test(args[0])) {
-          uid = args[0];
-        } else {
-          // profile link
-          const match = args[0].match(/profile\.php\?id=(\d+)/);
-          if (match) uid = match[1];
-        }
-      }
-
-      // -------------------------
-      // FALLBACK TARGET
-      // -------------------------
-      if (!uid) {
-        uid =
-          event.type === "message_reply" && event.messageReply?.senderID
-            ? event.messageReply.senderID
-            : uid2 || uid1;
-      }
-
-      // -------------------------
-      // USER INFO
-      // -------------------------
-      const info = await api.getUserInfo(uid);
-      const userInfo = info?.[uid];
-
-      if (!userInfo) {
-        return message.reply("❌ Failed to retrieve user information.");
-      }
-
-      // -------------------------
-      // AVATAR (LOCAL CACHE)
-      // -------------------------
-      const avatarPath = await getAvatarUrl(uid).catch(() => null);
-
-      // -------------------------
-      // GENDER
-      // -------------------------
-      let genderText;
-      switch (userInfo.gender) {
-        case 1:
-          genderText = "Girl";
-          break;
-        case 2:
-          genderText = "Boy";
-          break;
-        default:
-          genderText = "Unknown";
-      }
-
-      // -------------------------
-      // MESSAGE
-      // -------------------------
-      const userInformation =
-        `❏ Name: ${userInfo.name}\n` +
-        `❏ Profile URL: ${userInfo.profileUrl}\n` +
-        `❏ Gender: ${genderText}\n` +
-        `❏ User Type: ${userInfo.type}\n` +
-        `❏ Is Friend: ${userInfo.isFriend ? "Yes" : "No"}\n` +
-        `❏ Is Birthday today: ${userInfo.isBirthday ? "Yes" : "No"}`;
-
-      return message.reply({
-        body: userInformation,
-        attachment:
-          avatarPath && fs.existsSync(avatarPath)
-            ? fs.createReadStream(avatarPath)
-            : null
+      const fbData = await new Promise((resolve, reject) => {
+        api.getUserInfo(targetID, (err, result) =>
+          err ? reject(err) : resolve(result)
+        );
       });
 
+      // Avatar from custom path
+      const avatarLink = await getAvatarUrl(targetID);
+
+      const userRecord = await usersData.get(targetID);
+      const requesterRecord = await usersData.get(requesterID);
+      const requesterName = requesterRecord.name || "Friend";
+
+      const fullName = fbData[targetID].name || "N/A";
+
+      const genderStr =
+        fbData[targetID].gender === 1
+          ? "Female"
+          : fbData[targetID].gender === 2
+          ? "Male"
+          : "Unknown";
+
+      const isFriend = fbData[targetID].isFriend
+        ? "✅ Yes"
+        : "❌ No";
+
+      const birthday = fbData[targetID].isBirthday
+        ? "🎉 Today!"
+        : "🔒 Hidden";
+
+      const balance = userRecord.money || 0;
+      const xp = userRecord.exp || 0;
+      const lvl = Math.floor(Math.sqrt(xp) * 0.1);
+
+      const threadInfo = event.threadID
+        ? await api.getThreadInfo(event.threadID)
+        : {};
+
+      const nickname =
+        threadInfo.nicknames?.[targetID] || "—";
+
+      const location =
+        fbData[targetID].hometown_name || "Unknown";
+
+      const allUsers = await usersData.getAll();
+
+      const rankIdx = allUsers
+        .filter((u) => typeof u.money === "number")
+        .sort((a, b) => b.money - a.money)
+        .findIndex((u) => u.userID === targetID);
+
+      const rank =
+        rankIdx !== -1 ? `#${rankIdx + 1}` : "—";
+
+      const cardMessage = `
+╔════════════════════╗
+║ 🚀 PROFILE INSIGHT ║
+╚════════════════════╝
+
+👤 Name       : ${fullName}
+💬 Nickname   : ${nickname}
+🆔 UID        : ${targetID}
+
+💸 Balance    : $${balance}
+⚡ XP         : ${xp}
+🎚 Level      : ${lvl}
+🏅 Rank       : ${rank}
+
+⚧ Gender     : ${genderStr}
+🎂 Birthday   : ${birthday}
+📍 Location   : ${location}
+🤝 Friend     : ${isFriend}
+💌 Relation   : Single
+
+🔗 Profile    : https://www.facebook.com/${targetID}
+
+✨ Requested by: ${requesterName}
+────────────────────────────
+`;
+
+      await message.reply({
+        body: cardMessage,
+        attachment: await global.utils.getStreamFromURL(avatarLink),
+      });
+
+      api.setMessageReaction("✅", event.messageID, () => {}, true);
+
     } catch (err) {
-      console.error("spy command error:", err);
-      return message.reply("❌ Spy command failed.");
+      console.error(err);
+      return message.reply(
+        "⚠️ Could not retrieve profile info. Try again later!"
+      );
     }
-  }
+  },
 };
