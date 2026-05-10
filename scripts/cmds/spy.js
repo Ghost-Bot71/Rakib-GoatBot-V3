@@ -91,22 +91,22 @@ module.exports = {
 ║ 🚀 PROFILE INSIGHT ║
 ╚════════════════════╝
 
-👤 Name       : ${fullName}
-💬 Nickname   : ${nickname}
-🆔 UID        : ${targetID}
+👤 𝐍𝐚𝐦𝐞       : ${fullName}
+💬 𝐍𝐢𝐜𝐤𝐧𝐚𝐦𝐞    : ${nickname}
+🆔 𝐔𝐈𝐃        : ${targetID}
 
-💸 Balance    : $${balance}
-⚡ XP         : ${xp}
-🎚 Level      : ${lvl}
-🏅 Rank       : ${rank}
+💸 𝐁𝐚𝐥𝐚𝐧𝐜𝐞     : $${balance}
+⚡ 𝐗𝐏         : ${xp}
+🎚 𝐋𝐞𝐯𝐞𝐥       : ${lvl}
+🏅 𝐑𝐚𝐧𝐤       : ${rank}
 
-⚧ Gender     : ${genderStr}
-🎂 Birthday   : ${birthday}
-📍 Location   : ${location}
-🤝 Friend     : ${isFriend}
-💌 Relation   : Single
+⚧  𝐆𝐞𝐧𝐝𝐞𝐫     : ${genderStr}
+🎂 𝐁𝐢𝐫𝐭𝐡𝐝𝐚𝐲    : ${birthday}
+📍 𝐋𝐨𝐜𝐚𝐭𝐢𝐨𝐧    : ${location}
+🤝 𝐅𝐫𝐢𝐞𝐧𝐝     : ${isFriend}
+💌 𝐑𝐞𝐥𝐚𝐭𝐢𝐨𝐧    : Single
 
-🔗 Profile    : https://www.facebook.com/${targetID}
+🔗 𝐏𝐫𝐨𝐟𝐢𝐥𝐞     : https://www.facebook.com/${targetID}
 
 ✨ Requested by: ${requesterName}
 ────────────────────────────
