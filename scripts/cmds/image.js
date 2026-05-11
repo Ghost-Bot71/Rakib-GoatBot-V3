@@ -1,6 +1,7 @@
 const axios = require("axios");
 const fs = require("fs");
 const path = require("path");
+const { API_KEY, CX } = require("../../rakib/customKey/google");
 
 module.exports = {
   config: {
@@ -60,16 +61,7 @@ module.exports = {
       fs.mkdirSync(tempDir, { recursive: true });
     }
 
-    // ================= API =================
-
-    const API_KEY =
-      process.env.GOOGLE_API_KEY ||
-      "AIzaSyApKVVy6L44Qz21LR2BJWRhf7yP4qmczvg";
-
-    const CX =
-      process.env.GOOGLE_CX ||
-      "b4c33dfdc37784f23";
-
+    
     const searchURL =
       `https://www.googleapis.com/customsearch/v1` +
       `?q=${encodeURIComponent(query)}` +
