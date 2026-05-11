@@ -1,47 +1,45 @@
 const axios = require("axios");
 
-const mahmud = async () => {
-  const base = await axios.get("https://raw.githubusercontent.com/mahmudx7/HINATA/main/baseApiUrl.json");
-  return base.data.mahmud;
-};
-
 module.exports = {
   config: {
     name: "joke",
-    aliases: ["jokes"],
-    version: "1.7",
+    aliases: ["funny", "jokes"],
+    version: "1.0",
     author: "Rakib",
     countDown: 5,
     role: 0,
-    category: "fun",
     shortDescription: {
-      en: "Get a random joke"
+      en: "Get a random Bengali joke"
     },
     longDescription: {
-      en: "Fetches a funny joke from Mahmud's global API"
+      en: "Sends a random Bengali joke from JSON"
     },
+    category: "fun",
     guide: {
       en: "{pn}"
     }
   },
 
-  onStart: async function ({ message, api, event }) {
-    if (module.exports.config.author !== obfuscatedAuthor) {
-      return api.sendMessage(
-        "You are not authorized to change the author name.\n",
-        event.threadID,
-        event.messageID
-      );
-    }
-
+  onStart: async function ({ message }) {
     try {
-      const apiUrl = `${await mahmud()}/api/joke`;
-      const res = await axios.get(apiUrl);
-      const { joke, message: msg } = res.data;
+      const url = "https://raw.githubusercontent.com/bdrakib123/bot-api-base/main/json/joke.json";
 
-      message.reply(`${msg}\n\n😂 ${joke}`);
+      const res = await axios.get(url);
+      const jokes = res.data;
+
+      if (!Array.isArray(jokes) || jokes.length === 0) {
+        return message.reply("❌ | কোনো joke পাওয়া যায়নি।");
+      }
+
+      const randomJoke = jokes[Math.floor(Math.random() * jokes.length)];
+
+      return message.reply(
+        `😂 | বাংলা জোক\n\n${randomJoke.joke}`
+      );
+
     } catch (err) {
-      message.reply("🥹error, contact tessa");
+      console.error(err);
+      return message.reply("❌ | Joke আনতে সমস্যা হয়েছে।");
     }
   }
 };
