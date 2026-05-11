@@ -6,8 +6,8 @@ module.exports = {
   config: {
     name: "pinterest",
     aliases: ["pin", "pic"],
-    version: "5.0",
-    author: "Chitron Bhattacharjee + Rakib",
+    version: "1.0",
+    author: "Rakib",
     role: 0,
     countDown: 15,
     category: "media",
