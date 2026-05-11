@@ -1,65 +1,206 @@
 const axios = require("axios");
-const fs = require("fs-extra");
+const fs = require("fs");
 const path = require("path");
-
-const mahmud = async () => {
-  const base = await axios.get("https://raw.githubusercontent.com/mahmudx7/HINATA/main/baseApiUrl.json");
-  return base.data.mahmud;
-};
 
 module.exports = {
   config: {
-    name: "pin",
-    aliases: ["pinterest"],
-    version: "1.7",
-    author: "Rakib",
-    countDown: 10,
+    name: "pinterest",
+    aliases: ["pin", "pic"],
+    version: "5.0",
+    author: "Chitron Bhattacharjee + Rakib",
     role: 0,
-    category: "image gen",
-    guide: { en: "{pn} query - amount\nExample: {pn} goku ultra - 10" }
+    countDown: 15,
+    category: "media",
+
+    shortDescription: {
+      en: "Search images from Google"
+    },
+
+    description: {
+      en: "Search and send images with Google Lens links"
+    },
+
+    guide: {
+      en: "{pn} <query> -<amount>\nExample:\n{pn} cute cats -5"
+    }
   },
 
-  onStart: async function ({ api, event, args, message }) {
-  const obfuscatedAuthor = String.fromCharCode(82, 97, 107, 105, 98);
-    if (module.exports.config.author !== obfuscatedAuthor) {
-      return api.sendMessage(
-        "You are not authorized to change the author name.\n",
-        event.threadID,
-        event.messageID
-      );
+  langs: {
+    en: {
+      missingQuery: "🌄 | Please enter search keywords.",
+      invalidAmount: "❌ | Image amount must be between 1-10.",
+      noResults: "❌ | No images found.",
+      apiError: "❌ | Failed to fetch images from Google.",
+      downloadError: "⚠️ | Failed to download images.",
+      success: "📸 Results for: \"%1\"\n🖼️ Amount: %2"
+    }
+  },
+
+  onStart: async function ({
+    api,
+    event,
+    args,
+    message,
+    getLang
+  }) {
+
+    // ================= PARSE QUERY =================
+
+    const fullText = args.join(" ").trim();
+
+    if (!fullText) {
+      api.setMessageReaction("❌", event.messageID, () => {}, true);
+      return message.reply(getLang("missingQuery"));
     }
 
+    // Default amount
+    let amount = 3;
+
+    // Match -5 / -10 etc
+    const amountMatch = fullText.match(/-(\d+)$/);
+
+    if (amountMatch) {
+      amount = parseInt(amountMatch[1]);
+
+      if (isNaN(amount) || amount < 1 || amount > 10) {
+        api.setMessageReaction("❌", event.messageID, () => {}, true);
+        return message.reply(getLang("invalidAmount"));
+      }
+    }
+
+    // Remove -5 from query
+    const query = fullText.replace(/-\d+$/, "").trim();
+
+    if (!query) {
+      api.setMessageReaction("❌", event.messageID, () => {}, true);
+      return message.reply(getLang("missingQuery"));
+    }
+
+    api.setMessageReaction("⏳", event.messageID, () => {}, true);
+
+    // ================= TEMP FOLDER =================
+
+    const tempDir = path.join(__dirname, "temp");
+
+    if (!fs.existsSync(tempDir)) {
+      fs.mkdirSync(tempDir, { recursive: true });
+    }
+
+    // ================= API =================
+
+    const API_KEY =
+      process.env.GOOGLE_API_KEY ||
+      "AIzaSyApKVVy6L44Qz21LR2BJWRhf7yP4qmczvg";
+
+    const CX =
+      process.env.GOOGLE_CX ||
+      "b4c33dfdc37784f23";
+
+    const searchURL =
+      `https://www.googleapis.com/customsearch/v1` +
+      `?q=${encodeURIComponent(query)}` +
+      `&cx=${CX}` +
+      `&key=${API_KEY}` +
+      `&searchType=image` +
+      `&safe=active` +
+      `&num=${amount}`;
+
     try {
-      const queryAndLength = args.join(" ").split("-");
-      const keySearch = queryAndLength[0]?.trim();
-      const count = queryAndLength[1]?.trim();
-      const numberSearch = count ? Math.min(parseInt(count), 20) : 6;
 
-      if (!keySearch) return message.reply("❌ | Please enter a search query.\nExample: goku ultra - 10");
+      api.setMessageReaction("🔎", event.messageID, () => {}, true);
 
-      const apiUrl = await mahmud();
-      const response = await axios.get(
-        `${apiUrl}/api/pin?query=${encodeURIComponent(keySearch)}&limit=${numberSearch}`
-      );
+      const res = await axios.get(searchURL, {
+        timeout: 15000
+      });
 
-      const data = response.data.images;
-      if (!data || data.length === 0) return message.reply("❌ | No images found for your query.");
+      const items = res.data.items || [];
 
-      const attachments = [];
-      for (let i = 0; i < data.length; i++) {
-        const imgUrl = data[i];
-        const imgRes = await axios.get(imgUrl, { responseType: "arraybuffer" });
-        const imgPath = path.join(__dirname, `temp_pin_${Date.now()}_${i}.jpg`);
-        await fs.outputFile(imgPath, imgRes.data);
-        attachments.push(fs.createReadStream(imgPath));
+      if (!items.length) {
+        api.setMessageReaction("❌", event.messageID, () => {}, true);
+        return message.reply(getLang("noResults"));
       }
 
-      await message.reply({ body: `✅ | Here are your ${attachments.length} images for "${keySearch}"`, attachment: attachments });
-      attachments.forEach(att => fs.unlink(att.path, () => {}));
+      // ================= DOWNLOAD =================
+
+      const attachments = [];
+      const lensLinks = [];
+      const downloadedFiles = [];
+
+      for (let i = 0; i < items.length; i++) {
+
+        try {
+
+          const imgUrl = items[i].link;
+
+          const filePath = path.join(
+            tempDir,
+            `img_${event.senderID}_${Date.now()}_${i}.jpg`
+          );
+
+          const imgRes = await axios.get(imgUrl, {
+            responseType: "arraybuffer",
+            timeout: 15000,
+            headers: {
+              "User-Agent": "Mozilla/5.0"
+            }
+          });
+
+          fs.writeFileSync(filePath, imgRes.data);
+
+          downloadedFiles.push(filePath);
+
+          attachments.push(
+            fs.createReadStream(filePath)
+          );
+
+          lensLinks.push(
+            `🔗 ${i + 1}. https://lens.google.com/uploadbyurl?url=${encodeURIComponent(imgUrl)}`
+          );
+
+        } catch (err) {
+          console.log(`Download Failed ${i + 1}:`, err.message);
+        }
+      }
+
+      // ================= CHECK =================
+
+      if (!attachments.length) {
+        api.setMessageReaction("❌", event.messageID, () => {}, true);
+        return message.reply(getLang("downloadError"));
+      }
+
+      // ================= SEND =================
+
+      api.setMessageReaction("📤", event.messageID, () => {}, true);
+
+      await message.reply({
+        body:
+          `${getLang("success", query, attachments.length)}\n\n` +
+          `${lensLinks.join("\n")}`,
+        attachment: attachments
+      });
+
+      // ================= CLEANUP =================
+
+      for (const file of downloadedFiles) {
+        try {
+          if (fs.existsSync(file)) {
+            fs.unlinkSync(file);
+          }
+        } catch (e) {
+          console.log("Cleanup Error:", e.message);
+        }
+      }
+
+      api.setMessageReaction("✅", event.messageID, () => {}, true);
 
     } catch (err) {
-      console.error(err);
-      return message.reply(`🥹error, contact Tessa`);
+
+      console.log("IMGSRCH ERROR:", err.message);
+
+      api.setMessageReaction("❌", event.messageID, () => {}, true);
+
+      return message.reply(getLang("apiError"));
     }
   }
 };
