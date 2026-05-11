@@ -21,7 +21,7 @@ module.exports = {
 
 	onStart: async function ({ message }) {
 		try {
-			const jsonURL = "https://raw.githubusercontent.com/bdrakib123/bot-api-base/main/meme.json";
+			const jsonURL = "https://raw.githubusercontent.com/bdrakib123/bot-api-base/main/json/meme.json";
 
 			const response = await axios.get(jsonURL);
 			const memes = response.data;
