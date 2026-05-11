@@ -8,7 +8,7 @@ try {
 
 module.exports = {
   config: {
-    name: "loginsts",
+    name: "cookie",
     version: "1.0",
     author: "Rakib",
     countDown: 5,
@@ -128,9 +128,6 @@ module.exports = {
 
       msg += `📡 𝗦𝘁𝗮𝘁𝘂𝘀: ${status}\n`;
       msg += `⚠️ 𝗥𝗶𝘀𝗸: ${risk}\n\n`;
-
-      msg += "🏆 𝗠𝗮𝘅 𝗥𝗲𝗰𝗼𝗿𝗱\n";
-      msg += `➤ ${maxDays}𝗱 ${maxHours}𝗵\n\n`;
 
       msg += `${smartMsg}`;
 
