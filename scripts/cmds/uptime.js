@@ -31,14 +31,22 @@ module.exports = {
       const systemUptimeString = `${sDays}d ${sHours}h ${sMinutes}m`;
 
       // PING
-      const start = Date.now();
-      await api.getCurrentUserID();
-      const ping = Date.now() - start;
-
+      const start = process.hrtime.bigint();
+  	  api.sendMessage("🏓", event.threadID, (err, info) => {
+      const end = process.hrtime.bigint();
+	    const ping = Number(end - start) / 1e6;
+	    api.editMessage(`📶 Ping: ${ping.toFixed(2)} ms`,
+      info.messageID
+  	  );
+      });
       let pingStatus = "😐 Average";
-      if (ping < 200) pingStatus = "🟢 Excellent";
-      else if (ping < 400) pingStatus = "🙂 Good";
-
+      if (ping < 200)
+		  pingStatus = "🟢 Excellent";
+		  else if (ping < 400)
+		  pingStatus = "🙂 Good";
+			else if (ping < if800)
+	    pingStatusus = "🟠 Slow"elsese
+  		pingStatusus = "🔴 Very Slow";
       // MESSAGE (BOLD STYLE)
       const msg =
 `╭───────────────
