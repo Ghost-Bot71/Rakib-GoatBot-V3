@@ -7,31 +7,26 @@ module.exports = {
     countDown: 10,
     role: 0,
     shortDescription: {
-      en: "okh enjoy @Rakib cmd"
+      en: "Send message to inbox"
     },
-    longDescription: {
-      en: ""
-    },
-    category: "fun",
-    guide: {
-      en: ""
-    }
+    category: "fun"
   },
-  langs: {
-    en: {
-      gg: ""
-    },
-    id: {
-      gg: ""
-    }
-  },
-  onStart: async function({ api, event, args, message }) {
+
+  onStart: async function ({ api, event, message }) {
     try {
-      const query = encodeURIComponent(args.join(' '));
-      message.reply("✅ SUCCESSFULLY SEND MSG\n\n🔰 PLEASE CK YOUR INBOX OR MSG REQUEST BOX", event.threadID);
-      api.sendMessage("✅ SUCCESSFULLY ALLOW\n🔰 NOW YOU CAN USE🫠 HI I'M BAYJID BOT🫠 HERE", event.senderID);
+
+      message.reply(
+        "✅ Message sent successfully!\n📩 Check your inbox or message request."
+      );
+
+      api.sendMessage(
+        "🤖 Hello! I'm tessa Bot.",
+        event.senderID
+      );
+
     } catch (error) {
-      console.error("Error bro: " + error);
+      console.log(error);
+      message.reply("❌ Failed to send message.");
     }
   }
-}
+};
