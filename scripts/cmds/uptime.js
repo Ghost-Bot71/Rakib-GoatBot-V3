@@ -32,21 +32,26 @@ module.exports = {
 
       // PING
       const start = process.hrtime.bigint();
-  	  api.sendMessage("🏓", event.threadID, (err, info) => {
-      const end = process.hrtime.bigint();
-	    const ping = Number(end - start) / 1e6;
-	    api.editMessage(`📶 Ping: ${ping.toFixed(2)} ms`,
-      info.messageID
-  	  );
-      });
-      let pingStatus = "😐 Average";
-      if (ping < 200)
-		  pingStatus = "🟢 Excellent";
-		  else if (ping < 400)
-		  pingStatus = "🙂 Good";
-			else if (ping < if800)
-	    pingStatusus = "🟠 Slow"elsese
-  		pingStatusus = "🔴 Very Slow";
+
+api.sendMessage("🏓", event.threadID, (err, info) => {
+  const end = process.hrtime.bigint();
+
+  const ping = Number(end - start) / 1e6;
+
+  let pingStatus = "🔴 Very Slow";
+
+  if (ping < 200)
+    pingStatus = "🟢 Excellent";
+  else if (ping < 400)
+    pingStatus = "🙂 Good";
+  else if (ping < 800)
+    pingStatus = "🟠 Slow";
+
+  api.editMessage(
+    `📶 Ping: ${ping.toFixed(2)} ms (${pingStatus})`,
+    info.messageID
+  );
+});
       // MESSAGE (BOLD STYLE)
       const msg =
 `╭───────────────
