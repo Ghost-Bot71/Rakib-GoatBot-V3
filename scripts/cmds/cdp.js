@@ -22,7 +22,7 @@ module.exports = {
 
 	onStart: async function ({ message }) {
 		try {
-			const jsonURL = "https://raw.githubusercontent.com/bdrakib123/bot-api-base/main/cdp.json";
+			const jsonURL = "https://raw.githubusercontent.com/bdrakib123/bot-api-base/main/json/cdp.json";
 
 			const res = await axios.get(jsonURL);
 			const data = res.data;
