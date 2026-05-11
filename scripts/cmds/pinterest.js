@@ -7,18 +7,18 @@ module.exports = {
   config: {
     name: "pinterest",
     aliases: ["pin", "pic"],
-    version: "1.0",
+    version: "6.0",
     author: "Rakib",
     role: 0,
     countDown: 15,
     category: "media",
 
     shortDescription: {
-      en: "Search images from Google"
+      en: "Search random images from Google"
     },
 
     description: {
-      en: "Search and send images with Google Lens links"
+      en: "Search and send random images with Google Lens links"
     },
 
     guide: {
@@ -45,7 +45,7 @@ module.exports = {
     getLang
   }) {
 
-    // ================= PARSE QUERY =================
+    // ================= QUERY =================
 
     const fullText = args.join(" ").trim();
 
@@ -54,10 +54,10 @@ module.exports = {
       return message.reply(getLang("missingQuery"));
     }
 
-    // Default amount
+    // ================= AMOUNT =================
+
     let amount = 3;
 
-    // Match -5 / -10 etc
     const amountMatch = fullText.match(/-(\d+)$/);
 
     if (amountMatch) {
@@ -69,7 +69,6 @@ module.exports = {
       }
     }
 
-    // Remove -5 from query
     const query = fullText.replace(/-\d+$/, "").trim();
 
     if (!query) {
@@ -79,7 +78,7 @@ module.exports = {
 
     api.setMessageReaction("⏳", event.messageID, () => {}, true);
 
-    // ================= TEMP FOLDER =================
+    // ================= TEMP =================
 
     const tempDir = path.join(__dirname, "temp");
 
@@ -95,7 +94,20 @@ module.exports = {
       `&key=${API_KEY}` +
       `&searchType=image` +
       `&safe=active` +
-      `&num=${amount}`;
+      `&num=10`;
+
+    // ================= SHUFFLE =================
+
+    function shuffleArray(array) {
+      for (let i = array.length - 1; i > 0; i--) {
+
+        const j = Math.floor(Math.random() * (i + 1));
+
+        [array[i], array[j]] = [array[j], array[i]];
+      }
+
+      return array;
+    }
 
     try {
 
@@ -105,12 +117,19 @@ module.exports = {
         timeout: 15000
       });
 
-      const items = res.data.items || [];
+      let items = res.data.items || [];
 
       if (!items.length) {
         api.setMessageReaction("❌", event.messageID, () => {}, true);
         return message.reply(getLang("noResults"));
       }
+
+      // ================= RANDOMIZE =================
+
+      items = shuffleArray(items);
+
+      // Take only requested amount
+      items = items.slice(0, amount);
 
       // ================= DOWNLOAD =================
 
@@ -176,9 +195,11 @@ module.exports = {
 
       for (const file of downloadedFiles) {
         try {
+
           if (fs.existsSync(file)) {
             fs.unlinkSync(file);
           }
+
         } catch (e) {
           console.log("Cleanup Error:", e.message);
         }
