@@ -29,7 +29,7 @@ module.exports = {
 ➤ 𝐎𝐰𝐧𝐞𝐫 (𝐒𝐨𝐥𝐨)
 
 🌐 𝐅𝐚𝐜𝐞𝐛𝐨𝐨𝐤
-➤ www.facebook.com/hoon420
+➤ www.facebook.com/hoon6t9
 
 📧 𝐄𝐦𝐚𝐢𝐥
 ➤ bdrakib6t9@gmail.com
