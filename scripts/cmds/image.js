@@ -7,32 +7,33 @@ module.exports = {
   config: {
     name: "image",
     aliases: ["imgsearch", "imgsrc"],
-    version: "4.0",
+    version: "6.0",
     author: "Rakib",
     role: 0,
     countDown: 15,
     category: "media",
 
     shortDescription: {
-      en: "Search images from Google"
+      en: "Search random images from Google"
     },
 
     description: {
-      en: "Search and send images with Google Lens links"
+      en: "Search and send random images with Google Lens links"
     },
 
     guide: {
-      en: "{pn} <query>\nExample: {pn} cute cats"
+      en: "{pn} <query> -<amount>\nExample:\n{pn} cute cats -5"
     }
   },
 
   langs: {
     en: {
       missingQuery: "🌄 | Please enter search keywords.",
+      invalidAmount: "❌ | Image amount must be between 1-10.",
       noResults: "❌ | No images found.",
       apiError: "❌ | Failed to fetch images from Google.",
       downloadError: "⚠️ | Failed to download images.",
-      success: "📸 Results for: \"%1\""
+      success: "📸 Results for: \"%1\"\n🖼️ Amount: %2"
     }
   },
 
@@ -44,7 +45,31 @@ module.exports = {
     getLang
   }) {
 
-    const query = args.join(" ").trim();
+    // ================= QUERY =================
+
+    const fullText = args.join(" ").trim();
+
+    if (!fullText) {
+      api.setMessageReaction("❌", event.messageID, () => {}, true);
+      return message.reply(getLang("missingQuery"));
+    }
+
+    // ================= AMOUNT =================
+
+    let amount = 3;
+
+    const amountMatch = fullText.match(/-(\d+)$/);
+
+    if (amountMatch) {
+      amount = parseInt(amountMatch[1]);
+
+      if (isNaN(amount) || amount < 1 || amount > 10) {
+        api.setMessageReaction("❌", event.messageID, () => {}, true);
+        return message.reply(getLang("invalidAmount"));
+      }
+    }
+
+    const query = fullText.replace(/-\d+$/, "").trim();
 
     if (!query) {
       api.setMessageReaction("❌", event.messageID, () => {}, true);
@@ -53,7 +78,7 @@ module.exports = {
 
     api.setMessageReaction("⏳", event.messageID, () => {}, true);
 
-    // ================= TEMP FOLDER =================
+    // ================= TEMP =================
 
     const tempDir = path.join(__dirname, "temp");
 
@@ -69,7 +94,20 @@ module.exports = {
       `&key=${API_KEY}` +
       `&searchType=image` +
       `&safe=active` +
-      `&num=5`;
+      `&num=10`;
+
+    // ================= SHUFFLE =================
+
+    function shuffleArray(array) {
+      for (let i = array.length - 1; i > 0; i--) {
+
+        const j = Math.floor(Math.random() * (i + 1));
+
+        [array[i], array[j]] = [array[j], array[i]];
+      }
+
+      return array;
+    }
 
     try {
 
@@ -79,20 +117,27 @@ module.exports = {
         timeout: 15000
       });
 
-      const items = res.data.items || [];
+      let items = res.data.items || [];
 
       if (!items.length) {
         api.setMessageReaction("❌", event.messageID, () => {}, true);
         return message.reply(getLang("noResults"));
       }
 
-      // ================= DOWNLOAD IMAGES =================
+      // ================= RANDOMIZE =================
+
+      items = shuffleArray(items);
+
+      // Take only requested amount
+      items = items.slice(0, amount);
+
+      // ================= DOWNLOAD =================
 
       const attachments = [];
       const lensLinks = [];
       const downloadedFiles = [];
 
-      for (let i = 0; i < Math.min(items.length, 3); i++) {
+      for (let i = 0; i < items.length; i++) {
 
         try {
 
@@ -107,8 +152,7 @@ module.exports = {
             responseType: "arraybuffer",
             timeout: 15000,
             headers: {
-              "User-Agent":
-                "Mozilla/5.0"
+              "User-Agent": "Mozilla/5.0"
             }
           });
 
@@ -142,7 +186,7 @@ module.exports = {
 
       await message.reply({
         body:
-          `${getLang("success", query)}\n\n` +
+          `${getLang("success", query, attachments.length)}\n\n` +
           `${lensLinks.join("\n")}`,
         attachment: attachments
       });
@@ -151,9 +195,11 @@ module.exports = {
 
       for (const file of downloadedFiles) {
         try {
+
           if (fs.existsSync(file)) {
             fs.unlinkSync(file);
           }
+
         } catch (e) {
           console.log("Cleanup Error:", e.message);
         }
@@ -163,7 +209,7 @@ module.exports = {
 
     } catch (err) {
 
-      console.log("IMGSRCH ERROR:", err);
+      console.log("IMGSRCH ERROR:", err.message);
 
       api.setMessageReaction("❌", event.messageID, () => {}, true);
 
