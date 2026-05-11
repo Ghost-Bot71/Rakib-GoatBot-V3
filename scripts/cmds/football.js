@@ -1,113 +1,214 @@
 const axios = require("axios");
 
-const baseApiUrl = async () => {
-  const base = await axios.get("https://raw.githubusercontent.com/mahmudx7/HINATA/main/baseApiUrl.json");
-  return base.data.mahmud;
-};
+// 🔒 one active quiz per user
+const ACTIVE_FOOTBALL = new Map();
 
 module.exports = {
   config: {
-    name: "footballgame",
-    aliases: ["football"],
-    version: "1.7",
+    name: "football",
+    aliases: ["fqz", "footballquiz"],
+    version: "FINAL-EDIT",
     author: "Rakib",
-    countDown: 10,
     role: 0,
     category: "game",
     guide: {
-      en: "{pn}"
+      en: "football → get football quiz\nReply A / B / C / D"
     }
   },
 
-  onReply: async function ({ api, event, Reply, usersData }) {
-   if (module.exports.config.author !== obfuscatedAuthor) {
-    return api.sendMessage("You are not authorized to change the author name.", event.threadID, event.messageID);
-  }
-    const { footballNames, author, messageID } = Reply;
-    const getCoin = 500;
-    const getExp = 121;
+  // ================= START =================
+  onStart: async function ({ message, event, api, usersData }) {
+    const uid = event.senderID;
 
-    if (event.senderID !== author) {
-      return api.sendMessage("𝐓𝐡𝐢𝐬 𝐢𝐬 𝐧𝐨𝐭 𝐲𝐨𝐮𝐫 𝐪𝐮𝐢𝐳 𝐛𝐚𝐛𝐲 >🐸", event.threadID, event.messageID);
-    }
-
-    const reply = event.body.trim().toLowerCase();
-    const isCorrect = footballNames.some(name => name.toLowerCase() === reply);
-    const userData = await usersData.get(event.senderID);
-
-    await api.unsendMessage(messageID);
-
-    if (isCorrect) {
-      try {
-        await usersData.set(event.senderID, {
-          money: userData.money + getCoin,
-          exp: userData.exp + getExp
-        });
-
-        return api.sendMessage(
-          `✅ | Correct answer baby.\nYou have earned ${getCoin} coins and ${getExp} exp.`,
-          event.threadID,
-          event.messageID
-        );
-      } catch (err) {
-        console.log("Error:", err.message);
-      }
-    } else {
-      return api.sendMessage(
-        `❌ | Wrong Answer baby.\nCorrect answer was: ${footballNames.join(" / ")}`,
-        event.threadID,
-        event.messageID
-      );
-    }
-  },
-
-  onStart: async function ({ api, event, usersData }) {
-    const obfuscatedAuthor = String.fromCharCode(77, 97, 104, 77, 85, 68); 
-    if (module.exports.config.author !== obfuscatedAuthor) {
-      return api.sendMessage("You are not authorized to change the author name.\n", event.threadID, event.messageID);
+    if (ACTIVE_FOOTBALL.has(uid)) {
+      return message.reply("⚠️ তুমি ইতিমধ্যে একটি Football Quiz খেলছো!");
     }
 
     try {
-      const { senderID } = event;
-      const userData = await usersData.get(senderID);
+      const user = await usersData.get(uid) || {};
+      const token = user.data?.footballToken || "";
 
-      const apiUrl = await baseApiUrl();
-      const response = await axios.get(`${apiUrl}/api/football`);
-      const { name, imgurLink } = response.data.football;
-      const footballNames = Array.isArray(name) ? name : [name];
+      const res = await axios.get(
+        `https://rakib-api.vercel.app/api/quiz?category=Football&apikey=rakib69&token=${token}`
+      );
 
-      const imageStream = await axios({
-        url: imgurLink,
-        method: "GET",
-        responseType: "stream",
-        headers: { 'User-Agent': 'Mozilla/5.0' }
+      const q = res.data;
+      const answer = String(q.answer || "").trim().toUpperCase();
+
+      if (!["A", "B", "C", "D"].includes(answer)) {
+        return message.reply("❌ Football Quiz data invalid!");
+      }
+
+      const quizText =
+`⚽ Football Quiz
+
+❓ প্রশ্ন:
+${q.question}
+
+🅰 ${q.A}
+🅱 ${q.B}
+🅲 ${q.C}
+🅳 ${q.D}
+
+✍️ রিপ্লাই করো:
+A / B / C / D`;
+
+      const info = await message.reply(quizText);
+
+      const timer = setTimeout(() => {
+        ACTIVE_FOOTBALL.delete(uid);
+
+        try {
+          api.editMessage(
+`⌛ সময় শেষ!
+
+❓ প্রশ্ন:
+${q.question}
+
+✅ সঠিক উত্তর:
+${answer}) ${q[answer]}`,
+            info.messageID
+          );
+        } catch {}
+      }, 40000);
+
+      ACTIVE_FOOTBALL.set(uid, true);
+
+      global.GoatBot.onReply.set(info.messageID, {
+        commandName: this.config.name,
+        author: uid,
+        answer,
+        token: q.token,
+        options: {
+          A: q.A,
+          B: q.B,
+          C: q.C,
+          D: q.D
+        },
+        quizMessageID: info.messageID,
+        timer,
+        question: q.question
       });
 
-      api.sendMessage(
-        {
-          body: "A famous footballer has appeared! Guess their name.",
-          attachment: imageStream.data
-        },
-        event.threadID,
-        (err, info) => {
-          if (err) return;
-          global.GoatBot.onReply.set(info.messageID, {
-            commandName: this.config.name,
-            type: "reply",
-            messageID: info.messageID,
-            author: senderID,
-            footballNames
-          });
-
-          setTimeout(() => {
-            api.unsendMessage(info.messageID);
-          }, 40000);
-        },
-        event.messageID
-      );
-    } catch (error) {
-      console.error("Error:", error.message);
-      api.sendMessage("🥹error, contact tessa.", event.threadID, event.messageID);
+    } catch (e) {
+      ACTIVE_FOOTBALL.delete(uid);
+      message.reply("❌ Football Quiz লোড করা যাচ্ছে না!");
     }
+  },
+
+  // ================= REPLY =================
+  onReply: async function ({ message, event, usersData, Reply, api }) {
+    const uid = event.senderID;
+    const ans = (event.body || "").trim().toUpperCase();
+
+    if (!["A", "B", "C", "D"].includes(ans)) return;
+    if (uid !== Reply.author) return;
+
+    clearTimeout(Reply.timer);
+    ACTIVE_FOOTBALL.delete(uid);
+    global.GoatBot.onReply.delete(Reply.quizMessageID);
+
+    const correct = Reply.answer;
+    const correctText = Reply.options[correct];
+
+    const user = await usersData.get(uid) || {};
+    const data = user.data || {};
+
+    let win = data.footballWin || 0;
+    let loss = data.footballLoss || 0;
+    let streak = data.footballStreak || 0;
+    let bestStreak = data.footballBestStreak || 0;
+    let badges = data.footballBadges || [];
+
+    const newBadges = [];
+
+    // ===== CORRECT =====
+    if (ans === correct) {
+      win++;
+      streak++;
+      bestStreak = Math.max(bestStreak, streak);
+
+      if (win >= 5 && !badges.includes("🥉 Bronze"))
+        newBadges.push("🥉 Bronze");
+
+      if (win >= 10 && !badges.includes("🥈 Silver"))
+        newBadges.push("🥈 Silver");
+
+      if (win >= 25 && !badges.includes("🥇 Gold"))
+        newBadges.push("🥇 Gold");
+
+      if (win >= 50 && !badges.includes("🏆 Champion"))
+        newBadges.push("🏆 Champion");
+
+      if (bestStreak >= 10 && !badges.includes("🔥 Streak Master"))
+        newBadges.push("🔥 Streak Master");
+
+      badges = [...new Set([...badges, ...newBadges])];
+
+      if (typeof usersData.addMoney === "function") {
+        await usersData.addMoney(uid, 500);
+      }
+
+      await usersData.set(uid, {
+        exp: (user.exp || 0) + 100,
+        data: {
+          ...data,
+          footballWin: win,
+          footballLoss: loss,
+          footballStreak: streak,
+          footballBestStreak: bestStreak,
+          footballBadges: badges,
+          footballToken: Reply.token
+        }
+      });
+
+      const editText =
+`🎉 সঠিক উত্তর!
+
+❓ ${Reply.question}
+
+✅ ${correct}) ${correctText}
+
+🏆 Win: ${win}
+❌ Loss: ${loss}
+🔥 Streak: ${streak}
+🏅 Best Streak: ${bestStreak}
+💰 Reward: 500$
+
+${newBadges.length
+  ? `🏅 New Badge:\n${newBadges.join(" | ")}`
+  : ""}`;
+
+      return api.editMessage(editText, Reply.quizMessageID);
+    }
+
+    // ===== WRONG =====
+    loss++;
+    streak = 0;
+
+    await usersData.set(uid, {
+      data: {
+        ...data,
+        footballWin: win,
+        footballLoss: loss,
+        footballStreak: 0,
+        footballBadges: badges,
+        footballToken: Reply.token
+      }
+    });
+
+    const wrongText =
+`❌ ভুল উত্তর!
+
+❓ ${Reply.question}
+
+✅ সঠিক উত্তর:
+${correct}) ${correctText}
+
+🏆 Win: ${win}
+❌ Loss: ${loss}
+🔥 Streak reset`;
+
+    return api.editMessage(wrongText, Reply.quizMessageID);
   }
 };
