@@ -1,49 +1,52 @@
 const axios = require("axios");
 
-const mahmud = async () => {
-  const base = await axios.get("https://raw.githubusercontent.com/mahmudx7/HINATA/main/baseApiUrl.json");
-  return base.data.mahmud;
-};
-
 module.exports = {
   config: {
     name: "hadis",
     aliases: ["hadith"],
-    version: "1.7",
+    version: "1.0",
     author: "Rakib",
     countDown: 5,
     role: 0,
-    category: "islamic",
     shortDescription: {
-      en: "Random Bangla Hadis"
+      en: "Get random hadith"
     },
     longDescription: {
-      en: "Sends a random Bangla Hadis with source from Mahmud's global API"
+      en: "Send a random hadith with reference"
     },
+    category: "islamic",
     guide: {
       en: "{pn}"
     }
   },
 
-  onStart: async function ({ message, api, event }) {
-    if (module.exports.config.author !== obfuscatedAuthor) {
-      return api.sendMessage(
-        "You are not authorized to change the author name.\n",
-        event.threadID,
-        event.messageID
-      );
-    }
-
+  onStart: async function ({ message }) {
     try {
-      const base = await mahmud();
-      const res = await axios.get(`${base}/api/hadis`);
-      const hadis = res.data;
+      const url =
+        "https://raw.githubusercontent.com/bdrakib123/bot-api-base/main/json/hadith.json";
 
-      message.reply(
-        `${hadis.text}\n\n- ${hadis.source} 🖤`
-      );
+      const res = await axios.get(url);
+      const data = res.data;
+
+      if (!Array.isArray(data) || data.length === 0) {
+        return message.reply("❌ | কোনো হাদিস পাওয়া যায়নি।");
+      }
+
+      const random =
+        data[Math.floor(Math.random() * data.length)];
+
+      const msg =
+`📖 | Random Hadith
+
+❝ ${random.hadith} ❞
+
+📚 Reference: ${random.reference}`;
+
+      return message.reply(msg);
+
     } catch (err) {
-      message.reply("🥹error, contact tessa");
+      console.error(err);
+      return message.reply("❌ | হাদিস আনতে সমস্যা হয়েছে।");
     }
   }
 };
