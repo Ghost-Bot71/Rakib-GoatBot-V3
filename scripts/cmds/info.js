@@ -49,7 +49,7 @@ module.exports = {
 ➤ 𝐎𝐰𝐧𝐞𝐫 & 𝐀𝐝𝐦𝐢𝐧 (𝐒𝐨𝐥𝐨)
 
 🌐 𝐅𝐚𝐜𝐞𝐛𝐨𝐨𝐤
-➤ www.facebook.com/hoon420
+➤ www.facebook.com/hoon6t9
 
 📧 𝐄𝐦𝐚𝐢𝐥
 ➤ bdrakib6t9@gmail.com
@@ -64,7 +64,7 @@ module.exports = {
 ➤ github.com/bdrakib6t9
 
 🌍 𝐖𝐞𝐛𝐬𝐢𝐭𝐞
-➤ https://bdrakib6t9.netlify.app/`;
+➤ https://bdrakib6t9.vercel.app/`;
 
     api.sendMessage(
 `╭━━━━━━━━━━━━━━━╮
