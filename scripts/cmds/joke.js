@@ -34,7 +34,7 @@ module.exports = {
       const randomJoke = jokes[Math.floor(Math.random() * jokes.length)];
 
       return message.reply(
-        `😂 | বাংলা জোক\n\n❝${randomJoke.joke}❞`
+        `😂 | বাংলা জোক\n\n❝ ${randomJoke.joke} ❞`
       );
 
     } catch (err) {
