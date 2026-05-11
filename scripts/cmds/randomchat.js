@@ -6,10 +6,10 @@ module.exports = {
 config: {
 name: "randomchat",
 aliases: ["rchat"],
-version: "15.0.0",
-author: "Milon",
+version: "1.0.0",
+author: "Rakib",
 countDown: 2,
-role: 0, // 0 মানে এখন সব ইউজার ব্যবহার করতে পারবে
+role: 0,
 shortDescription: "rchat for all users with Expanded Group List",
 category: "Communication",
 guide: { en: "{pn} [Serial/TID] [Message] | {pn} list" }
