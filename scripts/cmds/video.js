@@ -4,7 +4,7 @@ module.exports = {
   config: {
     name: "video",
     aliases: ["ytvideo", "vdl"],
-    version: "1.0",
+    version: "2.0",
     author: "Rakib",
     countDown: 5,
     role: 0,
@@ -13,7 +13,7 @@ module.exports = {
     category: "media"
   },
 
-  onStart: async function ({ api, event, args, message }) {
+  onStart: async function ({ event, args, message }) {
     try {
       const query = args.join(" ").trim();
 
@@ -23,14 +23,32 @@ module.exports = {
         );
       }
 
+      // Format duration
+      function formatDuration(duration) {
+        if (!duration || isNaN(duration)) {
+          return "0:00";
+        }
+
+        const minutes =
+          Math.floor(duration / 60);
+
+        const seconds =
+          duration % 60;
+
+        return (
+          `${minutes}:` +
+          `${String(seconds).padStart(2, "0")}`
+        );
+      }
+
       const searchUrl =
         `https://rakib-ytv-api.onrender.com/api/search?q=${encodeURIComponent(query)}&apikey=rakib69`;
 
       const res = await axios.get(searchUrl);
 
       const results =
-        res.data.items ||
         res.data.results ||
+        res.data.items ||
         res.data.data ||
         [];
 
@@ -40,41 +58,12 @@ module.exports = {
         );
       }
 
-      // duration converter
-      function durationToSeconds(duration) {
-        if (!duration) return 0;
-
-        const parts = duration
-          .split(":")
-          .map(Number);
-
-        if (parts.length === 3) {
-          return (
-            parts[0] * 3600 +
-            parts[1] * 60 +
-            parts[2]
-          );
-        }
-
-        if (parts.length === 2) {
-          return (
-            parts[0] * 60 +
-            parts[1]
-          );
-        }
-
-        return parts[0];
-      }
-
-      // under 15 mins
+      // Under 15 min
       const filtered = results.filter(item => {
-        const duration =
-          item.duration ||
-          item.lengthText ||
-          item.timestamp ||
-          "0:00";
-
-        return durationToSeconds(duration) <= 900;
+        return (
+          typeof item.duration === "number" &&
+          item.duration <= 900
+        );
       });
 
       if (!filtered.length) {
@@ -98,20 +87,16 @@ module.exports = {
           "Unknown Title";
 
         const channel =
+          item.channel ||
           item.channelTitle ||
           item.author ||
           "Unknown Channel";
 
         const duration =
-          item.duration ||
-          item.lengthText ||
-          item.timestamp ||
-          "Unknown";
+          formatDuration(item.duration);
 
         const thumbnail =
-          item.thumbnail ||
-          item.thumbnails?.[0]?.url ||
-          item.thumbnails?.default?.url;
+          item.thumbnail;
 
         body +=
           `${i + 1}. ${title}\n` +
@@ -151,7 +136,12 @@ module.exports = {
     }
   },
 
-  onReply: async function ({ event, Reply, message }) {
+  onReply: async function ({
+    api,
+    event,
+    Reply,
+    message
+  }) {
     try {
       if (event.senderID !== Reply.author) {
         return;
@@ -178,44 +168,22 @@ module.exports = {
         );
       }
 
-      const videoId =
-        item.videoId ||
-        item.id?.videoId ||
-        item.id;
-
-      if (!videoId) {
-        return message.reply(
-          "❌ | Video ID not found."
+      // remove old search message
+      try {
+        await api.unsendMessage(
+          event.messageReply.messageID
         );
-      }
+      } catch {}
 
-      const infoUrl =
-        `https://rakib-ytv-api.onrender.com/api/info?videoId=${videoId}&apikey=rakib69`;
+      const loading =
+        await message.reply("⏳");
 
-      const infoRes =
-        await axios.get(infoUrl);
-
-      const info =
-        infoRes.data.data ||
-        infoRes.data;
+      const videoId =
+        item.videoId;
 
       const title =
-        info.title ||
         item.title ||
         "Unknown";
-
-      const thumbnail =
-        info.thumbnail ||
-        item.thumbnail;
-
-      await message.reply({
-        body:
-          `⏳ Downloading Video...\n\n` +
-          `🎬 ${title}`,
-        attachment: thumbnail
-          ? await global.utils.getStreamFromURL(thumbnail)
-          : null
-      });
 
       const downloadUrl =
         "https://rakib-yt-api.onrender.com/youtube/video";
@@ -234,6 +202,13 @@ module.exports = {
           }
         }
       );
+
+      // remove loading msg
+      try {
+        await api.unsendMessage(
+          loading.messageID
+        );
+      } catch {}
 
       return message.reply({
         body:
