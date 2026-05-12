@@ -1,73 +1,227 @@
-const { exec } = require("child_process");
-const fs = require("fs-extra");
-const path = require("path");
+const axios = require("axios");
 
 module.exports = {
   config: {
     name: "song",
-    version: "6.0",
-    role: 0,
+    aliases: ["sing", "music"],
+    version: "5.0",
     author: "Rakib",
-    cooldowns: 5,
-    category: "music",
-    usages: "{p}song <music name>"
+    countDown: 5,
+    role: 0,
+    shortDescription: "Search and download songs",
+    longDescription: "Search YouTube songs and download audio",
+    category: "media"
   },
 
-  onStart: async ({ api, event }) => {
-    const args = event.body.split(" ");
-    if (args.length < 2) {
-      return api.sendMessage(
-        "❌ | ব্যবহার:\n song <গানের নাম>",
-        event.threadID
+  onStart: async function ({ event, args, message }) {
+    try {
+      const query = args.join(" ").trim();
+
+      if (!query) {
+        return message.reply(
+          "⚠️ | Please enter a song name."
+        );
+      }
+
+      // Format duration
+      function formatDuration(duration) {
+        if (!duration || isNaN(duration)) {
+          return "0:00";
+        }
+
+        const minutes =
+          Math.floor(duration / 60);
+
+        const seconds =
+          duration % 60;
+
+        return (
+          `${minutes}:` +
+          `${String(seconds).padStart(2, "0")}`
+        );
+      }
+
+      const searchUrl =
+        `https://rakib-ytv-api.onrender.com/api/search?q=${encodeURIComponent(query)}&apikey=rakib69`;
+
+      const res = await axios.get(searchUrl);
+
+      const results =
+        res.data.results ||
+        res.data.items ||
+        res.data.data ||
+        [];
+
+      if (!results.length) {
+        return message.reply(
+          "❌ | No results found."
+        );
+      }
+
+      // Under 6 min
+      const filtered = results.filter(item => {
+        return (
+          typeof item.duration === "number" &&
+          item.duration <= 360
+        );
+      });
+
+      if (!filtered.length) {
+        return message.reply(
+          "❌ | No songs under 6 minutes found."
+        );
+      }
+
+      const top = filtered.slice(0, 5);
+
+      let body =
+        `🎵 Search Results for: ${query}\n\n`;
+
+      const attachments = [];
+
+      for (let i = 0; i < top.length; i++) {
+        const item = top[i];
+
+        const title =
+          item.title ||
+          "Unknown Title";
+
+        const channel =
+          item.channel ||
+          item.channelTitle ||
+          item.author ||
+          "Unknown Channel";
+
+        const duration =
+          formatDuration(item.duration);
+
+        const thumbnail =
+          item.thumbnail;
+
+        body +=
+          `${i + 1}. ${title}\n` +
+          `⏱ ${duration}\n` +
+          `👤 ${channel}\n\n`;
+
+        if (thumbnail) {
+          try {
+            const stream =
+              await global.utils.getStreamFromURL(thumbnail);
+
+            attachments.push(stream);
+          } catch {}
+        }
+      }
+
+      body +=
+        "↩️ Reply with a number (1-5) to download audio.";
+
+      const sent = await message.reply({
+        body,
+        attachment: attachments
+      });
+
+      global.GoatBot.onReply.set(sent.messageID, {
+        commandName: this.config.name,
+        author: event.senderID,
+        results: top
+      });
+
+    } catch (e) {
+      console.log(e);
+
+      return message.reply(
+        "❌ Error:\n" + e.message
       );
     }
+  },
 
-    args.shift();
-    const query = args.join(" ");
+  onReply: async function ({
+    api,
+    event,
+    Reply,
+    message
+  }) {
+    try {
+      if (event.senderID !== Reply.author) {
+        return;
+      }
 
-    const cacheDir = path.join(__dirname, "cache");
-    if (!fs.existsSync(cacheDir)) fs.mkdirSync(cacheDir);
+      const num = parseInt(event.body);
 
-    const filePath = path.join(cacheDir, `${event.senderID}.mp3`);
-
-    api.sendMessage(
-      `🎧 Song download হচ্ছে...\n🔎 ${query}\n⏳ একটু অপেক্ষা করো`,
-      event.threadID
-    );
-
-    const command = `
-      yt-dlp "ytsearch1:${query}" \
-      -x --audio-format mp3 \
-      --audio-quality 0 \
-      --no-playlist \
-      -o "${filePath}"
-    `;
-
-    exec(command, (err) => {
-      if (err || !fs.existsSync(filePath)) {
-        console.error(err);
-        return api.sendMessage(
-          "❌ | Song download fail হয়েছে",
-          event.threadID
+      if (
+        isNaN(num) ||
+        num < 1 ||
+        num > 5
+      ) {
+        return message.reply(
+          "⚠️ | Reply with a number between 1-5."
         );
       }
 
-      if (fs.statSync(filePath).size > 25 * 1024 * 1024) {
-        fs.unlinkSync(filePath);
-        return api.sendMessage(
-          "❌ | গানটি 25MB এর বেশি",
-          event.threadID
+      const item =
+        Reply.results[num - 1];
+
+      if (!item) {
+        return message.reply(
+          "❌ | Invalid selection."
         );
       }
 
-      api.sendMessage(
+      // remove old search message
+      try {
+        await api.unsendMessage(
+          event.messageReply.messageID
+        );
+      } catch {}
+
+      const loading =
+        await message.reply("⏳");
+
+      const videoId =
+        item.videoId;
+
+      const title =
+        item.title ||
+        "Unknown";
+
+      const downloadUrl =
+        "https://rakib-yt-api.onrender.com/youtube/audio";
+
+      const dlRes = await axios.post(
+        downloadUrl,
         {
-          body: `🎵 ${query}`,
-          attachment: fs.createReadStream(filePath)
+          url:
+            `https://www.youtube.com/watch?v=${videoId}`
         },
-        event.threadID,
-        () => fs.unlinkSync(filePath)
+        {
+          responseType: "stream",
+          headers: {
+            "Content-Type": "application/json"
+          }
+        }
       );
-    });
+
+      // remove loading msg
+      try {
+        await api.unsendMessage(
+          loading.messageID
+        );
+      } catch {}
+
+      return message.reply({
+        body:
+          `✅ ${title}`,
+        attachment: dlRes.data
+      });
+
+    } catch (e) {
+      console.log(e);
+
+      return message.reply(
+        "❌ Download failed.\n" +
+        e.message
+      );
+    }
   }
 };
