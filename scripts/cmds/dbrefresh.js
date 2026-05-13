@@ -3,6 +3,17 @@ const { loadOwner } = require("../../rakib/customId/ownerUid");
 
 const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
 
+// 🔒 OWNER CHECK (ASYNC SAFE)
+async function isOwner(senderID) {
+	const owner = await loadOwner();
+
+	if (!owner) return false;
+
+	return Array.isArray(owner)
+		? owner.map(String).includes(String(senderID))
+		: String(owner) === String(senderID);
+}
+
 module.exports = {
 	config: {
 		name: "dbrefresh",
@@ -36,10 +47,8 @@ module.exports = {
 
 		try {
 
-			// OWNER CHECK
-			const ownerUIDs = loadOwner();
-
-			if (!ownerUIDs.includes(event.senderID)) {
+			// 🔒 OWNER ONLY (FIXED)
+			if (!(await isOwner(event.senderID))) {
 				return message.reply("❌ | Only bot owner can use this command");
 			}
 
@@ -57,6 +66,7 @@ module.exports = {
 			if (type === "reconnect") {
 
 				try {
+
 					if (mongoose.connection.readyState !== 0) {
 						await mongoose.connection.close();
 						await delay(2000);
@@ -73,6 +83,7 @@ module.exports = {
 					return message.reply("✅ | MongoDB reconnected successfully");
 
 				} catch (err) {
+					console.error(err);
 					return message.reply("❌ | Reconnect failed\n" + err.message);
 				}
 			}
@@ -82,7 +93,7 @@ module.exports = {
 
 				let uid = args[1];
 
-				// REPLY MODE
+				// 📌 Reply support
 				if (!uid && event.messageReply) {
 					uid = event.messageReply.senderID;
 				}
@@ -98,13 +109,17 @@ module.exports = {
 				await message.reply("🔄 | Refreshing user...");
 
 				try {
+
 					await usersData.refreshInfo(uid);
+
+					if (global.gc) global.gc();
 
 					return message.reply(
 						`✅ | User refreshed successfully\nUID: ${uid}`
 					);
 
 				} catch (err) {
+					console.error(err);
 					return message.reply(
 						`❌ | User refresh failed\n${err.message}`
 					);
@@ -117,19 +132,23 @@ module.exports = {
 				const threadID = event.threadID;
 
 				if (!threadID || isNaN(threadID)) {
-					return message.reply("❌ | Invalid thread");
+					return message.reply("❌ | Invalid thread ID");
 				}
 
 				await message.reply("🔄 | Refreshing this group...");
 
 				try {
+
 					await threadsData.refreshInfo(threadID);
+
+					if (global.gc) global.gc();
 
 					return message.reply(
 						`✅ | Thread refreshed successfully\nTID: ${threadID}`
 					);
 
 				} catch (err) {
+					console.error(err);
 					return message.reply(
 						`❌ | Thread refresh failed\n${err.message}`
 					);
