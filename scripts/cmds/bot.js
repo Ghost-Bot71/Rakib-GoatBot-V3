@@ -3,7 +3,7 @@ const axios = require("axios");
 const API_KEY = "rakib69";
 
 const CHAT_API   = "https://rakib-api.vercel.app/api/simma-chat";
-//fallback simma-ai api chilo. lagle pore add kormu.//
+const AI_API 	   = "https://rakib-api.vercel.app/api/simma-ct";
 const LISTEN_API = "https://rakib-api.vercel.app/api/simma-listen";
 
 const triggers = [
