@@ -214,40 +214,128 @@ module.exports.onReply = async ({
 
 /* ================= AUTO TRIGGER ================= */
 
-module.exports.onChat = async ({
-  api,
-  event
-}) => {
-
+module.exports.onChat = async ({ api, event }) => {
   try {
-
     const text = (event.body || "").trim();
-
     if (!text) return;
 
     const lower = text.toLowerCase();
 
+    // 👉 all random replies
+    const replies = [
+"beshi bot bot korle leave nibo kintu😒😒",
+"shunbo na😼 tumi amake prem korai dao nai🥺 pocha tumi🥺",
+"ami abal der sathe kotha boli na, ok😒",
+"eto deko na, prem e pore jabo to🙈",
+"Bolo babu, tumi ki amake valobasho? 🙈💋",
+"bar bar dakle matha gorom hoye jay kintu😑",
+"hya bolo😒, tomar jonno ki korte pari😐😑?",
+"eto dakchis keno? gali shunbi naki? 🤬",
+"I love you janu🥰",
+"are bolo amar jaan, kemon acho?😚",
+"bot bole osomman korcho,😰😿",
+"hop beda😾, boss bol boss😼",
+"chup thak, nai to tor daat venge dibo kintu",
+"bot na, janu bol janu 😘",
+"bar bar disturb korchis keno😾, amar janur sathe byasto achi😋",
+"khaista eto dakis keno🤬",
+"amake dakle, ami kintu kiss kore dibo😘",
+"amare eto dakis na ami moja korar mood e nai ekhon😒",
+"hya janu, eidik e aso kiss dei🤭 😘",
+"dure ja, tor kono kaj nai, sudhu bot bot koris 😉😋🤣",
+"tor kotha tor bari keu shune na, to ami keno shunbo?🤔😂",
+"amake deko na, ami byasto achi",
+"ki holo, mistake korchis naki🤣",
+"bolo ki bolba, sobar samne bolba naki?🤭🤏",
+"kalke dekha koris to ektu 😈",
+"ha bolo, shunchi ami 😏",
+"ar koto bar dakbi, shunchi to",
+"hum bolo ki bolbe😒",
+"bolo ki korte pari tomar jonno",
+"ami to ondho, kichu dekhi na🐸 😎",
+"bot na janu, bol 😌",
+"bolo janu 🌚",
+"tor ki chokhe pore na ami byasto achi😒",
+"hum jaan tomar oi khane ummah😑😘",
+"ah shona amar tomar olite golite ummah😇😘",
+"jang hanga korba😒😬",
+"hum jaan tomar oikhane ummmah😷😘",
+"assalamu alaikum bolen apnar jonno ki korte pari..!🥰",
+"amake eto na deke boss **hoon** ke ekta gf de 🙄",
+"amake eto na dekcho keno valo talo basho naki🤭🙈",
+"🌻🌺💚-assalamu alaikum wa rahmatullah-💚🌺🌻",
+"ami ekhon boss **hoon** er sathe busy achi amake dakben na-😕😏 dhonnobad-🤝🌻",
+"amake na deke amar boss **HOON** ke ekta gf dao-😽🫶🌺",
+"jhang thumale ailapyu pepi-💝😽",
+"uff bujhlam na eto dakchen keno-😤😡😈",
+"jaan tomar nani're amar hate tule diba-🙊🙆‍♂",
+"ajke amar mon valo nei tai amare dakben na-😪🤧",
+"jhang 🫵thumale yami raite palupasi ummmmah-🌺🤤💦",
+"chuna o chuna amar boss **HOON** er hobo bou re keu dekso khuje pacchi na😪🤧😭",
+"shopno tomare niye dekhte chai tumi jodi amar hoye theko-💝🌺🌻",
+"jaan hanga korba-🙊😝🌻",
+"jaan meye hole chipay aso youtube theke onek valobasha shikhechi tomar jonno-🙊🙈😽",
+"iss eto dako keno lojja lage to-🙈🖤🌼",
+"amar boss **HOON** er pokkho theke tomare eto eto valobasha-🥰😽🫶 amar boss **HOON** er jonno doa korben-💝💚🌺🌻",
+"- valobasha namok ablami korte mon chaile amar boss **HOON** er inbox e chole jao-🙊🥱👅 🌻FACEBOOK ID LINK🌻:- https://www.facebook.com/hoon6t9",
+"jaan tumi sudhu amar ami tomare 365 din valobashi-💝🌺😽",
+"jaan bal falaiba-🙂🥱🙆‍♂",
+"-anti-🙆-apnar meye-👰‍♀️-rate amare video call dite bole🫣-🥵🤤💦",
+"oii-🥺🥹-ek chamoch valobasha diba-🤏🏻🙂",
+"-apnar sundori bandhobi ke fitra hisebe amar boss **HOON** ke dan korun-🥱🐰🍒",
+"-o mim o mim-😇-tumi keno churi korla sadiar forsha howar cream-🌚🤧",
+"-onumoti dilam-propose kor boss **Hoon** ke-🐸😾🔪",
+"-gays-🤗-jouboner kosom diye amare blackmail kora hocche-🥲🤦‍♂️🤧",
+"-oii anti-🙆‍♂️-tomar meye chokh mare-🥺🥴🐸",
+"takai acho keno chumu diba-🙄🐸😘",
+"ajke propose kore dekho raji hoye jamu-😌🤗😇",
+"-amar golpo te tomar nani sera-🙊🙆‍♂️🤗",
+"ki bepar apni shoshur bari jacchen na keno-🤔🥱🌻",
+"din sheshe porer bow sundor-☹️🤧",
+"-tabiz koira hoileo frame ekkan kormui tate ja hoi hok-🤧🥱🌻",
+"-chotobela vebechilam biye korle automatic baccha hoy-🥱-oma ekhon dekhi kahini onnorokom-😦🙂🌻",
+"-aj ekta bin nei bole facebook er nagin gulo re amar boss **HOON** dhorte partese na-🐸🥲",
+"-chumu thakte tora biri khas keno bujha amare-😑😒🐸⚒️",
+"—je chere geche-😔-take vule jao-🙂-amar boss **hoon** er sathe prem kore take dekhie dao-🙈🐸🤗",
+"—hajaro luchcha luchchir bhire-🙊🥵amar boss **HOON** ek nispap valo manush-🥱🤗🙆‍♂️",
+"-ruper ohongkar koro na-🙂❤️chokchoke surjo tao din sheshe ondhokare porinoto hoy-🤗💜",
+"sundor maiya manei-🥱amar boss **HOON** er bou-😽🫶ar baki gulo amar beyain-🙈🐸🤗",
+"eto ohongkar kore lav nei-🌸mrityuta nishchit sudhu shomoyta onishchit-🖤🙂",
+"-din din kichu manusher kache opriyo hoye jaitesi-🙂😿🌸",
+"hudai amare shoytane lare-😝😑☹️",
+"-I LOVE YOU-😽-ahare vabcho tomare propose korchi-🥴-thappar diya kidney lock kore dib-😒-vul pora ber kore dibo-🤭🐸",
+"-ami ekta dudher shishu-😇-YOU🐸💦",
+"-koto din hoye gelo bichanay muti na-😿-miss you nengta kal-🥺🤧",
+"-balika-do you-biya me-😽-ami tomake ammu hoite shahajjo korbo-🙈🥱",
+"-ei antir meye-🫢🙈-ummmmmmmah-😽🫶-asolei to shad-🥵💦-eto shad keno-🤔-sei shad-😋",
+"-iss keu jodi bolto-🙂-amar sudhu tomakei lagbe-💜🌸",
+"-oi bedi tomar basay na amar boss **HOON** meye dekhte gese-🙃-nasta anaros ar dudh diso-🙄🤦‍♂️-boin koilei to hoy boyfriend ase-🥺🤦‍♂-amar boss **HOON** ke jane marar ki dorkar-🙄🤧",
+"-ekdin she thik e fire takabe-😇-ar muchki hese bolbe or moto ar keu valobasheni-🙂😅",
+"-hudai group e asi-🥺🐸-keu inbox e knock diye bole na jaan tomare ami onek valobashi-🥺🤧",
+"ki re group e dekhi ektao bedi nai-🤦‍🥱💦",
+"-desher shob kichui churi hocche-🙄-sudhu amar boss **HOON** er monta chara-🥴😑😏",
+"-🫵tomare prochur vallage-😽-shomoy moto propose kormu bujhso-🔨😼-seat khali raikho- 🥱🐸🥵",
+"-aj theke ar kauke patta dimu na-😏-karon ami forsha howar cream kinsi-🙂🐸"
+];
+    // 👉 random picker
+    const getRandomReply = () =>
+      replies[Math.floor(Math.random() * replies.length)];
+
     // exact trigger
     if (triggers.includes(lower)) {
-
-      const reply = toBoldFont("hmm bby 😽");
+      const reply = toBoldFont(getRandomReply());
 
       api.sendMessage(
         reply,
         event.threadID,
         (err, info) => {
-
           if (!err) {
-            global.GoatBot.onReply.set(
-              info.messageID,
-              {
-                commandName: "bot",
-                author: event.senderID,
-                text: reply
-              }
-            );
+            global.GoatBot.onReply.set(info.messageID, {
+              commandName: "bot",
+              author: event.senderID,
+              text: reply
+            });
           }
-
         },
         event.messageID
       );
@@ -257,31 +345,21 @@ module.exports.onChat = async ({
 
     // trigger + message
     for (const t of triggers) {
-
       if (lower.startsWith(t + " ")) {
-
-        const userText = text
-          .slice(t.length)
-          .trim();
-
+        const userText = text.slice(t.length).trim();
         const reply = await chat(userText);
 
         api.sendMessage(
           reply,
           event.threadID,
           (err, info) => {
-
             if (!err) {
-              global.GoatBot.onReply.set(
-                info.messageID,
-                {
-                  commandName: "bot",
-                  author: event.senderID,
-                  text: reply
-                }
-              );
+              global.GoatBot.onReply.set(info.messageID, {
+                commandName: "bot",
+                author: event.senderID,
+                text: reply
+              });
             }
-
           },
           event.messageID
         );
