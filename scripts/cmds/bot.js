@@ -110,7 +110,7 @@ async function chat(text) {
 
   // 3️⃣ fallback
   return toBoldFont(
-    "eta teach kora nei, plz bby teach kore dau 🥺"
+    "teach nei kore deu, .teach qus-ans "
   );
 }
 
