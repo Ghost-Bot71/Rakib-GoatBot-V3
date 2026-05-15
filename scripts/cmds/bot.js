@@ -216,9 +216,11 @@ module.exports.onReply = async ({
 
 module.exports.onChat = async ({ api, event }) => {
   try {
+    
+    if (event.senderID === api.getCurrentUserID()) return;
+
     const text = (event.body || "").trim();
     if (!text) return;
-
     const lower = text.toLowerCase();
 
     // 👉 all random replies
