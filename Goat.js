@@ -5,6 +5,8 @@
  */
 //modified by rakib.... 
 
+const mongoose = require("mongoose");
+mongoose.set("strictQuery", true);
 process.on(
 	"unhandledRejection",
 	error => {
