@@ -1,77 +1,48 @@
 /**
  * @author NTKhang
- * ! The source code is written by NTKhang, please don't change the author's name everywhere.
- * ! Official source code: https://github.com/ntkhang03/Goat-Bot-V2
+ * Modified & optimized by Rakib
  */
-//modified by rakib.... 
 
 const mongoose = require("mongoose");
 mongoose.set("strictQuery", true);
 
-process.on(
-	"unhandledRejection",
-	error => {
-		console.log(
-			"[ UNHANDLED_REJECTION ]",
-			error
-		);
-	}
-);
+// ===============================
+// ERROR HANDLING
+// ===============================
+process.on("unhandledRejection", error => {
+	console.log("[ UNHANDLED_REJECTION ]", error);
+});
 
-process.on(
-	"uncaughtException",
-	error => {
-		console.log(
-			"[ UNCAUGHT_EXCEPTION ]",
-			error
-		);
-	}
-);
+process.on("uncaughtException", error => {
+	console.log("[ UNCAUGHT_EXCEPTION ]", error);
+});
 
 const fs = require("fs-extra");
 const google = require("googleapis").google;
 const nodemailer = require("nodemailer");
-const { execSync } = require("child_process");
 const log = require("./logger/log.js");
 const path = require("path");
 
 process.env.BLUEBIRD_W_FORGOTTEN_RETURN = 0;
 
 // ===============================
-// VALID JSON CHECK
+// VALID JSON (NO jsonlint)
 // ===============================
 function validJSON(pathDir) {
 	try {
 		if (!fs.existsSync(pathDir))
 			throw new Error(`File "${pathDir}" not found`);
 
-		execSync(`npx jsonlint "${pathDir}"`, {
-			stdio: "pipe"
-		});
-
+		JSON.parse(fs.readFileSync(pathDir, "utf-8"));
 		return true;
 	}
 	catch (err) {
-		let msgError = err.message;
-
-		msgError = msgError
-			.split("\n")
-			.slice(1)
-			.join("\n");
-
-		const indexPos = msgError.indexOf("    at");
-
-		msgError = msgError.slice(
-			0,
-			indexPos != -1 ? indexPos - 1 : msgError.length
-		);
-
-		throw new Error(msgError);
+		throw new Error(err.message);
 	}
 }
 
 // ===============================
-// ENV SUPPORT
+// ENV
 // ===============================
 const { NODE_ENV } = process.env;
 
@@ -88,7 +59,7 @@ const dirAccount = path.normalize(
 );
 
 // ===============================
-// VALIDATE CONFIG FILES
+// VALIDATE CONFIG
 // ===============================
 for (const pathDir of [dirConfig, dirConfigCommands]) {
 	try {
@@ -97,15 +68,9 @@ for (const pathDir of [dirConfig, dirConfigCommands]) {
 	catch (err) {
 		log.error(
 			"CONFIG",
-			`Invalid JSON file "${pathDir.replace(__dirname, "")}":\n${
-				err.message
-					.split("\n")
-					.map(line => `  ${line}`)
-					.join("\n")
-			}\nPlease fix it and restart bot`
+			`Invalid JSON "${pathDir}":\n${err.message}`
 		);
-
-		process.exit(0);
+		process.exit(1); // FIXED
 	}
 }
 
@@ -114,10 +79,7 @@ for (const pathDir of [dirConfig, dirConfigCommands]) {
 // ===============================
 const config = require(dirConfig);
 
-if (
-	config.whiteListMode?.whiteListIds &&
-	Array.isArray(config.whiteListMode.whiteListIds)
-) {
+if (Array.isArray(config.whiteListMode?.whiteListIds)) {
 	config.whiteListMode.whiteListIds =
 		config.whiteListMode.whiteListIds.map(id => id.toString());
 }
@@ -125,7 +87,7 @@ if (
 const configCommands = require(dirConfigCommands);
 
 // ===============================
-// GLOBAL GOATBOT
+// GLOBAL
 // ===============================
 global.GoatBot = {
 	startTime: Date.now() - process.uptime() * 1000,
@@ -152,7 +114,7 @@ global.GoatBot = {
 	envEvents: {},
 	envGlobal: {},
 
-	reLoginBot: function () {},
+	// reLoginBot removed (useless)
 
 	Listening: null,
 	oldListening: [],
@@ -187,8 +149,6 @@ global.db = {
 };
 
 // ===============================
-// CLIENT
-// ===============================
 global.client = {
 	dirConfig,
 	dirConfigCommands,
@@ -208,15 +168,9 @@ global.client = {
 };
 
 // ===============================
-// UTILS
-// ===============================
 const utils = require("./utils.js");
-
 global.utils = utils;
 
-
-// ===============================
-// TEMP
 // ===============================
 global.temp = {
 	createThreadData: [],
@@ -236,172 +190,71 @@ global.temp = {
 };
 
 // ===============================
-// WATCH CONFIG & AUTO RELOAD
+// STABLE WATCH (FIXED)
 // ===============================
-const watchAndReloadConfig = (dir, type, prop, logName) => {
-	let lastModified = fs.statSync(dir).mtimeMs;
-	let isFirstModified = true;
+const watchAndReloadConfig = (dir, prop, logName) => {
+	fs.watchFile(dir, { interval: 500 }, () => {
+		try {
+			const newData = JSON.parse(fs.readFileSync(dir, "utf-8"));
+			global.GoatBot[prop] = newData;
 
-	fs.watch(dir, eventType => {
-		if (eventType === type) {
-			const oldConfig = global.GoatBot[prop];
-
-			setTimeout(() => {
-				try {
-					if (isFirstModified) {
-						isFirstModified = false;
-						return;
-					}
-
-					if (lastModified === fs.statSync(dir).mtimeMs)
-						return;
-
-					global.GoatBot[prop] = JSON.parse(
-						fs.readFileSync(dir, "utf-8")
-					);
-
-					log.success(
-						logName,
-						`Reloaded ${dir.replace(process.cwd(), "")}`
-					);
-				}
-				catch (err) {
-					log.warn(
-						logName,
-						`Can't reload ${dir.replace(process.cwd(), "")}`
-					);
-
-					global.GoatBot[prop] = oldConfig;
-				}
-				finally {
-					lastModified = fs.statSync(dir).mtimeMs;
-				}
-			}, 200);
+			log.success(logName, `Reloaded ${dir}`);
+		}
+		catch (err) {
+			log.warn(logName, `Reload failed: ${err.message}`);
 		}
 	});
 };
 
-watchAndReloadConfig(
-	dirConfigCommands,
-	"change",
-	"configCommands",
-	"CONFIG COMMANDS"
-);
-
-watchAndReloadConfig(
-	dirConfig,
-	"change",
-	"config",
-	"CONFIG"
-);
+watchAndReloadConfig(dirConfigCommands, "configCommands", "CONFIG COMMANDS");
+watchAndReloadConfig(dirConfig, "config", "CONFIG");
 
 // ===============================
-// ENV GLOBALS
-// ===============================
-global.GoatBot.envGlobal =
-	global.GoatBot.configCommands.envGlobal;
+global.GoatBot.envGlobal = configCommands.envGlobal;
+global.GoatBot.envCommands = configCommands.envCommands;
+global.GoatBot.envEvents = configCommands.envEvents;
 
-global.GoatBot.envCommands =
-	global.GoatBot.configCommands.envCommands;
-
-global.GoatBot.envEvents =
-	global.GoatBot.configCommands.envEvents;
-
-// ===============================
-// LANGUAGE
-// ===============================
 const getText = global.utils.getText;
 
 // ===============================
 // AUTO RESTART
 // ===============================
-if (config.autoRestart) {
-	const time = config.autoRestart.time;
-
-	if (!isNaN(time) && time > 0) {
-		utils.log.info(
-			"AUTO RESTART",
-			getText(
-				"Goat",
-				"autoRestart1",
-				utils.convertTime(time, true)
-			)
-		);
-
-		setTimeout(() => {
-			utils.log.info("AUTO RESTART", "Restarting...");
-			process.exit(2);
-		}, time);
-	}
-	else if (
-		typeof time == "string" &&
-		time.match(
-			/^((((\d+,)+\d+|(\d+(\/|-|#)\d+)|\d+L?|\*(\/\d+)?|L(-\d+)?|\?|[A-Z]{3}(-[A-Z]{3})?) ?){5,7})$/gmi
-		)
-	) {
-		utils.log.info(
-			"AUTO RESTART",
-			getText("Goat", "autoRestart2", time)
-		);
-
-		const cron = require("node-cron");
-
-		cron.schedule(time, () => {
-			utils.log.info("AUTO RESTART", "Restarting...");
-			process.exit(2);
-		});
-	}
+if (config.autoRestart?.time > 0) {
+	setTimeout(() => {
+		utils.log.info("AUTO RESTART", "Restarting...");
+		process.exit(2);
+	}, config.autoRestart.time);
 }
 
 // ===============================
 // MAIN
 // ===============================
 (async () => {
-	// ===========================
-	// MAIL SETUP
-	// ===========================
 	const { gmailAccount } = config.credentials;
-
-	const {
-		email,
-		clientId,
-		clientSecret,
-		refreshToken
-	} = gmailAccount;
+	const { email, clientId, clientSecret, refreshToken } = gmailAccount;
 
 	const OAuth2 = google.auth.OAuth2;
-
-	const OAuth2_client = new OAuth2(
-		clientId,
-		clientSecret
-	);
+	const OAuth2_client = new OAuth2(clientId, clientSecret);
 
 	OAuth2_client.setCredentials({
 		refresh_token: refreshToken
 	});
 
-	let accessToken;
+	let accessToken = null;
 
 	try {
-	accessToken =
-		await OAuth2_client.getAccessToken();
-}
-catch (err) {
-	log.warn(
-		"GMAIL",
-		"Google API token expired"
-	);
+		accessToken = await OAuth2_client.getAccessToken();
+	}
+	catch (err) {
+		log.warn("GMAIL", "Token expired");
+		console.log(err); // FIXED debug
+	}
 
-	accessToken = null;
-}
 	let transporter = null;
 
-if (accessToken) {
-	transporter =
-		nodemailer.createTransport({
-			host: "smtp.gmail.com",
+	if (accessToken) {
+		transporter = nodemailer.createTransport({
 			service: "Gmail",
-
 			auth: {
 				type: "OAuth2",
 				user: email,
@@ -411,72 +264,35 @@ if (accessToken) {
 				accessToken
 			}
 		});
-}
-	async function sendMail({
-	to,
-	subject,
-	text,
-	html,
-	attachments
-}) {
-	if (!transporter)
-		return null;
+	}
 
-	const mailOptions = {
-		from: email,
-		to,
-		subject,
-		text,
-		html,
-		attachments
+	global.utils.sendMail = async function (options) {
+		if (!transporter) return null;
+		return transporter.sendMail(options);
 	};
 
-	const info =
-		await transporter.sendMail(
-			mailOptions
-		);
-
-	return info;
-	}
-	global.utils.sendMail = sendMail;
 	global.utils.transporter = transporter;
 
-	
-	// ===========================
 	// GOOGLE DRIVE
-	// ===========================
 	try {
-	const parentIdGoogleDrive =
-		await utils.drive.checkAndCreateParentFolder(
-			"GoatBot"
-		);
+		const parentId = await utils.drive.checkAndCreateParentFolder("GoatBot");
+		utils.drive.parentID = parentId;
+	}
+	catch (err) {
+		log.warn("GOOGLE_DRIVE", "Setup failed");
+	}
 
-	utils.drive.parentID =
-		parentIdGoogleDrive;
-}
-catch (err) {
-	log.warn(
-		"GOOGLE_DRIVE",
-		"Google Drive setup failed"
-	);
-}
-	// ===========================
 	// LOGIN
-	// ===========================
 	require(
 		`./bot/login/login${
-			NODE_ENV === "development"
-				? ".dev.js"
-				: ".js"
+			NODE_ENV === "development" ? ".dev.js" : ".js"
 		}`
 	);
 })();
 
 // ===============================
-// HEARTBEAT SIGNAL
+// HEARTBEAT (OPTIMIZED)
 // ===============================
 setInterval(() => {
-	if (process.send) {
-		process.send("heartbeat");
-	}
-}, 1000 * 60);
+	if (process.send) process.send("heartbeat");
+}, 1000 * 30);
