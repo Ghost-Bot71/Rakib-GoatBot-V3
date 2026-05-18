@@ -466,8 +466,13 @@ module.exports = function (api, threadModel, userModel, dashBoardModel, globalMo
     }
 }
 
-// 🧠 ALWAYS validate
-if (!threadData || typeof threadData !== "object") {
+// ✅ VALIDATE FIRST
+if (
+    !threadData ||
+    typeof threadData !== "object" ||
+    !threadData.threadID ||
+    !threadData.data
+) {
     console.log("⚠️ Invalid threadData detected, fixing:", threadID);
 
     threadData = {
@@ -478,20 +483,24 @@ if (!threadData || typeof threadData !== "object") {
         settings: {}
     };
 }
-
-// ✅ refresh (separate block)
-      if (
+      
+// ✅ THEN PUSH (safe)
+if (!global.db.allThreadData.some(t => t.threadID == threadID)) {
+    global.db.allThreadData.push(threadData);
+}
+      
+// ✅ REFRESH
+if (
     autoRefreshThreadInfoFirstTime === true &&
     !global.db.receivedTheFirstMessage[threadID]
 ) {
     global.db.receivedTheFirstMessage[threadID] = true;
-
     try {
         await threadsData.refreshInfo(threadID);
     } catch (e) {
         console.log("⚠️ refreshInfo failed:", threadID);
     }
-      }
+        }
       
         if (
     threadData?.settings &&
