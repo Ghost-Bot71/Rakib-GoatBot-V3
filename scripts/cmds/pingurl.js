@@ -7,6 +7,7 @@ module.exports = {
     author: "Rakib",
     countDown: 5,
     role: 0,
+    category: "utility",
     shortDescription: "Ping a URL"
   },
 
