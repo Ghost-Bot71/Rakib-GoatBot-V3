@@ -435,21 +435,64 @@ module.exports = function (api, threadModel, userModel, dashBoardModel, globalMo
             userData = await usersData.create(senderID);
 
         if (!threadData && !isNaN(threadID)) {
-            if (global.temp.createThreadDataError.includes(threadID))
-                return;
-            threadData = await threadsData.create(threadID);
-            global.db.receivedTheFirstMessage[threadID] = true;
-        }
-        else {
-            if (
-                autoRefreshThreadInfoFirstTime === true
-                && !global.db.receivedTheFirstMessage[threadID]
-            ) {
-                global.db.receivedTheFirstMessage[threadID] = true;
-                await threadsData.refreshInfo(threadID);
-            }
+    try {
+        threadData = await threadsData.create(threadID);
+        global.db.receivedTheFirstMessage[threadID] = true;
+
+        if (global.temp.createThreadDataError?.includes(threadID)) {
+            global.temp.createThreadDataError =
+                global.temp.createThreadDataError.filter(id => id != threadID);
         }
 
+        console.log("✅ ThreadData created:", threadID);
+    }
+    catch (err) {
+        console.log("❌ Create threadData failed:", threadID, err);
+
+        threadData = {
+            threadID,
+            adminIDs: [],
+            data: {},
+            banned: {},
+            settings: {}
+        };
+
+        global.temp.createThreadDataError = global.temp.createThreadDataError || [];
+        if (!global.temp.createThreadDataError.includes(threadID)) {
+            global.temp.createThreadDataError.push(threadID);
+        }
+
+        console.log("⚠️ Using fallback threadData:", threadID);
+    }
+}
+
+// 🧠 ALWAYS validate
+if (!threadData || typeof threadData !== "object") {
+    console.log("⚠️ Invalid threadData detected, fixing:", threadID);
+
+    threadData = {
+        threadID,
+        adminIDs: [],
+        data: {},
+        banned: {},
+        settings: {}
+    };
+}
+
+// ✅ refresh (separate block)
+      if (
+    autoRefreshThreadInfoFirstTime === true &&
+    !global.db.receivedTheFirstMessage[threadID]
+) {
+    global.db.receivedTheFirstMessage[threadID] = true;
+
+    try {
+        await threadsData.refreshInfo(threadID);
+    } catch (e) {
+        console.log("⚠️ refreshInfo failed:", threadID);
+    }
+      }
+      
         if (
     threadData?.settings &&
     typeof threadData.settings.hideNotiMessage == "object"
