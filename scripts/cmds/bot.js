@@ -117,7 +117,7 @@ async function chat(text) {
   console.log("⚠️ FALLBACK");
 
   return toBoldFont(
-    "eta teach kora nei, plz bby teach kore dau 🥺"
+    "bby eta teach kora nei, plz .teach ans-rply diye eta teach kore dau 🥺"
   );
 }
 
