@@ -9,6 +9,7 @@
   },
   "dependencies": {
     "@neoaz07/nkxfca": "^1.0.9",
+    "@distube/ytdl-core": "^4.16.12",
     "@google-cloud/text-to-speech": "^5.4.0",
     "@google/genai": "^1.22.0",
     "@google/generative-ai": "^0.21.0",
