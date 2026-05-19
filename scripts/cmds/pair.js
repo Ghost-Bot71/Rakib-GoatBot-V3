@@ -97,7 +97,7 @@ module.exports = {
           id: 7,
           url: "https://drive.google.com/uc?export=download&id=1rAIJ0Z4pBCfd_1HrjRYEdKi22NvMzgvI",
           type: "normal",
-          pos: [{ x: 120, y: 170, w: 300, h: 300 }, { x: null, y: 170, w: 300, h: 300 }]
+          pos: [{ x: 120, y: 170, w: 300, h: 300 }, { x: 480, y: 170, w: 300, h: 300 }]
         },
         {
           id: 8,
@@ -327,9 +327,13 @@ module.exports = {
         
 
       const outputPath = path.join(__dirname, "pair_output.png");
-      const out = fs.createWriteStream(outputPath);
-      canvas.createPNGStream().pipe(out);
 
+if (!canvas) {
+  return api.sendMessage("❌ Canvas not created!", event.threadID);
+}
+
+const out = fs.createWriteStream(outputPath);
+canvas.createPNGStream().pipe(out);
       out.on("finish", () => {
         api.sendMessage({
           body: `💖 ${senderName} ❤️ ${matchName}\n💯 Love: ${lovePercent}%`,
