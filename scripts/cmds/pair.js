@@ -137,33 +137,42 @@ module.exports = {
 
       if (selectedBg.id >= 1 && selectedBg.id <= 8) {
 
-        canvas = createCanvas(W, H);
-        ctx = canvas.getContext("2d");
+  const W = 900, H = 500;
+  canvas = createCanvas(W, H);
+  ctx = canvas.getContext("2d");
 
-        const bgBuffer = await loadDriveImage(selectedBg.url);
-        const bg = await loadImage(bgBuffer);
+  // 🔹 Load BG
+  const bgBuffer = await loadDriveImage(selectedBg.url);
+  const bg = await loadImage(bgBuffer);
 
-        ctx.drawImage(bg, 0, 0, W, H);
+  // 🔥 Always fit background properly
+  ctx.drawImage(bg, 0, 0, W, H);
 
-        selectedBg.pos.forEach((p, i) => {
-          const img = i === 0 ? avatar1 : avatar2;
+  // 🔹 Avatar draw loop
+  selectedBg.pos.forEach((p, i) => {
+    const img = i === 0 ? avatar1 : avatar2;
 
-          if (selectedBg.type === "circle") {
-            ctx.save();
-            ctx.beginPath();
-            ctx.arc(p.x, p.y, p.size / 2, 0, Math.PI * 2);
-            ctx.clip();
-            ctx.drawImage(img, p.x - p.size / 2, p.y - p.size / 2, p.size, p.size);
-            ctx.restore();
-          } else {
-            if (p.x !== null) {
-              ctx.drawImage(img, p.x, p.y, p.w, p.h);
-            }
-          }
-        });
+    // 👉 auto fallback if x is null (right side auto)
+    const x = p.x !== null
+      ? p.x
+      : (selectedBg.type === "circle"
+          ? W - p.size - 100
+          : W - p.w - 100);
+
+    if (selectedBg.type === "circle") {
+      ctx.save();
+      ctx.beginPath();
+      ctx.arc(x + p.size / 2, p.y + p.size / 2, p.size / 2, 0, Math.PI * 2);
+      ctx.clip();
+      ctx.drawImage(img, x, p.y, p.size, p.size);
+      ctx.restore();
+    } else {
+      ctx.drawImage(img, x, p.y, p.w, p.h);
+    }
+  });
 
       }
-
+        
       /* ======================================== */
       /* ============== CUSTOM (WITH UI) ========= */
       /* ======================================== */
