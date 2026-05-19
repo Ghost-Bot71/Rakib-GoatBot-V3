@@ -178,15 +178,12 @@ module.exports = {
       /* ======================================== */
         if (selectedBg.id === 9) {
 
-  canvas = createCanvas(W, H);
-  ctx = canvas.getContext("2d");
-
   // 🌈 soft romantic gradient
   const grad = ctx.createLinearGradient(0, 0, W, H);
-  grad.addColorStop(0, "#ff758c");   // soft pink
-  grad.addColorStop(0.4, "#ff7eb3"); // pink glow
-  grad.addColorStop(0.7, "#a18cd1"); // purple
-  grad.addColorStop(1, "#fbc2eb");   // light pink fade
+  grad.addColorStop(0, "#ff758c");
+  grad.addColorStop(0.4, "#ff7eb3");
+  grad.addColorStop(0.7, "#a18cd1");
+  grad.addColorStop(1, "#fbc2eb");
   ctx.fillStyle = grad;
   ctx.fillRect(0, 0, W, H);
 
@@ -197,7 +194,7 @@ module.exports = {
   ctx.fillStyle = glow;
   ctx.fillRect(0, 0, W, H);
 
-  // 💖 floating hearts (depth effect)
+  // 💖 floating hearts
   for (let i = 0; i < 60; i++) {
     const size = Math.random() * 25 + 10;
     const x = Math.random() * W;
@@ -205,7 +202,6 @@ module.exports = {
 
     ctx.globalAlpha = Math.random() * 0.8;
 
-    // blur illusion (shadow)
     ctx.shadowColor = "rgba(255, 0, 100, 0.6)";
     ctx.shadowBlur = 15;
 
@@ -213,7 +209,7 @@ module.exports = {
     ctx.fillText("💖", x, y);
   }
 
-  // reset shadow + alpha
+  // reset
   ctx.shadowBlur = 0;
   ctx.globalAlpha = 1;
 
@@ -225,22 +221,19 @@ module.exports = {
     ctx.fill();
   }
 
-  drawUI(ctx, avatar1, avatar2, senderName, matchName, W, H);
-        }
+  drawUI(ctx, avatar1, avatar2, senderName, matchName, W, H, lovePercent);
+         }
         
       /* ======================================== */
       /* ================ ID 10 ================= */
       /* ======================================== */
         if (selectedBg.id === 10) {
 
-  canvas = createCanvas(W, H);
-  ctx = canvas.getContext("2d");
-
   // 🌌 dark blue gradient
   const grad = ctx.createLinearGradient(0, 0, W, H);
-  grad.addColorStop(0, "#050505");   // deep black
-  grad.addColorStop(0.5, "#0a1f44"); // navy blue
-  grad.addColorStop(1, "#001f3f");   // deep blue
+  grad.addColorStop(0, "#050505");
+  grad.addColorStop(0.5, "#0a1f44");
+  grad.addColorStop(1, "#001f3f");
   ctx.fillStyle = grad;
   ctx.fillRect(0, 0, W, H);
 
@@ -266,6 +259,7 @@ module.exports = {
     ctx.fillText("💙", x, y);
   }
 
+  // reset
   ctx.shadowBlur = 0;
   ctx.globalAlpha = 1;
 
@@ -277,22 +271,19 @@ module.exports = {
     ctx.fill();
   }
 
-  drawUI(ctx, avatar1, avatar2, senderName, matchName, W, H);
-        }
+  drawUI(ctx, avatar1, avatar2, senderName, matchName, W, H, lovePercent);
+      }
         
       /* ======================================== */
-      /* ================= ID 9 ================= */
+      /* ================= ID 11 ================ */
       /* ======================================== */
         if (selectedBg.id === 11) {
-
-  canvas = createCanvas(W, H);
-  ctx = canvas.getContext("2d");
 
   // 🌑 black + neon gradient
   const grad = ctx.createLinearGradient(0, 0, W, H);
   grad.addColorStop(0, "#000000");
-  grad.addColorStop(0.5, "#14001f"); // dark purple
-  grad.addColorStop(1, "#2b0033");   // deep magenta
+  grad.addColorStop(0.5, "#14001f");
+  grad.addColorStop(1, "#2b0033");
   ctx.fillStyle = grad;
   ctx.fillRect(0, 0, W, H);
 
@@ -318,6 +309,7 @@ module.exports = {
     ctx.fillText("💗", x, y);
   }
 
+  // reset
   ctx.shadowBlur = 0;
   ctx.globalAlpha = 1;
 
@@ -328,9 +320,10 @@ module.exports = {
     ctx.arc(Math.random() * W, Math.random() * H, Math.random() * 2 + 0.5, 0, Math.PI * 2);
     ctx.fill();
   }
-
-  drawUI(ctx, avatar1, avatar2, senderName, matchName, W, H);
+          
+  drawUI(ctx, avatar1, avatar2, senderName, matchName, W, H, lovePercent);
         }
+  }
         
 
       const outputPath = path.join(__dirname, "pair_output.png");
