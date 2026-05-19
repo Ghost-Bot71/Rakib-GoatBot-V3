@@ -4,18 +4,10 @@ const fs = require("fs");
 const path = require("path");
 const { getAvatarUrl } = require("../../rakib/customApi/getAvatarUrl");
 
-async function loadDriveImage(url) {
-  const res = await axios.get(url, {
-    responseType: "arraybuffer",
-    headers: { "User-Agent": "Mozilla/5.0" }
-  });
-  return Buffer.from(res.data);
-}
-
 module.exports = {
   config: {
-    name: "prh",
-    aliases: ["prl"],
+    name: "prz",
+    aliases: ["pra"],
     author: "Rakib",
     category: "love",
   },
@@ -51,7 +43,7 @@ module.exports = {
 
       const matchName = selectedMatch.name;
 
-      /* ================= BACKGROUND ================= */
+      /* ================= BACKGROUNDS ================= */
 
       const backgrounds = [
         {
@@ -97,7 +89,7 @@ module.exports = {
           id: 7,
           url: "https://drive.google.com/uc?export=download&id=1rAIJ0Z4pBCfd_1HrjRYEdKi22NvMzgvI",
           type: "normal",
-          pos: [{ x: 120, y: 170, w: 300, h: 300 }, { x: 480, y: 170, w: 300, h: 300 }]
+          pos: [{ x: 120, y: 170, w: 300, h: 300 }, { x: null, y: 170, w: 300, h: 300 }]
         },
         {
           id: 8,
@@ -106,276 +98,165 @@ module.exports = {
           pos: [{ x: 65, y: 104, size: 210 }, { x: 460, y: 104, size: 210 }]
         },
 
-        { id: 9, type: "custom" },
-        { id: 10, type: "custom" },
-        { id: 11, type: "custom" }
+        // 🔥 DYNAMIC
+        { id: 9, type: "dynamic" },
+        { id: 10, type: "dynamic" },
+        { id: 11, type: "dynamic" }
       ];
+
+      /* ================= SELECT BG ================= */
 
       const args = event.body.trim().split(/\s+/);
       let selectedBg;
 
       if (args[1] && !isNaN(args[1])) {
-        const num = parseInt(args[1]);
-        selectedBg = backgrounds.find(bg => bg.id === num);
+        selectedBg = backgrounds.find(bg => bg.id == args[1]);
         if (!selectedBg)
-          return api.sendMessage("❌ Use 1 - 11", event.threadID);
+          return api.sendMessage("❌ Invalid number! Use 1-11", event.threadID);
       } else {
         selectedBg = backgrounds[Math.floor(Math.random() * backgrounds.length)];
       }
+
+      /* ================= CANVAS ================= */
+
+      let canvas, ctx;
+
+      if (selectedBg.type === "dynamic") {
+        canvas = createCanvas(900, 500);
+        ctx = canvas.getContext("2d");
+      } else {
+        const res = await axios.get(selectedBg.url, { responseType: "arraybuffer" });
+        const baseImage = await loadImage(Buffer.from(res.data));
+
+        canvas = createCanvas(baseImage.width, baseImage.height);
+        ctx = canvas.getContext("2d");
+
+        ctx.drawImage(baseImage, 0, 0, canvas.width, canvas.height);
+      }
+
+      const W = canvas.width;
+      const H = canvas.height;
 
       const avatar1 = await loadImage(await getAvatarUrl(senderID));
       const avatar2 = await loadImage(await getAvatarUrl(selectedMatch.id));
 
       const lovePercent = Math.floor(Math.random() * 31) + 70;
 
-      let canvas, ctx;
+      /* ================= COMMON FUNCTIONS ================= */
 
-      /* ======================================== */
-      /* ========== NORMAL + CIRCLE FIXED ========= */
-      /* ======================================== */
-
-    if (selectedBg.id >= 1 && selectedBg.id <= 8) {
-
-  const bgBuffer = await loadDriveImage(selectedBg.url);
-  const bg = await loadImage(bgBuffer);
-
-  // ✅ FIX
-  canvas = createCanvas(900, 500);
-  ctx = canvas.getContext("2d");
-
-  ctx.drawImage(bg, 0, 0, canvas.width, canvas.height);
-
-  selectedBg.pos.forEach((p, i) => {
-    const img = i === 0 ? avatar1 : avatar2;
-
-    if (selectedBg.type === "circle") {
-      ctx.save();
-      ctx.beginPath();
-      ctx.arc(p.x, p.y, p.size / 2, 0, Math.PI * 2);
-      ctx.clip();
-      ctx.drawImage(img, p.x - p.size / 2, p.y - p.size / 2, p.size, p.size);
-      ctx.restore();
-    } else {
-      if (p.x !== null) {
-        ctx.drawImage(img, p.x, p.y, p.w, p.h);
+      function drawCircle(ctx, img, x, y, size) {
+        ctx.save();
+        ctx.beginPath();
+        ctx.arc(x + size / 2, y + size / 2, size / 2, 0, Math.PI * 2);
+        ctx.clip();
+        ctx.drawImage(img, x, y, size, size);
+        ctx.restore();
       }
-    }
-  });
 
-    }
-            
-      /* ======================================== */
-      /* ============== CUSTOM (WITH UI) ========= */
-      /* ======================================== */
+      function drawNeonAvatar(ctx, img, cx, cy, colorSet) {
+        const r = 100;
 
-      if (selectedBg.id >= 9 && selectedBg.id <= 11) {
+        const ring = ctx.createLinearGradient(cx - r, cy - r, cx + r, cy + r);
+        ring.addColorStop(0, colorSet[0]);
+        ring.addColorStop(0.5, colorSet[1]);
+        ring.addColorStop(1, colorSet[2]);
 
-        canvas = createCanvas(W, H);
-        const W = 900, H = 500;
-        ctx = canvas.getContext("2d");
+        ctx.beginPath();
+        ctx.arc(cx, cy, r + 8, 0, Math.PI * 2);
+        ctx.strokeStyle = ring;
+        ctx.lineWidth = 10;
+        ctx.shadowColor = colorSet[0];
+        ctx.shadowBlur = 25;
+        ctx.stroke();
 
-      /* ======================================== */
-      /* ================= ID 9 ================= */
-      /* ======================================== */
+        ctx.shadowBlur = 0;
+
+        ctx.save();
+        ctx.beginPath();
+        ctx.arc(cx, cy, r, 0, Math.PI * 2);
+        ctx.clip();
+        ctx.drawImage(img, cx - r, cy - r, r * 2, r * 2);
+        ctx.restore();
+      }
+
+      /* ================= RENDER ================= */
+
+      if (selectedBg.type === "dynamic") {
+
+        // ========= ID 9 =========
         if (selectedBg.id === 9) {
 
-  // 🌈 soft romantic gradient
-  const grad = ctx.createLinearGradient(0, 0, W, H);
-  grad.addColorStop(0, "#ff758c");
-  grad.addColorStop(0.4, "#ff7eb3");
-  grad.addColorStop(0.7, "#a18cd1");
-  grad.addColorStop(1, "#fbc2eb");
-  ctx.fillStyle = grad;
-  ctx.fillRect(0, 0, W, H);
+          const grad = ctx.createLinearGradient(0, 0, W, H);
+          grad.addColorStop(0, "#ff758c");
+          grad.addColorStop(1, "#fbc2eb");
+          ctx.fillStyle = grad;
+          ctx.fillRect(0, 0, W, H);
 
-  // ✨ glow overlay
-  const glow = ctx.createRadialGradient(W/2, H/2, 50, W/2, H/2, W);
-  glow.addColorStop(0, "rgba(255,255,255,0.25)");
-  glow.addColorStop(1, "rgba(255,255,255,0)");
-  ctx.fillStyle = glow;
-  ctx.fillRect(0, 0, W, H);
+          drawNeonAvatar(ctx, avatar1, 250, H / 2, ["#ff00cc", "#00f7ff", "#ff4d6d"]);
+          drawNeonAvatar(ctx, avatar2, W - 250, H / 2, ["#ff00cc", "#00f7ff", "#ff4d6d"]);
+        }
 
-  // 💖 floating hearts
-  for (let i = 0; i < 60; i++) {
-    const size = Math.random() * 25 + 10;
-    const x = Math.random() * W;
-    const y = Math.random() * H;
-
-    ctx.globalAlpha = Math.random() * 0.8;
-
-    ctx.shadowColor = "rgba(255, 0, 100, 0.6)";
-    ctx.shadowBlur = 15;
-
-    ctx.font = `${size}px serif`;
-    ctx.fillText("💖", x, y);
-  }
-
-  // reset
-  ctx.shadowBlur = 0;
-  ctx.globalAlpha = 1;
-
-  // ✨ sparkles
-  for (let i = 0; i < 30; i++) {
-    ctx.fillStyle = "rgba(255,255,255,0.8)";
-    ctx.beginPath();
-    ctx.arc(Math.random() * W, Math.random() * H, Math.random() * 2 + 1, 0, Math.PI * 2);
-    ctx.fill();
-  }
-
-  drawUI(ctx, avatar1, avatar2, senderName, matchName, W, H, lovePercent);
-         }
-        
-      /* ======================================== */
-      /* ================ ID 10 ================= */
-      /* ======================================== */
+        // ========= ID 10 =========
         if (selectedBg.id === 10) {
 
-  // 🌌 dark blue gradient
-  const grad = ctx.createLinearGradient(0, 0, W, H);
-  grad.addColorStop(0, "#050505");
-  grad.addColorStop(0.5, "#0a1f44");
-  grad.addColorStop(1, "#001f3f");
-  ctx.fillStyle = grad;
-  ctx.fillRect(0, 0, W, H);
+          const grad = ctx.createLinearGradient(0, 0, W, H);
+          grad.addColorStop(0, "#000");
+          grad.addColorStop(1, "#001f3f");
+          ctx.fillStyle = grad;
+          ctx.fillRect(0, 0, W, H);
 
-  // 💙 blue glow center
-  const glow = ctx.createRadialGradient(W/2, H/2, 50, W/2, H/2, W);
-  glow.addColorStop(0, "rgba(0,150,255,0.25)");
-  glow.addColorStop(1, "rgba(0,0,0,0)");
-  ctx.fillStyle = glow;
-  ctx.fillRect(0, 0, W, H);
+          drawNeonAvatar(ctx, avatar1, 250, H / 2, ["#00c6ff", "#0072ff", "#00f7ff"]);
+          drawNeonAvatar(ctx, avatar2, W - 250, H / 2, ["#00c6ff", "#0072ff", "#00f7ff"]);
+        }
 
-  // 💙 floating hearts
-  for (let i = 0; i < 50; i++) {
-    const size = Math.random() * 25 + 10;
-    const x = Math.random() * W;
-    const y = Math.random() * H;
-
-    ctx.globalAlpha = Math.random() * 0.7;
-
-    ctx.shadowColor = "rgba(0,150,255,0.8)";
-    ctx.shadowBlur = 20;
-
-    ctx.font = `${size}px serif`;
-    ctx.fillText("💙", x, y);
-  }
-
-  // reset
-  ctx.shadowBlur = 0;
-  ctx.globalAlpha = 1;
-
-  // ✨ stars
-  for (let i = 0; i < 40; i++) {
-    ctx.fillStyle = "rgba(255,255,255,0.8)";
-    ctx.beginPath();
-    ctx.arc(Math.random() * W, Math.random() * H, Math.random() * 1.5 + 0.5, 0, Math.PI * 2);
-    ctx.fill();
-  }
-
-  drawUI(ctx, avatar1, avatar2, senderName, matchName, W, H, lovePercent);
-      }
-        
-      /* ======================================== */
-      /* ================= ID 11 ================ */
-      /* ======================================== */
+        // ========= ID 11 =========
         if (selectedBg.id === 11) {
 
-  // 🌑 black + neon gradient
-  const grad = ctx.createLinearGradient(0, 0, W, H);
-  grad.addColorStop(0, "#000000");
-  grad.addColorStop(0.5, "#14001f");
-  grad.addColorStop(1, "#2b0033");
-  ctx.fillStyle = grad;
-  ctx.fillRect(0, 0, W, H);
+          const grad = ctx.createLinearGradient(0, 0, W, H);
+          grad.addColorStop(0, "#000");
+          grad.addColorStop(1, "#2b0033");
+          ctx.fillStyle = grad;
+          ctx.fillRect(0, 0, W, H);
 
-  // 💗 neon glow
-  const glow = ctx.createRadialGradient(W/2, H/2, 30, W/2, H/2, W);
-  glow.addColorStop(0, "rgba(255,0,120,0.3)");
-  glow.addColorStop(1, "rgba(0,0,0,0)");
-  ctx.fillStyle = glow;
-  ctx.fillRect(0, 0, W, H);
-
-  // 💗 neon hearts
-  for (let i = 0; i < 55; i++) {
-    const size = Math.random() * 25 + 12;
-    const x = Math.random() * W;
-    const y = Math.random() * H;
-
-    ctx.globalAlpha = Math.random() * 0.8;
-
-    ctx.shadowColor = "rgba(255,0,120,0.9)";
-    ctx.shadowBlur = 25;
-
-    ctx.font = `${size}px serif`;
-    ctx.fillText("💗", x, y);
-  }
-
-  // reset
-  ctx.shadowBlur = 0;
-  ctx.globalAlpha = 1;
-
-  // ✨ spark particles
-  for (let i = 0; i < 35; i++) {
-    ctx.fillStyle = "rgba(255,255,255,0.7)";
-    ctx.beginPath();
-    ctx.arc(Math.random() * W, Math.random() * H, Math.random() * 2 + 0.5, 0, Math.PI * 2);
-    ctx.fill();
-  }
-          
-  drawUI(ctx, avatar1, avatar2, senderName, matchName, W, H, lovePercent);
+          drawNeonAvatar(ctx, avatar1, 250, H / 2, ["#ff0080", "#ff4d6d", "#ff00cc"]);
+          drawNeonAvatar(ctx, avatar2, W - 250, H / 2, ["#ff0080", "#ff4d6d", "#ff00cc"]);
         }
-  }
-        
+
+      } else {
+
+        if (selectedBg.type === "circle") {
+          drawCircle(ctx, avatar1, selectedBg.pos[0].x, selectedBg.pos[0].y, selectedBg.pos[0].size);
+
+          const x2 = selectedBg.pos[1].x !== null
+            ? selectedBg.pos[1].x
+            : canvas.width - selectedBg.pos[1].size - 120;
+
+          drawCircle(ctx, avatar2, x2, selectedBg.pos[1].y, selectedBg.pos[1].size);
+
+        } else {
+          ctx.drawImage(avatar1, selectedBg.pos[0].x, selectedBg.pos[0].y, selectedBg.pos[0].w, selectedBg.pos[0].h);
+
+          const x2 = selectedBg.pos[1].x !== null
+            ? selectedBg.pos[1].x
+            : canvas.width - selectedBg.pos[1].w - 120;
+
+          ctx.drawImage(avatar2, x2, selectedBg.pos[1].y, selectedBg.pos[1].w, selectedBg.pos[1].h);
+        }
+      }
+
+      /* ================= SAVE ================= */
 
       const outputPath = path.join(__dirname, "pair_output.png");
 
-if (!canvas) {
-  return api.sendMessage("❌ Canvas not created!", event.threadID);
-}
+      const out = fs.createWriteStream(outputPath);
+      canvas.createPNGStream().pipe(out);
 
-const out = fs.createWriteStream(outputPath);
-canvas.createPNGStream().pipe(out);
       out.on("finish", () => {
         api.sendMessage({
           body: `💖 ${senderName} ❤️ ${matchName}\n💯 Love: ${lovePercent}%`,
           attachment: fs.createReadStream(outputPath)
         }, event.threadID, () => fs.unlinkSync(outputPath));
       });
-
-      /* ================= UI ================= */
-
-      function drawUI(ctx, img1, img2, name1, name2, W, H, lovePercent) {
-
-        const r = 110;
-
-        function avatar(img, x) {
-          ctx.save();
-          ctx.beginPath();
-          ctx.arc(x, 220, r, 0, Math.PI * 2);
-          ctx.clip();
-          ctx.drawImage(img, x - r, 220 - r, r * 2, r * 2);
-          ctx.restore();
-        }
-
-        avatar(img1, 220);
-        avatar(img2, 680);
-
-        ctx.font = "70px sans-serif";
-        ctx.fillStyle = "#ff4d6d";
-        ctx.textAlign = "center";
-        ctx.fillText("❤️", 450, 240);
-
-        ctx.font = "bold 70px sans-serif";
-        ctx.fillStyle = "#fff";
-        ctx.fillText(lovePercent + "%", 450, 430);
-
-        ctx.font = "bold 28px sans-serif";
-        ctx.fillStyle = "#00f7ff";
-        ctx.fillText(name1, 220, 380);
-
-        ctx.fillStyle = "#ff00c8";
-        ctx.fillText(name2, 680, 380);
-      }
 
     } catch (err) {
       api.sendMessage("❌ Error:\n" + err.message, event.threadID);
