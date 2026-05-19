@@ -152,6 +152,47 @@ module.exports = {
         ctx.drawImage(img, x, y, size, size);
         ctx.restore();
       }
+      
+      /* ================= UI FUNCTIONS ================= */
+      
+      function drawDynamicUI(ctx, W, H, name1, name2, lovePercent) {
+
+  // 💖 center glow heart
+  ctx.shadowColor = "#ff4d6d";
+  ctx.shadowBlur = 25;
+
+  ctx.font = "bold 80px sans-serif";
+  ctx.fillStyle = "#ffffff";
+  ctx.textAlign = "center";
+
+  ctx.fillText("❤️", W / 2, H / 2 - 10);
+
+  // 💯 percent
+  ctx.font = "bold 55px sans-serif";
+  ctx.fillStyle = "#00f7ff";
+  ctx.fillText(lovePercent + "%", W / 2, H / 2 + 70);
+
+  ctx.shadowBlur = 0;
+
+  // ✨ divider line
+  const grad = ctx.createLinearGradient(W/2 - 120, 0, W/2 + 120, 0);
+  grad.addColorStop(0, "transparent");
+  grad.addColorStop(0.5, "#ffffff");
+  grad.addColorStop(1, "transparent");
+
+  ctx.fillStyle = grad;
+  ctx.fillRect(W/2 - 120, H/2 + 90, 240, 2);
+
+  // 👤 names
+  ctx.font = "bold 28px sans-serif";
+
+  ctx.fillStyle = "#00f7ff";
+  ctx.fillText(name1, 250, H / 2 + 150);
+
+  ctx.fillStyle = "#ff00c8";
+  ctx.fillText(name2, W - 250, H / 2 + 150);
+      }
+      
 
       function drawNeonAvatar(ctx, img, cx, cy, colorSet) {
         const r = 100;
@@ -186,42 +227,92 @@ module.exports = {
         // ========= ID 9 =========
         if (selectedBg.id === 9) {
 
-          const grad = ctx.createLinearGradient(0, 0, W, H);
-          grad.addColorStop(0, "#ff758c");
-          grad.addColorStop(1, "#fbc2eb");
-          ctx.fillStyle = grad;
-          ctx.fillRect(0, 0, W, H);
+  const grad = ctx.createLinearGradient(0, 0, W, H);
+  grad.addColorStop(0, "#ff758c");
+  grad.addColorStop(0.4, "#ff7eb3");
+  grad.addColorStop(0.7, "#a18cd1");
+  grad.addColorStop(1, "#fbc2eb");
+  ctx.fillStyle = grad;
+  ctx.fillRect(0, 0, W, H);
 
-          drawNeonAvatar(ctx, avatar1, 250, H / 2, ["#ff00cc", "#00f7ff", "#ff4d6d"]);
-          drawNeonAvatar(ctx, avatar2, W - 250, H / 2, ["#ff00cc", "#00f7ff", "#ff4d6d"]);
+  const glow = ctx.createRadialGradient(W/2, H/2, 50, W/2, H/2, W);
+  glow.addColorStop(0, "rgba(255,255,255,0.25)");
+  glow.addColorStop(1, "rgba(255,255,255,0)");
+  ctx.fillStyle = glow;
+  ctx.fillRect(0, 0, W, H);
+
+  for (let i = 0; i < 60; i++) {
+    ctx.globalAlpha = Math.random() * 0.8;
+    ctx.shadowColor = "rgba(255,0,120,0.7)";
+    ctx.shadowBlur = 20;
+    ctx.font = `${Math.random()*25+10}px serif`;
+    ctx.fillText("💖", Math.random()*W, Math.random()*H);
+  }
+
+  ctx.shadowBlur = 0;
+  ctx.globalAlpha = 1;
+
+  // 👇 avatar
+  drawNeonAvatar(ctx, avatar1, 250, H/2, ["#ff00cc","#00f7ff","#ff4d6d"]);
+  drawNeonAvatar(ctx, avatar2, W-250, H/2, ["#ff00cc","#00f7ff","#ff4d6d"]);
+
+  // 👇 UI
+  drawDynamicUI(ctx, W, H, senderName, matchName, lovePercent);
         }
-
+        
         // ========= ID 10 =========
         if (selectedBg.id === 10) {
 
-          const grad = ctx.createLinearGradient(0, 0, W, H);
-          grad.addColorStop(0, "#000");
-          grad.addColorStop(1, "#001f3f");
-          ctx.fillStyle = grad;
-          ctx.fillRect(0, 0, W, H);
+  const grad = ctx.createLinearGradient(0, 0, W, H);
+  grad.addColorStop(0, "#050505");
+  grad.addColorStop(1, "#001f3f");
+  ctx.fillStyle = grad;
+  ctx.fillRect(0, 0, W, H);
 
-          drawNeonAvatar(ctx, avatar1, 250, H / 2, ["#00c6ff", "#0072ff", "#00f7ff"]);
-          drawNeonAvatar(ctx, avatar2, W - 250, H / 2, ["#00c6ff", "#0072ff", "#00f7ff"]);
+  for (let i = 0; i < 50; i++) {
+    ctx.globalAlpha = Math.random() * 0.7;
+    ctx.shadowColor = "rgba(0,150,255,0.8)";
+    ctx.shadowBlur = 20;
+    ctx.font = `${Math.random()*25+10}px serif`;
+    ctx.fillText("💙", Math.random()*W, Math.random()*H);
+  }
+
+  ctx.shadowBlur = 0;
+  ctx.globalAlpha = 1;
+
+  drawNeonAvatar(ctx, avatar1, 250, H/2, ["#00c6ff","#0072ff","#00f7ff"]);
+  drawNeonAvatar(ctx, avatar2, W-250, H/2, ["#00c6ff","#0072ff","#00f7ff"]);
+
+  drawDynamicUI(ctx, W, H, senderName, matchName, lovePercent);
         }
-
+        
         // ========= ID 11 =========
         if (selectedBg.id === 11) {
 
-          const grad = ctx.createLinearGradient(0, 0, W, H);
-          grad.addColorStop(0, "#000");
-          grad.addColorStop(1, "#2b0033");
-          ctx.fillStyle = grad;
-          ctx.fillRect(0, 0, W, H);
+  const grad = ctx.createLinearGradient(0, 0, W, H);
+  grad.addColorStop(0, "#000000");
+  grad.addColorStop(1, "#2b0033");
+  ctx.fillStyle = grad;
+  ctx.fillRect(0, 0, W, H);
 
-          drawNeonAvatar(ctx, avatar1, 250, H / 2, ["#ff0080", "#ff4d6d", "#ff00cc"]);
-          drawNeonAvatar(ctx, avatar2, W - 250, H / 2, ["#ff0080", "#ff4d6d", "#ff00cc"]);
+  for (let i = 0; i < 55; i++) {
+    ctx.globalAlpha = Math.random() * 0.8;
+    ctx.shadowColor = "rgba(255,0,120,0.9)";
+    ctx.shadowBlur = 25;
+    ctx.font = `${Math.random()*25+12}px serif`;
+    ctx.fillText("💗", Math.random()*W, Math.random()*H);
+  }
+
+  ctx.shadowBlur = 0;
+  ctx.globalAlpha = 1;
+
+  drawNeonAvatar(ctx, avatar1, 250, H/2, ["#ff0080","#ff4d6d","#ff00cc"]);
+  drawNeonAvatar(ctx, avatar2, W-250, H/2, ["#ff0080","#ff4d6d","#ff00cc"]);
+
+  drawDynamicUI(ctx, W, H, senderName, matchName, lovePercent);
         }
 
+        
       } else {
 
         if (selectedBg.type === "circle") {
