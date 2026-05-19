@@ -136,62 +136,29 @@ module.exports = {
 
       if (selectedBg.id >= 1 && selectedBg.id <= 8) {
 
-        const BASE_W = 900;
-        const BASE_H = 500;
+  const bgBuffer = await loadDriveImage(selectedBg.url);
+  const bg = await loadImage(bgBuffer);
 
-        const bgBuffer = await loadDriveImage(selectedBg.url);
-        const bg = await loadImage(bgBuffer);
+  ctx.drawImage(bg, 0, 0, canvas.width, canvas.height);
 
-        canvas = createCanvas(bg.width, bg.height);
-        ctx = canvas.getContext("2d");
+  selectedBg.pos.forEach((p, i) => {
+    const img = i === 0 ? avatar1 : avatar2;
 
-        ctx.drawImage(bg, 0, 0, canvas.width, canvas.height);
-
-        const scaleX = canvas.width / BASE_W;
-        const scaleY = canvas.height / BASE_H;
-
-        selectedBg.pos.forEach((p, i) => {
-          const img = i === 0 ? avatar1 : avatar2;
-
-          let x = p.x * scaleX;
-          let y = p.y * scaleY;
-
-          if (selectedBg.type === "circle") {
-            let size = p.size * scaleX;
-
-            // overflow fix
-            if (x + size > canvas.width) {
-              x = canvas.width - size - 20;
-            }
-
-            ctx.save();
-            ctx.beginPath();
-            ctx.arc(x + size / 2, y + size / 2, size / 2, 0, Math.PI * 2);
-            ctx.clip();
-            ctx.drawImage(img, x, y, size, size);
-            ctx.restore();
-
-          } else {
-            let w = p.w * scaleX;
-            let h = p.h * scaleY;
-
-            if (x + w > canvas.width) {
-              x = canvas.width - w - 20;
-            }
-
-            ctx.drawImage(img, x, y, w, h);
-          }
-        });
+    if (selectedBg.type === "circle") {
+      ctx.save();
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.size / 2, 0, Math.PI * 2);
+      ctx.clip();
+      ctx.drawImage(img, p.x - p.size / 2, p.y - p.size / 2, p.size, p.size);
+      ctx.restore();
+    } else {
+      if (p.x !== null) {
+        ctx.drawImage(img, p.x, p.y, p.w, p.h);
       }
+    }
+  });
 
-      /* ================= CUSTOM SAME ================= */
-
-      if (selectedBg.id >= 9 && selectedBg.id <= 11) {
-
-        const W = 900, H = 500;
-        canvas = createCanvas(W, H);
-        ctx = canvas.getContext("2d");
-
+    }
             
       /* ======================================== */
       /* ============== CUSTOM (WITH UI) ========= */
