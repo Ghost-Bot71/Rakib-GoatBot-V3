@@ -134,10 +134,14 @@ module.exports = {
       /* ========== NORMAL + CIRCLE FIXED ========= */
       /* ======================================== */
 
-      if (selectedBg.id >= 1 && selectedBg.id <= 8) {
+    if (selectedBg.id >= 1 && selectedBg.id <= 8) {
 
   const bgBuffer = await loadDriveImage(selectedBg.url);
   const bg = await loadImage(bgBuffer);
+
+  // ✅ FIX
+  canvas = createCanvas(900, 500);
+  ctx = canvas.getContext("2d");
 
   ctx.drawImage(bg, 0, 0, canvas.width, canvas.height);
 
@@ -167,6 +171,7 @@ module.exports = {
       if (selectedBg.id >= 9 && selectedBg.id <= 11) {
 
         canvas = createCanvas(W, H);
+        const W = 900, H = 500;
         ctx = canvas.getContext("2d");
 
       /* ======================================== */
