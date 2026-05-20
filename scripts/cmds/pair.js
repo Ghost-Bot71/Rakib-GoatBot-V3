@@ -20,12 +20,16 @@ module.exports = {
       const senderName = senderData.name;
 
       const threadData = await api.getThreadInfo(event.threadID);
+
+if (!threadData || !threadData.userInfo) {
+  return api.sendMessage("❌ Failed to get user list.", event.threadID);
+}
       const users = threadData.userInfo;
 
       const myData = users.find(u => u.id === senderID);
-      if (!myData || !myData.gender)
-        return api.sendMessage("⚠️ Could not determine your gender.", event.threadID);
-
+      if (!myData || !myData.gender) {
+  return api.sendMessage("⚠️ Gender data not available for matching.", event.threadID);
+      }
       const myGender = myData.gender;
 
       let matchCandidates = users.filter(
@@ -185,11 +189,34 @@ module.exports = {
         ctx.fillText(name2, W - 250, H / 2 + 150);
 
         // 👉 compatibility text add (UI তেও দেখানোর জন্য)
-        ctx.font = "bold 24px sans-serif";
-        ctx.fillStyle = "#ffffff";
-        ctx.fillText("✨ " + compatibility + "% Soul", W / 2, H / 2 + 200);
-      }
+ctx.save();
 
+const soulGrad = ctx.createLinearGradient(W/2 - 100, 0, W/2 + 100, 0);
+soulGrad.addColorStop(0, "#ff9a9e");
+soulGrad.addColorStop(0.5, "#fad0c4");
+soulGrad.addColorStop(1, "#a18cd1");
+
+ctx.font = "bold 26px sans-serif";
+ctx.fillStyle = soulGrad;
+ctx.textAlign = "center";
+
+ctx.shadowColor = "#ff9a9e";
+ctx.shadowBlur = 15;
+
+ctx.fillText("❀ " + compatibility + "% Soul", W / 2, H / 2 + 200);
+const lineGrad = ctx.createLinearGradient(W/2 - 80, 0, W/2 + 80, 0);
+lineGrad.addColorStop(0, "transparent");
+lineGrad.addColorStop(0.5, "#ffffff");
+lineGrad.addColorStop(1, "transparent");
+
+ctx.shadowBlur = 0;
+ctx.fillStyle = lineGrad;
+ctx.fillRect(W/2 - 80, H/2 + 215, 160, 2);
+
+ctx.restore();
+}
+
+        
       function drawNeonAvatar(ctx, img, cx, cy, colorSet) {
         const r = 100;
 
@@ -252,7 +279,7 @@ module.exports = {
 
     ctx.globalAlpha = 0.8;
     ctx.font = "20px serif";
-    ctx.fillText("💖", x, y);
+    ctx.fillText("love", x, y);
   }
   ctx.globalAlpha = 1;
 
@@ -282,14 +309,6 @@ module.exports = {
   ctx.shadowColor = "#ff4d6d";
   ctx.shadowBlur = 15;
   ctx.stroke();
-  ctx.shadowBlur = 0;
-
-  // 💖 center heart (enhanced glow)
-  ctx.font = "70px serif";
-  ctx.fillStyle = "#ffffff";
-  ctx.shadowColor = "#ff4d6d";
-  ctx.shadowBlur = 35;
-  ctx.fillText("💖", W/2 - 25, H/2 + 25);
   ctx.shadowBlur = 0;
 
   // 🔥 UI call (FIXED)
@@ -361,14 +380,6 @@ module.exports = {
   ctx.setLineDash([6,6]);
   ctx.stroke();
   ctx.setLineDash([]);
-  ctx.shadowBlur = 0;
-
-  // ✨ center sparkle (glow upgrade)
-  ctx.font = "50px serif";
-  ctx.fillStyle = "#ffffff";
-  ctx.shadowColor = "#00f7ff";
-  ctx.shadowBlur = 25;
-  ctx.fillText("✨", W/2 - 15, H/2 + 15);
   ctx.shadowBlur = 0;
 
   // 🔥 UI call (FIXED)
@@ -444,14 +455,7 @@ module.exports = {
   drawNeonAvatar(ctx, avatar1, 250, H/2, ["#ff0080","#ff4d6d","#ff00cc"]);
   drawNeonAvatar(ctx, avatar2, W-250, H/2, ["#ff0080","#ff4d6d","#ff00cc"]);
 
-  // 🌙 center icon with glow
-  ctx.font = "60px serif";
-  ctx.fillStyle = "#ffffff";
-  ctx.shadowColor = "#ff4d6d";
-  ctx.shadowBlur = 25;
-  ctx.fillText("🌙", W/2 - 20, H/2 + 20);
-  ctx.shadowBlur = 0;
-
+  
   // 🔥 UI call (FIXED)
   drawDynamicUI(ctx, W, H, senderName, matchName, lovePercent, compatibility);
         }
