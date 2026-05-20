@@ -224,6 +224,8 @@ module.exports = {
 
       if (selectedBg.type === "dynamic") {
 
+       
+        
         // ========= ID 9 =========
         if (selectedBg.id === 9) {
 
@@ -323,59 +325,252 @@ module.exports = {
   drawDynamicUI(ctx, W, H, senderName, matchName, lovePercent);
       }
         
+       
+        
         // ========= ID 10 =========
         if (selectedBg.id === 10) {
 
+  // 🌌 Deep ocean gradient
   const grad = ctx.createLinearGradient(0, 0, W, H);
-  grad.addColorStop(0, "#050505");
-  grad.addColorStop(1, "#001f3f");
+  grad.addColorStop(0, "#020024");
+  grad.addColorStop(0.4, "#001f3f");
+  grad.addColorStop(0.7, "#003566");
+  grad.addColorStop(1, "#00c6ff");
   ctx.fillStyle = grad;
   ctx.fillRect(0, 0, W, H);
 
-  for (let i = 0; i < 50; i++) {
-    ctx.globalAlpha = Math.random() * 0.7;
-    ctx.shadowColor = "rgba(0,150,255,0.8)";
-    ctx.shadowBlur = 20;
-    ctx.font = `${Math.random()*25+10}px serif`;
-    ctx.fillText("💙", Math.random()*W, Math.random()*H);
+  // 🌫️ soft fog glow
+  const fog = ctx.createRadialGradient(W/2, H/2, 0, W/2, H/2, W);
+  fog.addColorStop(0, "rgba(0,180,255,0.2)");
+  fog.addColorStop(1, "rgba(0,0,0,0.6)");
+  ctx.fillStyle = fog;
+  ctx.fillRect(0, 0, W, H);
+
+  // ✨ neon particles (stars feel)
+  for (let i = 0; i < 100; i++) {
+    const x = Math.random() * W;
+    const y = Math.random() * H;
+    const r = Math.random() * 2 + 1;
+
+    const pGlow = ctx.createRadialGradient(x, y, 0, x, y, r * 8);
+    pGlow.addColorStop(0, "rgba(0,255,255,0.9)");
+    pGlow.addColorStop(1, "rgba(0,255,255,0)");
+
+    ctx.fillStyle = pGlow;
+    ctx.beginPath();
+    ctx.arc(x, y, r * 8, 0, Math.PI * 2);
+    ctx.fill();
   }
 
-  ctx.shadowBlur = 0;
-  ctx.globalAlpha = 1;
+  // 💙 floating hearts (neon blue)
+  for (let i = 0; i < 60; i++) {
+    const size = Math.random() * 28 + 12;
+    const x = Math.random() * W;
+    const y = Math.random() * H;
 
+    ctx.globalAlpha = Math.random() * 0.6 + 0.2;
+
+    ctx.shadowColor = "rgba(0,200,255,0.9)";
+    ctx.shadowBlur = 25;
+
+    ctx.font = `${size}px serif`;
+    ctx.fillText("💙", x, y);
+  }
+
+  ctx.globalAlpha = 1;
+  ctx.shadowBlur = 0;
+
+  // 🌊 wave lines (cyber motion illusion)
+  for (let i = 0; i < 4; i++) {
+    ctx.beginPath();
+    ctx.strokeStyle = `rgba(0,255,255,${0.05 + i*0.03})`;
+    ctx.lineWidth = 2;
+
+    for (let x = 0; x < W; x += 20) {
+      const y = H/2 + Math.sin((x * 0.012) + i * 1.5) * 25;
+      ctx.lineTo(x, y);
+    }
+    ctx.stroke();
+  }
+
+  // ⚡ center glow focus
+  const centerGlow = ctx.createRadialGradient(W/2, H/2, 80, W/2, H/2, 400);
+  centerGlow.addColorStop(0, "rgba(0,255,255,0.25)");
+  centerGlow.addColorStop(1, "rgba(0,255,255,0)");
+  ctx.fillStyle = centerGlow;
+  ctx.fillRect(0, 0, W, H);
+
+  // 👇 avatars (blue neon upgraded)
   drawNeonAvatar(ctx, avatar1, 250, H/2, ["#00c6ff","#0072ff","#00f7ff"]);
   drawNeonAvatar(ctx, avatar2, W-250, H/2, ["#00c6ff","#0072ff","#00f7ff"]);
 
+  // 🔗 connection beam (energy line)
+  const beam = ctx.createLinearGradient(300, H/2, W-300, H/2);
+  beam.addColorStop(0, "rgba(0,255,255,0)");
+  beam.addColorStop(0.5, "rgba(0,255,255,0.6)");
+  beam.addColorStop(1, "rgba(0,255,255,0)");
+
+  ctx.beginPath();
+  ctx.moveTo(300, H/2);
+  ctx.lineTo(W-300, H/2);
+  ctx.strokeStyle = beam;
+  ctx.lineWidth = 4;
+  ctx.shadowColor = "#00f7ff";
+  ctx.shadowBlur = 20;
+  ctx.stroke();
+
+  ctx.shadowBlur = 0;
+
+  // 💙 center heart glow
+  ctx.font = "60px serif";
+  ctx.shadowColor = "#00c6ff";
+  ctx.shadowBlur = 40;
+  ctx.fillText("💙", W/2 - 20, H/2 + 20);
+  ctx.shadowBlur = 0;
+
+  // 🧊 subtle grid overlay (tech feel)
+  ctx.strokeStyle = "rgba(0,255,255,0.05)";
+  ctx.lineWidth = 1;
+
+  for (let x = 0; x < W; x += 60) {
+    ctx.beginPath();
+    ctx.moveTo(x, 0);
+    ctx.lineTo(x, H);
+    ctx.stroke();
+  }
+
+  for (let y = 0; y < H; y += 60) {
+    ctx.beginPath();
+    ctx.moveTo(0, y);
+    ctx.lineTo(W, y);
+    ctx.stroke();
+  }
+
+  // 👇 Dynamic UI
   drawDynamicUI(ctx, W, H, senderName, matchName, lovePercent);
-        }
+      }
+
+
         
         // ========= ID 11 =========
         if (selectedBg.id === 11) {
 
+  // 🌌 Galaxy gradient base
   const grad = ctx.createLinearGradient(0, 0, W, H);
   grad.addColorStop(0, "#000000");
-  grad.addColorStop(1, "#2b0033");
+  grad.addColorStop(0.4, "#1a0026");
+  grad.addColorStop(0.7, "#2b0033");
+  grad.addColorStop(1, "#4b006e");
   ctx.fillStyle = grad;
   ctx.fillRect(0, 0, W, H);
 
-  for (let i = 0; i < 55; i++) {
-    ctx.globalAlpha = Math.random() * 0.8;
-    ctx.shadowColor = "rgba(255,0,120,0.9)";
-    ctx.shadowBlur = 25;
-    ctx.font = `${Math.random()*25+12}px serif`;
-    ctx.fillText("💗", Math.random()*W, Math.random()*H);
+  // 🌫️ cosmic nebula glow
+  const nebula = ctx.createRadialGradient(W/2, H/2, 0, W/2, H/2, W);
+  nebula.addColorStop(0, "rgba(255,0,150,0.25)");
+  nebula.addColorStop(1, "rgba(0,0,0,0.8)");
+  ctx.fillStyle = nebula;
+  ctx.fillRect(0, 0, W, H);
+
+  // ✨ stars (twinkle illusion)
+  for (let i = 0; i < 120; i++) {
+    const x = Math.random() * W;
+    const y = Math.random() * H;
+    const r = Math.random() * 1.5 + 0.5;
+
+    const star = ctx.createRadialGradient(x, y, 0, x, y, r * 6);
+    star.addColorStop(0, "rgba(255,255,255,0.9)");
+    star.addColorStop(1, "rgba(255,255,255,0)");
+
+    ctx.fillStyle = star;
+    ctx.beginPath();
+    ctx.arc(x, y, r * 6, 0, Math.PI * 2);
+    ctx.fill();
   }
 
-  ctx.shadowBlur = 0;
-  ctx.globalAlpha = 1;
+  // 💫 galaxy swirl (motion illusion)
+  for (let i = 0; i < 4; i++) {
+    ctx.beginPath();
+    ctx.strokeStyle = `rgba(255,0,200,${0.08 + i*0.04})`;
+    ctx.lineWidth = 2;
 
+    for (let x = 0; x < W; x += 15) {
+      const y = H/2 + Math.sin((x * 0.01) + i * 2) * (40 + i*10);
+      ctx.lineTo(x, y);
+    }
+    ctx.stroke();
+  }
+
+  // 💗 floating hearts (cosmic neon)
+  for (let i = 0; i < 70; i++) {
+    const size = Math.random() * 28 + 12;
+    const x = Math.random() * W;
+    const y = Math.random() * H;
+
+    ctx.globalAlpha = Math.random() * 0.6 + 0.2;
+
+    ctx.shadowColor = `hsl(${Math.random()*360},100%,70%)`;
+    ctx.shadowBlur = 30;
+
+    ctx.font = `${size}px serif`;
+    ctx.fillText("💗", x, y);
+  }
+
+  ctx.globalAlpha = 1;
+  ctx.shadowBlur = 0;
+
+  // 🌟 center galaxy core glow
+  const core = ctx.createRadialGradient(W/2, H/2, 80, W/2, H/2, 350);
+  core.addColorStop(0, "rgba(255,0,200,0.3)");
+  core.addColorStop(1, "rgba(255,0,200,0)");
+  ctx.fillStyle = core;
+  ctx.fillRect(0, 0, W, H);
+
+  // 👇 avatars (cosmic neon)
   drawNeonAvatar(ctx, avatar1, 250, H/2, ["#ff0080","#ff4d6d","#ff00cc"]);
   drawNeonAvatar(ctx, avatar2, W-250, H/2, ["#ff0080","#ff4d6d","#ff00cc"]);
 
+  // 🌌 cosmic connection beam
+  const beam = ctx.createLinearGradient(300, H/2, W-300, H/2);
+  beam.addColorStop(0, "rgba(255,0,200,0)");
+  beam.addColorStop(0.5, "rgba(255,0,200,0.7)");
+  beam.addColorStop(1, "rgba(255,0,200,0)");
+
+  ctx.beginPath();
+  ctx.moveTo(300, H/2);
+  ctx.lineTo(W-300, H/2);
+  ctx.strokeStyle = beam;
+  ctx.lineWidth = 4;
+  ctx.shadowColor = "#ff00cc";
+  ctx.shadowBlur = 25;
+  ctx.stroke();
+  ctx.shadowBlur = 0;
+
+  // 💗 center heart (galaxy core)
+  ctx.font = "65px serif";
+  ctx.shadowColor = "#ff00cc";
+  ctx.shadowBlur = 50;
+  ctx.fillText("💗", W/2 - 22, H/2 + 22);
+  ctx.shadowBlur = 0;
+
+  // 🌠 shooting stars
+  for (let i = 0; i < 6; i++) {
+    const sx = Math.random() * W;
+    const sy = Math.random() * H / 2;
+
+    ctx.beginPath();
+    ctx.moveTo(sx, sy);
+    ctx.lineTo(sx + 80, sy + 30);
+    ctx.strokeStyle = "rgba(255,255,255,0.4)";
+    ctx.lineWidth = 2;
+    ctx.stroke();
+  }
+
+  // 👇 Dynamic UI
   drawDynamicUI(ctx, W, H, senderName, matchName, lovePercent);
         }
-
         
+
+    //---------------------------------------------//
       } else {
 
         if (selectedBg.type === "circle") {
