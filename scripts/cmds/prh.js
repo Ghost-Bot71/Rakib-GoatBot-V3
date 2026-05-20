@@ -284,14 +284,6 @@ module.exports = {
   ctx.stroke();
   ctx.shadowBlur = 0;
 
-  // 💖 center heart (enhanced glow)
-  ctx.font = "70px serif";
-  ctx.fillStyle = "#ffffff";
-  ctx.shadowColor = "#ff4d6d";
-  ctx.shadowBlur = 35;
-  ctx.fillText("pair", W/2 - 25, H/2 + 25);
-  ctx.shadowBlur = 0;
-
   // 🔥 UI call (FIXED)
   drawDynamicUI(ctx, W, H, senderName, matchName, lovePercent, compatibility);
         }
@@ -361,14 +353,6 @@ module.exports = {
   ctx.setLineDash([6,6]);
   ctx.stroke();
   ctx.setLineDash([]);
-  ctx.shadowBlur = 0;
-
-  // ✨ center sparkle (glow upgrade)
-  ctx.font = "50px serif";
-  ctx.fillStyle = "#ffffff";
-  ctx.shadowColor = "#00f7ff";
-  ctx.shadowBlur = 25;
-  ctx.fillText("sweet", W/2 - 15, H/2 + 15);
   ctx.shadowBlur = 0;
 
   // 🔥 UI call (FIXED)
@@ -444,14 +428,7 @@ module.exports = {
   drawNeonAvatar(ctx, avatar1, 250, H/2, ["#ff0080","#ff4d6d","#ff00cc"]);
   drawNeonAvatar(ctx, avatar2, W-250, H/2, ["#ff0080","#ff4d6d","#ff00cc"]);
 
-  // 🌙 center icon with glow
-  ctx.font = "60px serif";
-  ctx.fillStyle = "#ffffff";
-  ctx.shadowColor = "#ff4d6d";
-  ctx.shadowBlur = 25;
-  ctx.fillText("pair", W/2 - 20, H/2 + 20);
-  ctx.shadowBlur = 0;
-
+  
   // 🔥 UI call (FIXED)
   drawDynamicUI(ctx, W, H, senderName, matchName, lovePercent, compatibility);
         }
