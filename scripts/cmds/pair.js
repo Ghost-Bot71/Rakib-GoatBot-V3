@@ -6,8 +6,8 @@ const { getAvatarUrl } = require("../../rakib/customApi/getAvatarUrl");
 
 module.exports = {
   config: {
-    name: "prz",
-    aliases: ["pra"],
+    name: "pair",
+    aliases: ["pr"],
     author: "Rakib",
     category: "love",
   },
@@ -98,7 +98,6 @@ module.exports = {
           pos: [{ x: 65, y: 104, size: 210 }, { x: 460, y: 104, size: 210 }]
         },
 
-        // 🔥 DYNAMIC
         { id: 9, type: "dynamic" },
         { id: 10, type: "dynamic" },
         { id: 11, type: "dynamic" }
@@ -141,8 +140,7 @@ module.exports = {
       const avatar2 = await loadImage(await getAvatarUrl(selectedMatch.id));
 
       const lovePercent = Math.floor(Math.random() * 31) + 70;
-
-      /* ================= COMMON FUNCTIONS ================= */
+      const compatibility = Math.floor(Math.random() * 21) + 80;
 
       function drawCircle(ctx, img, x, y, size) {
         ctx.save();
@@ -152,47 +150,45 @@ module.exports = {
         ctx.drawImage(img, x, y, size, size);
         ctx.restore();
       }
-      
-      /* ================= UI FUNCTIONS ================= */
-      
-      function drawDynamicUI(ctx, W, H, name1, name2, lovePercent) {
 
-  // 💖 center glow heart
-  ctx.shadowColor = "#ff4d6d";
-  ctx.shadowBlur = 25;
+      function drawDynamicUI(ctx, W, H, name1, name2, lovePercent, compatibility) {
 
-  ctx.font = "bold 80px sans-serif";
-  ctx.fillStyle = "#ffffff";
-  ctx.textAlign = "center";
+        ctx.shadowColor = "#ff4d6d";
+        ctx.shadowBlur = 25;
 
-  ctx.fillText("❤️", W / 2, H / 2 - 10);
+        ctx.font = "bold 80px sans-serif";
+        ctx.fillStyle = "#ffffff";
+        ctx.textAlign = "center";
 
-  // 💯 percent
-  ctx.font = "bold 55px sans-serif";
-  ctx.fillStyle = "#00f7ff";
-  ctx.fillText(lovePercent + "%", W / 2, H / 2 + 70);
+        ctx.fillText("❤️", W / 2, H / 2 - 10);
 
-  ctx.shadowBlur = 0;
+        ctx.font = "bold 55px sans-serif";
+        ctx.fillStyle = "#00f7ff";
+        ctx.fillText(lovePercent + "%", W / 2, H / 2 + 70);
 
-  // ✨ divider line
-  const grad = ctx.createLinearGradient(W/2 - 120, 0, W/2 + 120, 0);
-  grad.addColorStop(0, "transparent");
-  grad.addColorStop(0.5, "#ffffff");
-  grad.addColorStop(1, "transparent");
+        ctx.shadowBlur = 0;
 
-  ctx.fillStyle = grad;
-  ctx.fillRect(W/2 - 120, H/2 + 90, 240, 2);
+        const grad = ctx.createLinearGradient(W/2 - 120, 0, W/2 + 120, 0);
+        grad.addColorStop(0, "transparent");
+        grad.addColorStop(0.5, "#ffffff");
+        grad.addColorStop(1, "transparent");
 
-  // 👤 names
-  ctx.font = "bold 28px sans-serif";
+        ctx.fillStyle = grad;
+        ctx.fillRect(W/2 - 120, H/2 + 90, 240, 2);
 
-  ctx.fillStyle = "#00f7ff";
-  ctx.fillText(name1, 250, H / 2 + 150);
+        ctx.font = "bold 28px sans-serif";
 
-  ctx.fillStyle = "#ff00c8";
-  ctx.fillText(name2, W - 250, H / 2 + 150);
+        ctx.fillStyle = "#00f7ff";
+        ctx.fillText(name1, 250, H / 2 + 150);
+
+        ctx.fillStyle = "#ff00c8";
+        ctx.fillText(name2, W - 250, H / 2 + 150);
+
+        // 👉 compatibility text add (UI তেও দেখানোর জন্য)
+        ctx.font = "bold 24px sans-serif";
+        ctx.fillStyle = "#ffffff";
+        ctx.fillText("✨ " + compatibility + "% Soul", W / 2, H / 2 + 200);
       }
-      
 
       function drawNeonAvatar(ctx, img, cx, cy, colorSet) {
         const r = 100;
@@ -220,99 +216,247 @@ module.exports = {
         ctx.restore();
       }
 
-      /* ================= RENDER ================= */
-
       if (selectedBg.type === "dynamic") {
 
-        // ========= ID 9 =========
+        //////////////////////////////////////////
+        //////////////// ID 9 ////////////////////
+        //////////////////////////////////////////
+        
         if (selectedBg.id === 9) {
 
+  // 🌈 soft romantic gradient
   const grad = ctx.createLinearGradient(0, 0, W, H);
-  grad.addColorStop(0, "#ff758c");
-  grad.addColorStop(0.4, "#ff7eb3");
-  grad.addColorStop(0.7, "#a18cd1");
-  grad.addColorStop(1, "#fbc2eb");
+  grad.addColorStop(0, "#ff4d6d");
+  grad.addColorStop(1, "#ff9a9e");
   ctx.fillStyle = grad;
   ctx.fillRect(0, 0, W, H);
 
-  const glow = ctx.createRadialGradient(W/2, H/2, 50, W/2, H/2, W);
-  glow.addColorStop(0, "rgba(255,255,255,0.25)");
-  glow.addColorStop(1, "rgba(255,255,255,0)");
-  ctx.fillStyle = glow;
-  ctx.fillRect(0, 0, W, H);
-
-  for (let i = 0; i < 60; i++) {
-    ctx.globalAlpha = Math.random() * 0.8;
-    ctx.shadowColor = "rgba(255,0,120,0.7)";
-    ctx.shadowBlur = 20;
-    ctx.font = `${Math.random()*25+10}px serif`;
-    ctx.fillText("💖", Math.random()*W, Math.random()*H);
+  // 💓 pulse rings (enhanced glow)
+  for (let i = 0; i < 4; i++) {
+    ctx.beginPath();
+    ctx.arc(W/2, H/2, 120 + i*30, 0, Math.PI*2);
+    ctx.strokeStyle = `rgba(255,255,255,${0.1 - i*0.02})`;
+    ctx.lineWidth = 3;
+    ctx.shadowColor = "#ff4d6d";
+    ctx.shadowBlur = 15;
+    ctx.stroke();
   }
-
   ctx.shadowBlur = 0;
+
+  // 💖 orbit hearts (rotation illusion)
+  const baseAngle = Date.now() * 0.002; // pseudo animation feel
+  for (let i = 0; i < 12; i++) {
+    const angle = baseAngle + (Math.PI * 2 / 12) * i;
+    const x = W/2 + Math.cos(angle) * 140;
+    const y = H/2 + Math.sin(angle) * 140;
+
+    ctx.globalAlpha = 0.8;
+    ctx.font = "20px serif";
+    ctx.fillText("💖", x, y);
+  }
   ctx.globalAlpha = 1;
 
-  // 👇 avatar
-  drawNeonAvatar(ctx, avatar1, 250, H/2, ["#ff00cc","#00f7ff","#ff4d6d"]);
-  drawNeonAvatar(ctx, avatar2, W-250, H/2, ["#ff00cc","#00f7ff","#ff4d6d"]);
+  // ✨ premium spark particles
+  for (let i = 0; i < 60; i++) {
+    ctx.globalAlpha = Math.random();
+    ctx.fillStyle = Math.random() > 0.5 ? "#ffffff" : "#ffe6eb";
+    ctx.fillRect(Math.random()*W, Math.random()*H, 2, 2);
+  }
+  ctx.globalAlpha = 1;
 
-  // 👇 UI
-  drawDynamicUI(ctx, W, H, senderName, matchName, lovePercent);
+  // 👇 avatars (FIXED colorSet)
+  drawNeonAvatar(ctx, avatar1, 250, H/2, ["#ff4d6d","#ff00cc","#ff7eb3"]);
+  drawNeonAvatar(ctx, avatar2, W-250, H/2, ["#ff4d6d","#ff00cc","#ff7eb3"]);
+
+  // 💘 smooth pulse beam (wave improved)
+  ctx.beginPath();
+  ctx.moveTo(300, H/2);
+
+  for (let x = 300; x < W-300; x += 10) {
+    const y = H/2 + Math.sin(x*0.03) * 12;
+    ctx.lineTo(x, y);
+  }
+
+  ctx.strokeStyle = "#ffffff";
+  ctx.lineWidth = 3;
+  ctx.shadowColor = "#ff4d6d";
+  ctx.shadowBlur = 15;
+  ctx.stroke();
+  ctx.shadowBlur = 0;
+
+  // 💖 center heart (enhanced glow)
+  ctx.font = "70px serif";
+  ctx.fillStyle = "#ffffff";
+  ctx.shadowColor = "#ff4d6d";
+  ctx.shadowBlur = 35;
+  ctx.fillText("💖", W/2 - 25, H/2 + 25);
+  ctx.shadowBlur = 0;
+
+  // 🔥 UI call (FIXED)
+  drawDynamicUI(ctx, W, H, senderName, matchName, lovePercent, compatibility);
         }
         
-        // ========= ID 10 =========
-        if (selectedBg.id === 10) {
+        
+        //////////////////////////////////////////
+        //////////////// ID 10 ///////////////////
+        //////////////////////////////////////////
+         if (selectedBg.id === 10) {
 
+  // 🌌 deep sky gradient
   const grad = ctx.createLinearGradient(0, 0, W, H);
-  grad.addColorStop(0, "#050505");
-  grad.addColorStop(1, "#001f3f");
+  grad.addColorStop(0, "#000814");
+  grad.addColorStop(1, "#001d3d");
   ctx.fillStyle = grad;
   ctx.fillRect(0, 0, W, H);
 
-  for (let i = 0; i < 50; i++) {
-    ctx.globalAlpha = Math.random() * 0.7;
-    ctx.shadowColor = "rgba(0,150,255,0.8)";
-    ctx.shadowBlur = 20;
-    ctx.font = `${Math.random()*25+10}px serif`;
-    ctx.fillText("💙", Math.random()*W, Math.random()*H);
+  // ✨ star field (enhanced)
+  const stars = [];
+  for (let i = 0; i < 100; i++) {
+    const x = Math.random()*W;
+    const y = Math.random()*H;
+    const r = Math.random()*2 + 0.5;
+
+    stars.push({x,y});
+
+    ctx.beginPath();
+    ctx.arc(x, y, r, 0, Math.PI*2);
+    ctx.fillStyle = "white";
+    ctx.shadowColor = "#00f7ff";
+    ctx.shadowBlur = 5;
+    ctx.fill();
+  }
+  ctx.shadowBlur = 0;
+
+  // 🔗 constellation lines (smoother)
+  ctx.strokeStyle = "rgba(255,255,255,0.12)";
+  ctx.lineWidth = 1;
+
+  for (let i = 0; i < stars.length; i++) {
+    for (let j = i+1; j < stars.length; j++) {
+      const dx = stars[i].x - stars[j].x;
+      const dy = stars[i].y - stars[j].y;
+      const dist = Math.sqrt(dx*dx + dy*dy);
+
+      if (dist < 110) {
+        ctx.beginPath();
+        ctx.moveTo(stars[i].x, stars[i].y);
+        ctx.lineTo(stars[j].x, stars[j].y);
+        ctx.stroke();
+      }
+    }
   }
 
-  ctx.shadowBlur = 0;
-  ctx.globalAlpha = 1;
-
+  // 👇 avatars (FIXED colorSet)
   drawNeonAvatar(ctx, avatar1, 250, H/2, ["#00c6ff","#0072ff","#00f7ff"]);
   drawNeonAvatar(ctx, avatar2, W-250, H/2, ["#00c6ff","#0072ff","#00f7ff"]);
 
-  drawDynamicUI(ctx, W, H, senderName, matchName, lovePercent);
-        }
+  // 🌟 main connection beam (enhanced glow)
+  ctx.beginPath();
+  ctx.moveTo(300, H/2);
+  ctx.lineTo(W-300, H/2);
+  ctx.strokeStyle = "#00f7ff";
+  ctx.lineWidth = 2;
+  ctx.shadowColor = "#00f7ff";
+  ctx.shadowBlur = 15;
+  ctx.setLineDash([6,6]);
+  ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.shadowBlur = 0;
+
+  // ✨ center sparkle (glow upgrade)
+  ctx.font = "50px serif";
+  ctx.fillStyle = "#ffffff";
+  ctx.shadowColor = "#00f7ff";
+  ctx.shadowBlur = 25;
+  ctx.fillText("✨", W/2 - 15, H/2 + 15);
+  ctx.shadowBlur = 0;
+
+  // 🔥 UI call (FIXED)
+  drawDynamicUI(ctx, W, H, senderName, matchName, lovePercent, compatibility);
+         }
+
         
-        // ========= ID 11 =========
+        //////////////////////////////////////////
+        //////////////// ID 11 ///////////////////
+        //////////////////////////////////////////
         if (selectedBg.id === 11) {
 
+  // 🌌 night gradient
   const grad = ctx.createLinearGradient(0, 0, W, H);
   grad.addColorStop(0, "#000000");
-  grad.addColorStop(1, "#2b0033");
+  grad.addColorStop(1, "#1a0033");
   ctx.fillStyle = grad;
   ctx.fillRect(0, 0, W, H);
 
-  for (let i = 0; i < 55; i++) {
-    ctx.globalAlpha = Math.random() * 0.8;
-    ctx.shadowColor = "rgba(255,0,120,0.9)";
-    ctx.shadowBlur = 25;
-    ctx.font = `${Math.random()*25+12}px serif`;
-    ctx.fillText("💗", Math.random()*W, Math.random()*H);
-  }
+  // 🌙 moon with glow
+  const mx = W/2;
+  const my = 140;
 
-  ctx.shadowBlur = 0;
+  const moonGlow = ctx.createRadialGradient(mx, my, 10, mx, my, 100);
+  moonGlow.addColorStop(0, "#ffffff");
+  moonGlow.addColorStop(1, "transparent");
+
+  ctx.fillStyle = moonGlow;
+  ctx.beginPath();
+  ctx.arc(mx, my, 100, 0, Math.PI*2);
+  ctx.fill();
+
+  ctx.beginPath();
+  ctx.arc(mx, my, 60, 0, Math.PI*2);
+  ctx.fillStyle = "#ffffff";
+  ctx.fill();
+
+  // ✨ stars (twinkle style)
+  for (let i = 0; i < 60; i++) {
+    const x = Math.random()*W;
+    const y = Math.random()*(H/2);
+
+    ctx.globalAlpha = Math.random();
+    ctx.fillStyle = "#ffffff";
+    ctx.fillRect(x, y, 2, 2);
+  }
   ctx.globalAlpha = 1;
 
+  // 🌫️ fog layer (depth)
+  const fog = ctx.createRadialGradient(W/2, H/2, 0, W/2, H/2, 400);
+  fog.addColorStop(0, "rgba(255,255,255,0.05)");
+  fog.addColorStop(1, "transparent");
+
+  ctx.fillStyle = fog;
+  ctx.fillRect(0, 0, W, H);
+
+  // 🌊 reflection (enhanced water wave)
+  for (let i = 0; i < 25; i++) {
+    ctx.beginPath();
+    ctx.moveTo(0, H/2 + i*5);
+
+    for (let x = 0; x < W; x += 15) {
+      const y = H/2 + i*5 + Math.sin(x*0.02 + i*0.5) * 4;
+      ctx.lineTo(x, y);
+    }
+
+    ctx.strokeStyle = `rgba(255,255,255,${0.06 - i*0.002})`;
+    ctx.lineWidth = 1;
+    ctx.stroke();
+  }
+
+  // 👇 avatars (FIXED)
   drawNeonAvatar(ctx, avatar1, 250, H/2, ["#ff0080","#ff4d6d","#ff00cc"]);
   drawNeonAvatar(ctx, avatar2, W-250, H/2, ["#ff0080","#ff4d6d","#ff00cc"]);
 
-  drawDynamicUI(ctx, W, H, senderName, matchName, lovePercent);
-        }
+  // 🌙 center icon with glow
+  ctx.font = "60px serif";
+  ctx.fillStyle = "#ffffff";
+  ctx.shadowColor = "#ff4d6d";
+  ctx.shadowBlur = 25;
+  ctx.fillText("🌙", W/2 - 20, H/2 + 20);
+  ctx.shadowBlur = 0;
 
+  // 🔥 UI call (FIXED)
+  drawDynamicUI(ctx, W, H, senderName, matchName, lovePercent, compatibility);
+        }
         
+    ////////////////////////////////////////////////////////////
       } else {
 
         if (selectedBg.type === "circle") {
@@ -335,8 +479,6 @@ module.exports = {
         }
       }
 
-      /* ================= SAVE ================= */
-
       const outputPath = path.join(__dirname, "pair_output.png");
 
       const out = fs.createWriteStream(outputPath);
@@ -344,7 +486,17 @@ module.exports = {
 
       out.on("finish", () => {
         api.sendMessage({
-          body: `💖 ${senderName} ❤️ ${matchName}\n💯 Love: ${lovePercent}%`,
+          body: `💖✨ 𝐄𝐥𝐞𝐠𝐚𝐧𝐭 𝐏𝐚𝐢𝐫 𝐑𝐞𝐯𝐞𝐚𝐥 ✨💖
+🌙 𝑻𝒐𝒏𝒊𝒈𝒉𝒕, 𝒅𝒆𝒔𝒕𝒊𝒏𝒚 𝒘𝒉𝒊𝒔𝒑𝒆𝒓𝒔 𝒔𝒐𝒇𝒕𝒍𝒚...
+💫 𝑻𝒘𝒐 𝒔𝒐𝒖𝒍𝒔 𝒎𝒆𝒆𝒕 𝒖𝒏𝒅𝒆𝒓 𝒕𝒉𝒆 𝒈𝒍𝒐𝒘 𝒐𝒇 𝒇𝒂𝒕𝒆.
+━━━━━━━━━━━━━━━
+💞 ${senderName}
+💞 ${matchName}
+——————————
+❤️ 𝑳𝒐𝒗𝒆 𝑹𝒂𝒕𝒊𝒏𝒈: ${lovePercent}%
+🌟 𝑺𝒐𝒖𝒍 𝑨𝒍𝒊𝒈𝒏𝒎𝒆𝒏𝒕: ${compatibility}%
+━━━━━━━━━━━━━━━
+💌 𝑴𝒂𝒚 𝒕𝒉𝒊𝒔 𝒃𝒐𝒏𝒅 𝒈𝒓𝒐𝒘 𝒔𝒕𝒓𝒐𝒏𝒈𝒆𝒓 𝒆𝒗𝒆𝒓𝒚 𝒅𝒂𝒚 ✨`,
           attachment: fs.createReadStream(outputPath)
         }, event.threadID, () => fs.unlinkSync(outputPath));
       });
