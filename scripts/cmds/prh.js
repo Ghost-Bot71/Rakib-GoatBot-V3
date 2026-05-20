@@ -185,11 +185,33 @@ module.exports = {
         ctx.fillText(name2, W - 250, H / 2 + 150);
 
         // 👉 compatibility text add (UI তেও দেখানোর জন্য)
-        ctx.font = "bold 24px sans-serif";
-        ctx.fillStyle = "#ffffff";
-        ctx.fillText("✨ " + compatibility + "% Soul", W / 2, H / 2 + 200);
-      }
+ctx.save();
 
+const soulGrad = ctx.createLinearGradient(W/2 - 100, 0, W/2 + 100, 0);
+soulGrad.addColorStop(0, "#ff9a9e");
+soulGrad.addColorStop(0.5, "#fad0c4");
+soulGrad.addColorStop(1, "#a18cd1");
+
+ctx.font = "bold 26px sans-serif";
+ctx.fillStyle = soulGrad;
+ctx.textAlign = "center";
+
+ctx.shadowColor = "#ff9a9e";
+ctx.shadowBlur = 15;
+
+ctx.fillText("❀ " + compatibility + "% Soul", W / 2, H / 2 + 200);
+const lineGrad = ctx.createLinearGradient(W/2 - 80, 0, W/2 + 80, 0);
+lineGrad.addColorStop(0, "transparent");
+lineGrad.addColorStop(0.5, "#ffffff");
+lineGrad.addColorStop(1, "transparent");
+
+ctx.shadowBlur = 0;
+ctx.fillStyle = lineGrad;
+ctx.fillRect(W/2 - 80, H/2 + 215, 160, 2);
+
+ctx.restore();
+
+        
       function drawNeonAvatar(ctx, img, cx, cy, colorSet) {
         const r = 100;
 
