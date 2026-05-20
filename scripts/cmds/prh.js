@@ -252,7 +252,7 @@ module.exports = {
 
     ctx.globalAlpha = 0.8;
     ctx.font = "20px serif";
-    ctx.fillText("💖", x, y);
+    ctx.fillText("love", x, y);
   }
   ctx.globalAlpha = 1;
 
@@ -289,7 +289,7 @@ module.exports = {
   ctx.fillStyle = "#ffffff";
   ctx.shadowColor = "#ff4d6d";
   ctx.shadowBlur = 35;
-  ctx.fillText("💖", W/2 - 25, H/2 + 25);
+  ctx.fillText("pair", W/2 - 25, H/2 + 25);
   ctx.shadowBlur = 0;
 
   // 🔥 UI call (FIXED)
@@ -368,7 +368,7 @@ module.exports = {
   ctx.fillStyle = "#ffffff";
   ctx.shadowColor = "#00f7ff";
   ctx.shadowBlur = 25;
-  ctx.fillText("✨", W/2 - 15, H/2 + 15);
+  ctx.fillText("sweet", W/2 - 15, H/2 + 15);
   ctx.shadowBlur = 0;
 
   // 🔥 UI call (FIXED)
@@ -449,7 +449,7 @@ module.exports = {
   ctx.fillStyle = "#ffffff";
   ctx.shadowColor = "#ff4d6d";
   ctx.shadowBlur = 25;
-  ctx.fillText("🌙", W/2 - 20, H/2 + 20);
+  ctx.fillText("pair", W/2 - 20, H/2 + 20);
   ctx.shadowBlur = 0;
 
   // 🔥 UI call (FIXED)
