@@ -229,99 +229,61 @@ module.exports = {
         // ========= ID 9 =========
         if (selectedBg.id === 9) {
 
-  // 🌈 Premium gradient base
+  // 🌈 gradient
   const grad = ctx.createLinearGradient(0, 0, W, H);
   grad.addColorStop(0, "#ff4d6d");
-  grad.addColorStop(0.3, "#ff7eb3");
-  grad.addColorStop(0.6, "#6a00f4");
-  grad.addColorStop(1, "#00f5d4");
+  grad.addColorStop(0.5, "#ff7eb3");
+  grad.addColorStop(1, "#ffb3c6");
   ctx.fillStyle = grad;
   ctx.fillRect(0, 0, W, H);
 
-  // ✨ soft light overlay
-  const overlay = ctx.createRadialGradient(W/2, H/2, 0, W/2, H/2, W);
-  overlay.addColorStop(0, "rgba(255,255,255,0.25)");
-  overlay.addColorStop(1, "rgba(0,0,0,0.2)");
-  ctx.fillStyle = overlay;
+  // 🌟 center glow
+  const glow = ctx.createRadialGradient(W/2, H/2, 0, W/2, H/2, 400);
+  glow.addColorStop(0, "rgba(255,255,255,0.3)");
+  glow.addColorStop(1, "rgba(255,255,255,0)");
+  ctx.fillStyle = glow;
   ctx.fillRect(0, 0, W, H);
 
-  // 🌌 floating glow particles
-  for (let i = 0; i < 80; i++) {
-    const x = Math.random() * W;
-    const y = Math.random() * H;
-    const r = Math.random() * 3 + 1;
+  // 💖 hearts overlay
+  for (let i = 0; i < 70; i++) {
+    const x = Math.random()*W;
+    const y = Math.random()*H;
 
-    const pGlow = ctx.createRadialGradient(x, y, 0, x, y, r * 10);
-    pGlow.addColorStop(0, "rgba(255,255,255,0.8)");
-    pGlow.addColorStop(1, "rgba(255,255,255,0)");
-
-    ctx.fillStyle = pGlow;
-    ctx.beginPath();
-    ctx.arc(x, y, r * 10, 0, Math.PI * 2);
-    ctx.fill();
-  }
-
-  // 💖 floating hearts (depth effect)
-  for (let i = 0; i < 50; i++) {
-    const size = Math.random() * 30 + 10;
-    const x = Math.random() * W;
-    const y = Math.random() * H;
-
-    ctx.globalAlpha = Math.random() * 0.6 + 0.2;
-
-    ctx.shadowColor = `hsl(${Math.random()*360},100%,70%)`;
+    ctx.globalAlpha = Math.random()*0.6 + 0.2;
+    ctx.shadowColor = "#ff4d6d";
     ctx.shadowBlur = 25;
-
-    ctx.font = `${size}px serif`;
+    ctx.font = `${Math.random()*25+15}px serif`;
     ctx.fillText("💖", x, y);
   }
 
   ctx.globalAlpha = 1;
   ctx.shadowBlur = 0;
 
-  // 🌊 light wave overlay (motion illusion)
-  for (let i = 0; i < 3; i++) {
-    ctx.beginPath();
-    ctx.strokeStyle = `rgba(255,255,255,${0.05 + i*0.03})`;
-    ctx.lineWidth = 2;
+  // 👇 avatars
+  drawNeonAvatar(ctx, avatar1, 250, H/2, ["#ff4d6d","#ff00cc","#ff7eb3"]);
+  drawNeonAvatar(ctx, avatar2, W-250, H/2, ["#ff4d6d","#ff00cc","#ff7eb3"]);
 
-    for (let x = 0; x < W; x += 20) {
-      const y = H/2 + Math.sin((x * 0.01) + i * 2) * 20;
-      ctx.lineTo(x, y);
-    }
-    ctx.stroke();
-  }
+  // 🔗 love beam
+  const beam = ctx.createLinearGradient(300, H/2, W-300, H/2);
+  beam.addColorStop(0, "transparent");
+  beam.addColorStop(0.5, "#ff4d6d");
+  beam.addColorStop(1, "transparent");
 
-  // 🌟 center glow focus
-  const centerGlow = ctx.createRadialGradient(W/2, H/2, 100, W/2, H/2, 400);
-  centerGlow.addColorStop(0, "rgba(255,255,255,0.2)");
-  centerGlow.addColorStop(1, "rgba(255,255,255,0)");
-  ctx.fillStyle = centerGlow;
-  ctx.fillRect(0, 0, W, H);
-
-  // 👇 avatar (neon upgraded)
-  drawNeonAvatar(ctx, avatar1, 250, H/2, ["#ff00cc","#00f7ff","#ff4d6d"]);
-  drawNeonAvatar(ctx, avatar2, W-250, H/2, ["#ff00cc","#00f7ff","#ff4d6d"]);
-
-  // 💘 connection line (LOVE LINK)
   ctx.beginPath();
-  ctx.moveTo(320, H/2);
-  ctx.lineTo(W-320, H/2);
-  ctx.strokeStyle = "rgba(255,255,255,0.2)";
-  ctx.lineWidth = 3;
-  ctx.setLineDash([10, 10]);
-  ctx.stroke();
-  ctx.setLineDash([]);
-
-  // ✨ center heart glow
-  ctx.font = "60px serif";
+  ctx.moveTo(300, H/2);
+  ctx.lineTo(W-300, H/2);
+  ctx.strokeStyle = beam;
+  ctx.lineWidth = 4;
   ctx.shadowColor = "#ff4d6d";
-  ctx.shadowBlur = 40;
-  ctx.fillText("💖", W/2 - 20, H/2 + 20);
+  ctx.shadowBlur = 20;
+  ctx.stroke();
 
   ctx.shadowBlur = 0;
 
-  // 👇 Dynamic UI (name + %)
+  // 💖 center icon
+  ctx.font = "60px serif";
+  ctx.fillText("💖", W/2 - 20, H/2 + 20);
+
   drawDynamicUI(ctx, W, H, senderName, matchName, lovePercent);
       }
         
@@ -330,108 +292,40 @@ module.exports = {
         // ========= ID 10 =========
         if (selectedBg.id === 10) {
 
-  // 🌌 Deep ocean gradient
+  // 🌌 gradient
   const grad = ctx.createLinearGradient(0, 0, W, H);
-  grad.addColorStop(0, "#020024");
-  grad.addColorStop(0.4, "#001f3f");
-  grad.addColorStop(0.7, "#003566");
-  grad.addColorStop(1, "#00c6ff");
+  grad.addColorStop(0, "#000814");
+  grad.addColorStop(1, "#001d3d");
   ctx.fillStyle = grad;
   ctx.fillRect(0, 0, W, H);
 
-  // 🌫️ soft fog glow
-  const fog = ctx.createRadialGradient(W/2, H/2, 0, W/2, H/2, W);
-  fog.addColorStop(0, "rgba(0,180,255,0.2)");
-  fog.addColorStop(1, "rgba(0,0,0,0.6)");
-  ctx.fillStyle = fog;
-  ctx.fillRect(0, 0, W, H);
+  // ✨ stars overlay
+  for (let i = 0; i < 120; i++) {
+    const x = Math.random()*W;
+    const y = Math.random()*H;
 
-  // ✨ neon particles (stars feel)
-  for (let i = 0; i < 100; i++) {
-    const x = Math.random() * W;
-    const y = Math.random() * H;
-    const r = Math.random() * 2 + 1;
-
-    const pGlow = ctx.createRadialGradient(x, y, 0, x, y, r * 8);
-    pGlow.addColorStop(0, "rgba(0,255,255,0.9)");
-    pGlow.addColorStop(1, "rgba(0,255,255,0)");
-
-    ctx.fillStyle = pGlow;
+    ctx.globalAlpha = Math.random();
     ctx.beginPath();
-    ctx.arc(x, y, r * 8, 0, Math.PI * 2);
+    ctx.arc(x, y, Math.random()*2+0.5, 0, Math.PI*2);
+    ctx.fillStyle = "white";
     ctx.fill();
   }
 
-  // 💙 floating hearts (neon blue)
-  for (let i = 0; i < 60; i++) {
-    const size = Math.random() * 28 + 12;
-    const x = Math.random() * W;
-    const y = Math.random() * H;
-
-    ctx.globalAlpha = Math.random() * 0.6 + 0.2;
-
-    ctx.shadowColor = "rgba(0,200,255,0.9)";
-    ctx.shadowBlur = 25;
-
-    ctx.font = `${size}px serif`;
-    ctx.fillText("💙", x, y);
-  }
-
   ctx.globalAlpha = 1;
-  ctx.shadowBlur = 0;
 
-  // 🌊 wave lines (cyber motion illusion)
-  for (let i = 0; i < 4; i++) {
+  // 🌊 wave illusion
+  for (let i = 0; i < 3; i++) {
     ctx.beginPath();
     ctx.strokeStyle = `rgba(0,255,255,${0.05 + i*0.03})`;
-    ctx.lineWidth = 2;
-
     for (let x = 0; x < W; x += 20) {
-      const y = H/2 + Math.sin((x * 0.012) + i * 1.5) * 25;
+      const y = H/2 + Math.sin(x*0.01 + i)*20;
       ctx.lineTo(x, y);
     }
     ctx.stroke();
   }
 
-  // ⚡ center glow focus
-  const centerGlow = ctx.createRadialGradient(W/2, H/2, 80, W/2, H/2, 400);
-  centerGlow.addColorStop(0, "rgba(0,255,255,0.25)");
-  centerGlow.addColorStop(1, "rgba(0,255,255,0)");
-  ctx.fillStyle = centerGlow;
-  ctx.fillRect(0, 0, W, H);
-
-  // 👇 avatars (blue neon upgraded)
-  drawNeonAvatar(ctx, avatar1, 250, H/2, ["#00c6ff","#0072ff","#00f7ff"]);
-  drawNeonAvatar(ctx, avatar2, W-250, H/2, ["#00c6ff","#0072ff","#00f7ff"]);
-
-  // 🔗 connection beam (energy line)
-  const beam = ctx.createLinearGradient(300, H/2, W-300, H/2);
-  beam.addColorStop(0, "rgba(0,255,255,0)");
-  beam.addColorStop(0.5, "rgba(0,255,255,0.6)");
-  beam.addColorStop(1, "rgba(0,255,255,0)");
-
-  ctx.beginPath();
-  ctx.moveTo(300, H/2);
-  ctx.lineTo(W-300, H/2);
-  ctx.strokeStyle = beam;
-  ctx.lineWidth = 4;
-  ctx.shadowColor = "#00f7ff";
-  ctx.shadowBlur = 20;
-  ctx.stroke();
-
-  ctx.shadowBlur = 0;
-
-  // 💙 center heart glow
-  ctx.font = "60px serif";
-  ctx.shadowColor = "#00c6ff";
-  ctx.shadowBlur = 40;
-  ctx.fillText("💙", W/2 - 20, H/2 + 20);
-  ctx.shadowBlur = 0;
-
-  // 🧊 subtle grid overlay (tech feel)
-  ctx.strokeStyle = "rgba(0,255,255,0.05)";
-  ctx.lineWidth = 1;
-
+  // 🧊 grid overlay
+  ctx.strokeStyle = "rgba(255,255,255,0.05)";
   for (let x = 0; x < W; x += 60) {
     ctx.beginPath();
     ctx.moveTo(x, 0);
@@ -439,133 +333,80 @@ module.exports = {
     ctx.stroke();
   }
 
-  for (let y = 0; y < H; y += 60) {
-    ctx.beginPath();
-    ctx.moveTo(0, y);
-    ctx.lineTo(W, y);
-    ctx.stroke();
-  }
+  // 👇 avatars
+  drawNeonAvatar(ctx, avatar1, 250, H/2, ["#00c6ff","#0072ff","#00f7ff"]);
+  drawNeonAvatar(ctx, avatar2, W-250, H/2, ["#00c6ff","#0072ff","#00f7ff"]);
 
-  // 👇 Dynamic UI
+  // ⚡ beam
+  ctx.beginPath();
+  ctx.moveTo(300, H/2);
+  ctx.lineTo(W-300, H/2);
+  ctx.strokeStyle = "rgba(0,255,255,0.5)";
+  ctx.lineWidth = 3;
+  ctx.stroke();
+
+  // ✨ center star
+  ctx.font = "50px serif";
+  ctx.fillText("✨", W/2 - 15, H/2 + 15);
+
   drawDynamicUI(ctx, W, H, senderName, matchName, lovePercent);
-      }
-
+        }
 
         
         // ========= ID 11 =========
         if (selectedBg.id === 11) {
 
-  // 🌌 Galaxy gradient base
+  // 🌌 gradient
   const grad = ctx.createLinearGradient(0, 0, W, H);
   grad.addColorStop(0, "#000000");
-  grad.addColorStop(0.4, "#1a0026");
-  grad.addColorStop(0.7, "#2b0033");
-  grad.addColorStop(1, "#4b006e");
+  grad.addColorStop(1, "#2b0033");
   ctx.fillStyle = grad;
   ctx.fillRect(0, 0, W, H);
 
-  // 🌫️ cosmic nebula glow
-  const nebula = ctx.createRadialGradient(W/2, H/2, 0, W/2, H/2, W);
-  nebula.addColorStop(0, "rgba(255,0,150,0.25)");
-  nebula.addColorStop(1, "rgba(0,0,0,0.8)");
-  ctx.fillStyle = nebula;
-  ctx.fillRect(0, 0, W, H);
+  // 🌙 moon
+  const moonX = W - 180;
+  const moonY = 140;
 
-  // ✨ stars (twinkle illusion)
-  for (let i = 0; i < 120; i++) {
-    const x = Math.random() * W;
-    const y = Math.random() * H;
-    const r = Math.random() * 1.5 + 0.5;
+  const moon = ctx.createRadialGradient(moonX, moonY, 10, moonX, moonY, 90);
+  moon.addColorStop(0, "#ffffff");
+  moon.addColorStop(1, "transparent");
 
-    const star = ctx.createRadialGradient(x, y, 0, x, y, r * 6);
-    star.addColorStop(0, "rgba(255,255,255,0.9)");
-    star.addColorStop(1, "rgba(255,255,255,0)");
+  ctx.fillStyle = moon;
+  ctx.beginPath();
+  ctx.arc(moonX, moonY, 90, 0, Math.PI*2);
+  ctx.fill();
 
-    ctx.fillStyle = star;
-    ctx.beginPath();
-    ctx.arc(x, y, r * 6, 0, Math.PI * 2);
-    ctx.fill();
+  // ✨ stars
+  for (let i = 0; i < 80; i++) {
+    ctx.fillStyle = "white";
+    ctx.globalAlpha = Math.random();
+    ctx.fillRect(Math.random()*W, Math.random()*H, 2, 2);
   }
-
-  // 💫 galaxy swirl (motion illusion)
-  for (let i = 0; i < 4; i++) {
-    ctx.beginPath();
-    ctx.strokeStyle = `rgba(255,0,200,${0.08 + i*0.04})`;
-    ctx.lineWidth = 2;
-
-    for (let x = 0; x < W; x += 15) {
-      const y = H/2 + Math.sin((x * 0.01) + i * 2) * (40 + i*10);
-      ctx.lineTo(x, y);
-    }
-    ctx.stroke();
-  }
-
-  // 💗 floating hearts (cosmic neon)
-  for (let i = 0; i < 70; i++) {
-    const size = Math.random() * 28 + 12;
-    const x = Math.random() * W;
-    const y = Math.random() * H;
-
-    ctx.globalAlpha = Math.random() * 0.6 + 0.2;
-
-    ctx.shadowColor = `hsl(${Math.random()*360},100%,70%)`;
-    ctx.shadowBlur = 30;
-
-    ctx.font = `${size}px serif`;
-    ctx.fillText("💗", x, y);
-  }
-
   ctx.globalAlpha = 1;
-  ctx.shadowBlur = 0;
 
-  // 🌟 center galaxy core glow
-  const core = ctx.createRadialGradient(W/2, H/2, 80, W/2, H/2, 350);
-  core.addColorStop(0, "rgba(255,0,200,0.3)");
-  core.addColorStop(1, "rgba(255,0,200,0)");
-  ctx.fillStyle = core;
+  // 🌫️ center glow
+  const glow = ctx.createRadialGradient(W/2, H/2, 0, W/2, H/2, 400);
+  glow.addColorStop(0, "rgba(255,0,150,0.2)");
+  glow.addColorStop(1, "transparent");
+  ctx.fillStyle = glow;
   ctx.fillRect(0, 0, W, H);
 
-  // 👇 avatars (cosmic neon)
+  // 👇 avatars
   drawNeonAvatar(ctx, avatar1, 250, H/2, ["#ff0080","#ff4d6d","#ff00cc"]);
   drawNeonAvatar(ctx, avatar2, W-250, H/2, ["#ff0080","#ff4d6d","#ff00cc"]);
 
-  // 🌌 cosmic connection beam
-  const beam = ctx.createLinearGradient(300, H/2, W-300, H/2);
-  beam.addColorStop(0, "rgba(255,0,200,0)");
-  beam.addColorStop(0.5, "rgba(255,0,200,0.7)");
-  beam.addColorStop(1, "rgba(255,0,200,0)");
-
+  // 🌌 beam
   ctx.beginPath();
   ctx.moveTo(300, H/2);
   ctx.lineTo(W-300, H/2);
-  ctx.strokeStyle = beam;
-  ctx.lineWidth = 4;
-  ctx.shadowColor = "#ff00cc";
-  ctx.shadowBlur = 25;
+  ctx.strokeStyle = "rgba(255,0,150,0.5)";
+  ctx.lineWidth = 3;
   ctx.stroke();
-  ctx.shadowBlur = 0;
 
-  // 💗 center heart (galaxy core)
-  ctx.font = "65px serif";
-  ctx.shadowColor = "#ff00cc";
-  ctx.shadowBlur = 50;
-  ctx.fillText("💗", W/2 - 22, H/2 + 22);
-  ctx.shadowBlur = 0;
+  // 🌙 center icon
+  ctx.font = "55px serif";
+  ctx.fillText("🌙", W/2 - 20, H/2 + 20);
 
-  // 🌠 shooting stars
-  for (let i = 0; i < 6; i++) {
-    const sx = Math.random() * W;
-    const sy = Math.random() * H / 2;
-
-    ctx.beginPath();
-    ctx.moveTo(sx, sy);
-    ctx.lineTo(sx + 80, sy + 30);
-    ctx.strokeStyle = "rgba(255,255,255,0.4)";
-    ctx.lineWidth = 2;
-    ctx.stroke();
-  }
-
-  // 👇 Dynamic UI
   drawDynamicUI(ctx, W, H, senderName, matchName, lovePercent);
         }
         
