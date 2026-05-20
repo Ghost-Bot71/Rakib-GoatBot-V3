@@ -20,12 +20,16 @@ module.exports = {
       const senderName = senderData.name;
 
       const threadData = await api.getThreadInfo(event.threadID);
+
+if (!threadData || !threadData.userInfo) {
+  return api.sendMessage("❌ Failed to get user list.", event.threadID);
+}
       const users = threadData.userInfo;
 
       const myData = users.find(u => u.id === senderID);
-      if (!myData || !myData.gender)
-        return api.sendMessage("⚠️ Could not determine your gender.", event.threadID);
-
+      if (!myData || !myData.gender) {
+  return api.sendMessage("⚠️ Gender data not available for matching.", event.threadID);
+      }
       const myGender = myData.gender;
 
       let matchCandidates = users.filter(
