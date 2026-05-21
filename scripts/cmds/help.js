@@ -1,4 +1,4 @@
-const { getPrefix, getStreamFromURL } = global.utils; // ⬅ getStreamFromURL যোগ করা হলো
+const { getPrefix, getStreamFromURL } = global.utils;
 const { commands, aliases } = global.GoatBot;
 
 module.exports = {
@@ -60,7 +60,7 @@ module.exports = {
       const totalCommands = commands.size;
       msg += `\n\n⭔Bot has ${totalCommands} commands\n⭔Type ${prefix}𝐡𝐞𝐥𝐩 <𝚌𝚘𝚖𝚖𝚊𝚗𝚍 𝚗𝚊𝚖𝚎> to learn Usage.\n`;
       msg += ``;
-      msg += `\n╭─✦ADMIN: TESSA\n├‣ FACEBOOK\n╰‣:https://www.facebook.com/profile.php?id=61587194891990`;
+      msg += `\n╭─✦ADMIN: TESSA\n├‣ FACEBOOK\n╰‣:https://www.facebook.com/profile.php?id=61574231934756`;
 
       try {
         // ⬅ ছবি থেকে স্ট্রিম নিয়ে রিপ্লাইতে অ্যাটাচ করলাম
