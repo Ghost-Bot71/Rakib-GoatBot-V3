@@ -85,8 +85,8 @@
   },
 
   "autoRestart": {
-    "time": 21600000,
-    "notes": "6 hours"
+    "time": 43200000,
+    "notes": "24 hours"
   },
 
   "autoUptime": {
