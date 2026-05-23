@@ -4,114 +4,177 @@ module.exports = {
   config: {
     name: "uptime",
     aliases: ["upt", "up"],
-    version: "4.0",
+    version: "1.0",
     author: "Rakib",
     role: 0,
     category: "system",
     shortDescription: {
-      en: "Show bot uptime and ping"
-    },
-    longDescription: {
-      en: "Display bot uptime, system uptime, ping, users and groups"
-    },
-    guide: {
-      en: "{pn}"
+      en: "God level system monitor"
     }
   },
 
   onStart: async function ({ api, event, usersData, threadsData }) {
     try {
 
-      // USERS & THREADS
       const allUsers = await usersData.getAll();
       const allThreads = await threadsData.getAll();
 
-      // BOT UPTIME
-      const botUptime = process.uptime();
+      const formatTime = (sec) => {
+        const d = Math.floor(sec / 86400);
+        const h = Math.floor((sec % 86400) / 3600);
+        const m = Math.floor((sec % 3600) / 60);
+        const s = Math.floor(sec % 60);
+        return `${d}d ${h}h ${m}m ${s}s`;
+      };
 
-      const bDays = Math.floor(botUptime / 86400);
-      const bHours = Math.floor((botUptime % 86400) / 3600);
-      const bMinutes = Math.floor((botUptime % 3600) / 60);
-      const bSeconds = Math.floor(botUptime % 60);
+      const bar = (percent) => {
+        const total = 10;
+        const filled = Math.round((percent / 100) * total);
+        return "█".repeat(filled) + "░".repeat(total - filled);
+      };
 
-      const botUptimeString =
-        `${bDays}d ${bHours}h ${bMinutes}m ${bSeconds}s`;
+      // CPU SNAPSHOT
+      const snapshotCPU = () => {
+        return os.cpus().map(core => {
+          const total = Object.values(core.times).reduce((a, b) => a + b, 0);
+          return {
+            idle: core.times.idle,
+            total
+          };
+        });
+      };
 
-      // SYSTEM UPTIME
-      const sysUptime = os.uptime();
+      const startSnap = snapshotCPU();
 
-      const sDays = Math.floor(sysUptime / 86400);
-      const sHours = Math.floor((sysUptime % 86400) / 3600);
-      const sMinutes = Math.floor((sysUptime % 3600) / 60);
-      const sSeconds = Math.floor(sysUptime % 60);
+      const startTime = Date.now();
 
-      const systemUptimeString =
-        `${sDays}d ${sHours}h ${sMinutes}m ${sSeconds}s`;
+      // STEP MESSAGE (animation feel)
+      api.sendMessage("⚡ Initializing system scan...", event.threadID, (err, info) => {
+        if (err) return;
 
-      // RAM INFO
-      const totalRAM = (os.totalmem() / 1024 / 1024 / 1024).toFixed(2);
-      const freeRAM = (os.freemem() / 1024 / 1024 / 1024).toFixed(2);
-      const usedRAM = (totalRAM - freeRAM).toFixed(2);
+        setTimeout(() => {
+          api.editMessage("🧠 Scanning CPU cores...", info.messageID);
+        }, 300);
 
-      // CPU INFO
-      const cpuModel = os.cpus()[0].model;
+        setTimeout(() => {
+          api.editMessage("💾 Analyzing memory...", info.messageID);
+        }, 700);
 
-      // PING CHECK
-      const start = process.hrtime.bigint();
+        setTimeout(() => {
+          api.editMessage("📡 Measuring latency...", info.messageID);
+        }, 1100);
 
-      api.sendMessage("🏓 Checking ping...", event.threadID, (err, info) => {
-        if (err) {
-          return api.sendMessage(
-            "❌ Failed to check ping.",
-            event.threadID,
-            event.messageID
-          );
-        }
+        setTimeout(() => {
 
-        const end = process.hrtime.bigint();
-        const ping = Number(end - start) / 1e6;
+          const latency = Date.now() - startTime;
 
-        let pingStatus = "🔴 Very Slow";
+          const endSnap = snapshotCPU();
 
-        if (ping < 200)
-          pingStatus = "🟢 Excellent";
-        else if (ping < 400)
-          pingStatus = "🙂 Good";
-        else if (ping < 999)
-          pingStatus = "🟠 Slow";
+          // CPU TOTAL
+          let totalUsage = 0;
+          let perCore = [];
 
-        const msg = `
-╭───────────────
-│ 🌟 𝗕𝗢𝗧 𝗨𝗣𝗧𝗜𝗠𝗘 🌟
-├───────────────
-│ ⏰ Bot Uptime
-│ ${botUptimeString}
-├───────────────
-│ 🖥 System Uptime
-│ ${systemUptimeString}
-├───────────────
-│ 📶 Ping
-│ ${ping.toFixed(2)} ms
-│ ${pingStatus}
-├───────────────
-│ 👤 Total Users: ${allUsers.length}
-│ 👥 Total Groups: ${allThreads.length}
-├───────────────
-│ 💾 RAM Usage
-│ ${usedRAM}GB / ${totalRAM}GB
-├───────────────
-│ ⚙️ CPU
-│ ${cpuModel}
-╰───────────────`;
+          endSnap.forEach((core, i) => {
+            const idleDiff = core.idle - startSnap[i].idle;
+            const totalDiff = core.total - startSnap[i].total;
 
-        api.editMessage(msg, info.messageID);
+            const usage = 100 - (100 * idleDiff / totalDiff);
+            totalUsage += usage;
+
+            perCore.push(`C${i + 1}: ${usage.toFixed(0)}%`);
+          });
+
+          const cpuUsage = totalUsage / endSnap.length;
+
+          // MEMORY
+          const mem = process.memoryUsage();
+          const heap = mem.heapUsed / 1024 / 1024;
+          const rss = mem.rss / 1024 / 1024;
+
+          // MEMORY WARNING
+          let memWarn = "🟢 Stable";
+          if (rss > 300) memWarn = "🟡 High Usage";
+          if (rss > 500) memWarn = "🔴 Possible Leak";
+
+          // SYSTEM RAM
+          const totalRAM = os.totalmem() / 1024 / 1024 / 1024;
+          const usedRAM = totalRAM - (os.freemem() / 1024 / 1024 / 1024);
+
+          // INFO
+          const cpuModel = os.cpus()[0].model;
+          const uptimeBot = formatTime(process.uptime());
+          const uptimeSys = formatTime(os.uptime());
+
+          const platform = os.platform();
+          const node = process.version;
+
+          // LATENCY SPLIT (approx)
+          const apiLatency = Math.max(latency - 50, 0); // rough idea
+          const botLatency = latency - apiLatency;
+
+          // STATUS
+          const cpuStatus =
+            cpuUsage < 30 ? "🟢 Chill" :
+            cpuUsage < 70 ? "🟡 Busy" :
+            "🔴 Overload";
+
+          const msg = `
+╔════════════════════════╗
+  🌸 BOT UPTIME AND DASHBOARD
+╚════════════════════════╝
+
+⏳ BOT: ${uptimeBot}
+🖥️ SYS: ${uptimeSys}
+
+━━━━━━━━━━━━━━━━━━━━
+
+⚡ LATENCY ENGINE
+Total: ${latency} ms
+API: ${apiLatency} ms
+Bot: ${botLatency} ms
+
+━━━━━━━━━━━━━━━━━━━━
+
+🧠 CPU MATRIX
+${cpuModel}
+Usage: ${cpuUsage.toFixed(1)}% ${cpuStatus}
+[${bar(cpuUsage)}]
+
+Per Core:
+${perCore.join(" | ")}
+
+━━━━━━━━━━━━━━━━━━━━
+
+💾 MEMORY SYSTEM
+Heap: ${heap.toFixed(1)} MB
+RSS : ${rss.toFixed(1)} MB → ${memWarn}
+
+System: ${usedRAM.toFixed(2)} / ${totalRAM.toFixed(2)} GB
+
+━━━━━━━━━━━━━━━━━━━━
+
+👥 USERS: ${allUsers.length}
+👥 GROUPS: ${allThreads.length}
+
+━━━━━━━━━━━━━━━━━━━━
+
+🧬 SYSTEM
+OS: ${platform}
+Node: ${node}
+
+╔════════════════════════╗
+   ⚙️ POWERED BY HOON
+╚════════════════════════╝`;
+
+          api.editMessage(msg, info.messageID);
+
+        }, 1500);
       });
 
-    } catch (error) {
-      console.error(error);
-
+    } catch (err) {
+      console.error(err);
       api.sendMessage(
-        `❌ Error:\n${error.message}`,
+        `❌ Error:\n${err.message}`,
         event.threadID,
         event.messageID
       );
