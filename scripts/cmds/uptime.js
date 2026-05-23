@@ -9,16 +9,24 @@ module.exports = {
     role: 0,
     category: "system",
     shortDescription: {
-      en: "God level system monitor"
+      en: "Premium system stats"
+    },
+    longDescription: {
+      en: "Real-time bot, CPU, RAM, latency with clean premium UI"
+    },
+    guide: {
+      en: "{pn}"
     }
   },
 
   onStart: async function ({ api, event, usersData, threadsData }) {
     try {
 
+      // USERS & THREADS
       const allUsers = await usersData.getAll();
       const allThreads = await threadsData.getAll();
 
+      // TIME FORMAT
       const formatTime = (sec) => {
         const d = Math.floor(sec / 86400);
         const h = Math.floor((sec % 86400) / 3600);
@@ -27,6 +35,7 @@ module.exports = {
         return `${d}d ${h}h ${m}m ${s}s`;
       };
 
+      // BAR
       const bar = (percent) => {
         const total = 10;
         const filled = Math.round((percent / 100) * total);
@@ -45,24 +54,10 @@ module.exports = {
       };
 
       const startSnap = snapshotCPU();
-
       const startTime = Date.now();
 
-      // STEP MESSAGE (animation feel)
-      api.sendMessage("⚡ Initializing system scan...", event.threadID, (err, info) => {
+      api.sendMessage("⚡ Loading system stats...", event.threadID, (err, info) => {
         if (err) return;
-
-        setTimeout(() => {
-          api.editMessage("🧠 Scanning CPU cores...", info.messageID);
-        }, 300);
-
-        setTimeout(() => {
-          api.editMessage("💾 Analyzing memory...", info.messageID);
-        }, 700);
-
-        setTimeout(() => {
-          api.editMessage("📡 Measuring latency...", info.messageID);
-        }, 1100);
 
         setTimeout(() => {
 
@@ -70,17 +65,15 @@ module.exports = {
 
           const endSnap = snapshotCPU();
 
-          // CPU TOTAL
+          // CPU CALC
           let totalUsage = 0;
           let perCore = [];
 
           endSnap.forEach((core, i) => {
             const idleDiff = core.idle - startSnap[i].idle;
             const totalDiff = core.total - startSnap[i].total;
-
             const usage = 100 - (100 * idleDiff / totalDiff);
             totalUsage += usage;
-
             perCore.push(`C${i + 1}: ${usage.toFixed(0)}%`);
           });
 
@@ -91,10 +84,9 @@ module.exports = {
           const heap = mem.heapUsed / 1024 / 1024;
           const rss = mem.rss / 1024 / 1024;
 
-          // MEMORY WARNING
-          let memWarn = "🟢 Stable";
-          if (rss > 300) memWarn = "🟡 High Usage";
-          if (rss > 500) memWarn = "🔴 Possible Leak";
+          let memWarn = "🟢 Smooth";
+          if (rss > 300) memWarn = "🟡 Medium";
+          if (rss > 500) memWarn = "🔴 Heavy";
 
           // SYSTEM RAM
           const totalRAM = os.totalmem() / 1024 / 1024 / 1024;
@@ -102,6 +94,8 @@ module.exports = {
 
           // INFO
           const cpuModel = os.cpus()[0].model;
+          const cpuCores = os.cpus().length;
+
           const uptimeBot = formatTime(process.uptime());
           const uptimeSys = formatTime(os.uptime());
 
@@ -109,66 +103,70 @@ module.exports = {
           const node = process.version;
 
           // LATENCY SPLIT (approx)
-          const apiLatency = Math.max(latency - 50, 0); // rough idea
+          const apiLatency = Math.max(latency - 50, 0);
           const botLatency = latency - apiLatency;
 
           // STATUS
+          const pingStatus =
+            latency < 150 ? "🟢 Fast" :
+            latency < 300 ? "🟢 Good" :
+            latency < 600 ? "🟡 Stable" :
+            "🔴 Slow";
+
           const cpuStatus =
             cpuUsage < 30 ? "🟢 Chill" :
             cpuUsage < 70 ? "🟡 Busy" :
-            "🔴 Overload";
+            "🔴 High";
 
-          const msg = `
-╔════════════════════════╗
-  🌸 BOT UPTIME AND DASHBOARD
-╚════════════════════════╝
+        const msg = `
+╔═━━━❰  💠 𝐔𝐏𝐓𝐈𝐌𝐄  💠  ❱━━━═╗
 
-⏳ BOT: ${uptimeBot}
-🖥️ SYS: ${uptimeSys}
+╭─❖ 𝐒𝐘𝐒𝐓𝐄𝐌.𝐑𝐔𝐍𝐓𝐈𝐌𝐄
+│ ⨳ bot    :: ${uptimeBot}
+│ ⨳ system :: ${uptimeSys}
+╰━━━━━━━━━━━━━━━━━━⬣
 
-━━━━━━━━━━━━━━━━━━━━
+╭─❖ 𝐍𝐄𝐓𝐖𝐎𝐑𝐊.𝐏𝐈𝐍𝐆
+│ ⨳ latency :: ${latency}ms  ${pingStatus}
+│ ⨳ api     :: ${apiLatency}ms
+│ ⨳ bot     :: ${botLatency}ms
+╰━━━━━━━━━━━━━━━━━━⬣
 
-⚡ LATENCY ENGINE
-Total: ${latency} ms
-API: ${apiLatency} ms
-Bot: ${botLatency} ms
+╭─❖ 𝐂𝐏𝐔.𝐌𝐀𝐓𝐑𝐈𝐗
+│ ⨳ model :: ${cpuModel}
+│ ⨳ cores :: ${cpuCores}
+│ ⨳ usage :: ${cpuUsage.toFixed(1)}%  ${cpuStatus}
+│ ⨳ load  :: ${bar(cpuUsage)}
 
-━━━━━━━━━━━━━━━━━━━━
+│ ⨳ cores →
+│ ${perCore.join(" ⫶ ")}
+╰━━━━━━━━━━━━━━━━━━⬣
 
-🧠 CPU MATRIX
-${cpuModel}
-Usage: ${cpuUsage.toFixed(1)}% ${cpuStatus}
-[${bar(cpuUsage)}]
+╭─❖ 𝐌𝐄𝐌𝐎𝐑𝐘.𝐍𝐎𝐃𝐄
+│ ⨳ heap :: ${heap.toFixed(1)} MB
+│ ⨳ rss  :: ${rss.toFixed(1)} MB  ${memWarn}
 
-Per Core:
-${perCore.join(" | ")}
+╭─❖ 𝐌𝐄𝐌𝐎𝐑𝐘.𝐒𝐘𝐒𝐓𝐄𝐌
+│ ⨳ usage :: ${usedRAM.toFixed(2)} / ${totalRAM.toFixed(2)} GB
+│ ⨳ load  :: ${bar((usedRAM / totalRAM) * 100)}
+╰━━━━━━━━━━━━━━━━━━⬣
 
-━━━━━━━━━━━━━━━━━━━━
+╭─❖ 𝐍𝐄𝐓𝐖𝐎𝐑𝐊.𝐃𝐀𝐓𝐀
+│ ⨳ users  :: ${allUsers.length}
+│ ⨳ groups :: ${allThreads.length}
+╰━━━━━━━━━━━━━━━━━━⬣
 
-💾 MEMORY SYSTEM
-Heap: ${heap.toFixed(1)} MB
-RSS : ${rss.toFixed(1)} MB → ${memWarn}
+╭─❖ 𝐒𝐘𝐒𝐓𝐄𝐌.𝐈𝐍𝐅𝐎
+│ ⨳ os   :: ${platform}
+│ ⨳ node :: ${node}
+╰━━━━━━━━━━━━━━━━━━⬣
 
-System: ${usedRAM.toFixed(2)} / ${totalRAM.toFixed(2)} GB
-
-━━━━━━━━━━━━━━━━━━━━
-
-👥 USERS: ${allUsers.length}
-👥 GROUPS: ${allThreads.length}
-
-━━━━━━━━━━━━━━━━━━━━
-
-🧬 SYSTEM
-OS: ${platform}
-Node: ${node}
-
-╔════════════════════════╗
-   ⚙️ POWERED BY HOON
-╚════════════════════════╝`;
+╚═━━━❰❀ 𝐓𝐄𝐒𝐒𝐀  𝐁𝐎𝐓 ❀❱━━━═╝
+`;
 
           api.editMessage(msg, info.messageID);
 
-        }, 1500);
+        }, 800);
       });
 
     } catch (err) {
