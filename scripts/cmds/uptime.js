@@ -122,43 +122,43 @@ module.exports = {
 ╔═━━━❰  💠 𝐔𝐏𝐓𝐈𝐌𝐄  💠  ❱━━━═╗
 
 ╭─❖ 𝐒𝐘𝐒𝐓𝐄𝐌.𝐑𝐔𝐍𝐓𝐈𝐌𝐄
-│ ⨳ bot    :: ${uptimeBot}
-│ ⨳ system :: ${uptimeSys}
+│ ⨳ 𝐛𝐨𝐭    :: ${uptimeBot}
+│ ⨳ 𝐬𝐲𝐬𝐭𝐞𝐦 :: ${uptimeSys}
 ╰━━━━━━━━━━━━━━━━━━⬣
 
 ╭─❖ 𝐍𝐄𝐓𝐖𝐎𝐑𝐊.𝐏𝐈𝐍𝐆
-│ ⨳ latency :: ${latency}ms  ${pingStatus}
-│ ⨳ api     :: ${apiLatency}ms
-│ ⨳ bot     :: ${botLatency}ms
+│ ⨳ 𝐥𝐚𝐭𝐞𝐧𝐜𝐲  :: ${latency}ms  ${pingStatus}
+│ ⨳ 𝐚𝐩𝐢     :: ${apiLatency}ms
+│ ⨳ 𝐛𝐨𝐭     :: ${botLatency}ms
 ╰━━━━━━━━━━━━━━━━━━⬣
 
 ╭─❖ 𝐂𝐏𝐔.𝐌𝐀𝐓𝐑𝐈𝐗
-│ ⨳ model :: ${cpuModel}
-│ ⨳ cores :: ${cpuCores}
-│ ⨳ usage :: ${cpuUsage.toFixed(1)}%  ${cpuStatus}
-│ ⨳ load  :: ${bar(cpuUsage)}
+│ ⨳ 𝐦𝐨𝐝𝐞𝐥 :: ${cpuModel}
+│ ⨳ 𝐜𝐨𝐫𝐞𝐬 :: ${cpuCores}
+│ ⨳ 𝐮𝐬𝐚𝐠𝐞 :: ${cpuUsage.toFixed(1)}%  ${cpuStatus}
+│ ⨳ 𝐥𝐨𝐚𝐝  :: ${bar(cpuUsage)}
 
-│ ⨳ cores →
+│ ⨳ 𝐜𝐨𝐫𝐞𝐬 →
 │ ${perCore.join(" ⫶ ")}
 ╰━━━━━━━━━━━━━━━━━━⬣
 
 ╭─❖ 𝐌𝐄𝐌𝐎𝐑𝐘.𝐍𝐎𝐃𝐄
-│ ⨳ heap :: ${heap.toFixed(1)} MB
-│ ⨳ rss  :: ${rss.toFixed(1)} MB  ${memWarn}
+│ ⨳ 𝐡𝐞𝐚𝐩 :: ${heap.toFixed(1)} MB
+│ ⨳ 𝐫𝐬𝐬  :: ${rss.toFixed(1)} MB  ${memWarn}
 
 ╭─❖ 𝐌𝐄𝐌𝐎𝐑𝐘.𝐒𝐘𝐒𝐓𝐄𝐌
-│ ⨳ usage :: ${usedRAM.toFixed(2)} / ${totalRAM.toFixed(2)} GB
-│ ⨳ load  :: ${bar((usedRAM / totalRAM) * 100)}
+│ ⨳ 𝐮𝐬𝐚𝐠𝐞 :: ${usedRAM.toFixed(2)} / ${totalRAM.toFixed(2)} GB
+│ ⨳ 𝐥𝐨𝐚𝐝  :: ${bar((usedRAM / totalRAM) * 100)}
 ╰━━━━━━━━━━━━━━━━━━⬣
 
 ╭─❖ 𝐍𝐄𝐓𝐖𝐎𝐑𝐊.𝐃𝐀𝐓𝐀
-│ ⨳ users  :: ${allUsers.length}
-│ ⨳ groups :: ${allThreads.length}
+│ ⨳ 𝐮𝐬𝐞𝐫𝐬  :: ${allUsers.length}
+│ ⨳ 𝐠𝐫𝐨𝐮𝐩𝐬 :: ${allThreads.length}
 ╰━━━━━━━━━━━━━━━━━━⬣
 
 ╭─❖ 𝐒𝐘𝐒𝐓𝐄𝐌.𝐈𝐍𝐅𝐎
-│ ⨳ os   :: ${platform}
-│ ⨳ node :: ${node}
+│ ⨳ 𝐨𝐬   :: ${platform}
+│ ⨳ 𝐧𝐨𝐝𝐞 :: ${node}
 ╰━━━━━━━━━━━━━━━━━━⬣
 
 ╚═━━━❰❀ 𝐓𝐄𝐒𝐒𝐀  𝐁𝐎𝐓 ❀❱━━━═╝
