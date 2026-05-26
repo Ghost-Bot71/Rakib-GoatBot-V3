@@ -5,8 +5,8 @@ const { API_KEY, CX } = require("../../rakib/customKey/google");
 
 module.exports = {
   config: {
-    name: "pinterest",
-    aliases: ["pin", "pic"],
+    name: "pic",
+    aliases: ["gif"],
     version: "6.0",
     author: "Rakib",
     role: 0,
