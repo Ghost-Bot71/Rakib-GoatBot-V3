@@ -1,12 +1,11 @@
 const axios = require("axios");
 const fs = require("fs");
 const path = require("path");
-const { tikApi } = require("../../rakib/customApi/tikApi");
 
 module.exports = {
   config: {
     name: "aniedit",
-    version: "2.0",
+    version: "1.0",
     author: "Rakib",
     role: 0,
     shortDescription: "Get Advanced Anime Edit Video",
@@ -36,12 +35,28 @@ module.exports = {
 
     try {
 
-      // 🔎 search
+      // 🔗 RAW JSON
+      const rawJson =
+        "https://raw.githubusercontent.com/bdrakib6t9/HOON/main/apiUrl.json";
+
+      // 📥 Fetch API URLs
+      const apiData = await axios.get(rawJson);
+
+      const tikBase = apiData.data.tik;
+
+      if (!tikBase) {
+        return api.editMessage(
+          "❌ API URL not found!",
+          loadingMsg.messageID
+        );
+      }
+
+      // 🔎 search from your API
       const search = await axios.get(
-        `https://tikwm.com/api/feed/search?keywords=${encodeURIComponent(searchQuery)}`
+        `${tikBase}/api/tiktok/search?q=${encodeURIComponent(searchQuery)}&apikey=rakib69`
       );
 
-      const list = search.data.data?.videos || [];
+      const list = search.data.data || [];
 
       if (!list.length) {
         return api.editMessage(
@@ -50,55 +65,67 @@ module.exports = {
         );
       }
 
-      const randomVideo = list[Math.floor(Math.random() * list.length)];
+      // 🎲 random video
+      const randomVideo =
+        list[Math.floor(Math.random() * list.length)];
 
-      if (!randomVideo.video_id || !randomVideo.author?.unique_id) {
+      if (!randomVideo.no_watermark) {
         return api.editMessage(
-          "❌ Failed to extract video info.",
+          "❌ Failed to extract video!",
           loadingMsg.messageID
         );
       }
-
-      const realUrl = `https://www.tiktok.com/@${randomVideo.author.unique_id}/video/${randomVideo.video_id}`;
 
       // ⚙️ processing
-      await api.editMessage("⚙️ Processing video...", loadingMsg.messageID);
-
-      const data = await tikApi(realUrl);
-
-      if (data.error) {
-        return api.editMessage(
-          `❌ ${data.error}`,
-          loadingMsg.messageID
-        );
-      }
+      await api.editMessage(
+        "⚙️ Processing video...",
+        loadingMsg.messageID
+      );
 
       // 📁 cache
       const cacheDir = path.join(__dirname, "cache");
+
       if (!fs.existsSync(cacheDir)) {
-        fs.mkdirSync(cacheDir, { recursive: true }); // ✅ fix
+        fs.mkdirSync(cacheDir, { recursive: true });
       }
 
-      const filePath = path.join(cacheDir, `${Date.now()}.mp4`);
+      const filePath = path.join(
+        cacheDir,
+        `${Date.now()}.mp4`
+      );
 
       // 📥 download
       const stream = await axios({
-        url: data.video,
+        url: randomVideo.no_watermark,
         method: "GET",
-        responseType: "stream"
+        responseType: "stream",
+        headers: {
+          "User-Agent": "Mozilla/5.0"
+        },
+        timeout: 300000
       });
 
       const writer = fs.createWriteStream(filePath);
+
       stream.data.pipe(writer);
 
       writer.on("finish", () => {
+
         api.sendMessage(
           {
-            body: `🎬 Anime Edit Ready!\n🎌 ${query}`,
+            body:
+`🎬 Anime Edit Ready!
+
+🎌 Query: ${query}
+👤 Author: ${randomVideo.author}`,
             attachment: fs.createReadStream(filePath)
           },
           event.threadID,
-          () => fs.unlinkSync(filePath)
+          () => {
+            if (fs.existsSync(filePath)) {
+              fs.unlinkSync(filePath);
+            }
+          }
         );
 
         api.unsendMessage(loadingMsg.messageID);
@@ -106,7 +133,11 @@ module.exports = {
 
       writer.on("error", (err) => {
         console.error("Download error:", err);
-        api.editMessage("❌ Video download failed!", loadingMsg.messageID);
+
+        api.editMessage(
+          "❌ Video download failed!",
+          loadingMsg.messageID
+        );
       });
 
     } catch (error) {
