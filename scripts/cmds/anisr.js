@@ -1,12 +1,11 @@
 const axios = require("axios");
 const fs = require("fs");
 const path = require("path");
-const { tikApi } = require("../../rakib/customApi/tikApi");
 
 module.exports = {
   config: {
     name: "anisr",
-    version: "2.0",
+    version: "1.0",
     author: "Rakib",
     role: 0,
     shortDescription: "Get Anime Character TikTok Video",
@@ -19,6 +18,7 @@ module.exports = {
   onStart: async function ({ api, event, args }) {
 
     const query = args.join(" ");
+
     if (!query) {
       return api.sendMessage(
         "❌ Please provide an anime character name.\nExample:\nanisr naruto",
@@ -33,63 +33,97 @@ module.exports = {
 
     try {
 
-      // 🔎 search
-      const search = await axios.get(
-        `https://tikwm.com/api/feed/search?keywords=${encodeURIComponent(query + " anime edit")}`
-      );
+      // 🔗 RAW JSON URL
+      const rawJson =
+        "https://raw.githubusercontent.com/bdrakib6t9/HOON/main/apiUrl.json";
 
-      const list = search.data.data?.videos || [];
+      // 📥 Fetch API URLs
+      const apiData = await axios.get(rawJson);
 
-      if (!list.length) {
+      const tikBase = apiData.data.tik;
+
+      if (!tikBase) {
         return api.editMessage(
-          "❌ No anime videos found!",
-          loadingMsg.messageID,
-          event.threadID
-        );
-      }
-
-      const randomVideo = list[Math.floor(Math.random() * list.length)];
-
-      const realUrl = `https://www.tiktok.com/@${randomVideo.author.unique_id}/video/${randomVideo.video_id}`;
-
-      // ⚙️ processing
-      await api.editMessage("⚙️ Processing video...", loadingMsg.messageID);
-
-      const data = await tikApi(realUrl);
-
-      if (data.error) {
-        return api.editMessage(
-          `❌ ${data.error}`,
+          "❌ API URL not found!",
           loadingMsg.messageID
         );
       }
 
-      // 📁 cache
+      // 🔎 Search
+      const search = await axios.get(
+        `${tikBase}/api/tiktok/search?q=${encodeURIComponent(query + " anime edit")}&apikey=rakib69`
+      );
+
+      const list = search.data.data || [];
+
+      if (!list.length) {
+        return api.editMessage(
+          "❌ No anime videos found!",
+          loadingMsg.messageID
+        );
+      }
+
+      // 🎲 Random video
+      const randomVideo =
+        list[Math.floor(Math.random() * list.length)];
+
+      if (!randomVideo.no_watermark) {
+        return api.editMessage(
+          "❌ Failed to extract video!",
+          loadingMsg.messageID
+        );
+      }
+
+      // ⚙️ Processing
+      await api.editMessage(
+        "⚙️ Processing video...",
+        loadingMsg.messageID
+      );
+
+      // 📁 Cache folder
       const cacheDir = path.join(__dirname, "cache");
+
       if (!fs.existsSync(cacheDir)) {
         fs.mkdirSync(cacheDir, { recursive: true });
       }
 
-      const filePath = path.join(cacheDir, `${Date.now()}.mp4`);
+      const filePath = path.join(
+        cacheDir,
+        `${Date.now()}.mp4`
+      );
 
-      // 📥 download
+      // 📥 Download
       const stream = await axios({
-        url: data.video,
+        url: randomVideo.no_watermark,
         method: "GET",
-        responseType: "stream"
+        responseType: "stream",
+        headers: {
+          "User-Agent": "Mozilla/5.0"
+        },
+        timeout: 300000
       });
 
       const writer = fs.createWriteStream(filePath);
+
       stream.data.pipe(writer);
 
       writer.on("finish", () => {
+
         api.sendMessage(
           {
-            body: `🎬 Anime Video Ready!\n🎌 Character: ${query}`,
+            body:
+`🎬 Anime Video Ready!
+
+🎌 Character: ${query}
+👤 Author: ${randomVideo.author}`,
             attachment: fs.createReadStream(filePath)
           },
           event.threadID,
-          () => fs.unlinkSync(filePath)
+          () => {
+            if (fs.existsSync(filePath)) {
+              fs.unlinkSync(filePath);
+            }
+          }
         );
 
         api.unsendMessage(loadingMsg.messageID);
@@ -97,11 +131,16 @@ module.exports = {
 
       writer.on("error", (err) => {
         console.error(err);
-        api.editMessage("❌ Download failed!", loadingMsg.messageID);
+
+        api.editMessage(
+          "❌ Download failed!",
+          loadingMsg.messageID
+        );
       });
 
     } catch (err) {
       console.error(err);
+
       api.editMessage(
         "❌ Error while fetching video!",
         loadingMsg.messageID
