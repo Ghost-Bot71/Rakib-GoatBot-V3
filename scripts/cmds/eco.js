@@ -4,7 +4,7 @@ const { loadOwner } = require("../../rakib/customId/ownerUid");
 module.exports = {
   config: {
     name: "eco",
-    version: "1.0",
+    version: "4.0",
     author: "Rakib",
     role: 0,
     category: "owner",
@@ -15,16 +15,16 @@ module.exports = {
 
   langs: {
     en: {
-      helpMenu: "➜ **Help Menu**\n\n"
-                "• eco add users <amount>\n"
-                "• eco reset users all\n"
-                "• eco reset users <amount>\n\n"
-                "• eco add <amount>\n"
-                "• eco reset all\n"
-                "• eco reset <amount>\n\n"
-                "• eco reset all <uid>\n"
-                "• eco reset <amount> <uid>\n"
-                "• eco add <amount> <uid>",
+      helpMenu: "➜ **𝐇𝐞𝐥𝐩 𝐌𝐞𝐧𝐮**\n\n" +
+                "• 𝐞𝐜𝐨 𝐚𝐝𝐝 𝐮𝐬𝐞𝐫𝐬 <𝐚𝐦𝐨𝐮𝐧𝐭>\n" +
+                "• 𝐞𝐜𝐨 𝐫𝐞𝐬𝐞𝐭 𝐮𝐬𝐞𝐫𝐬 𝐚𝐥𝐥\n" +
+                "• 𝐞𝐜𝐨 𝐫𝐞𝐬𝐞𝐭 𝐮𝐬𝐞𝐫𝐬 <𝐚𝐦𝐨𝐮𝐧𝐭>\n\n" +
+                "• 𝐞𝐜𝐨 𝐚𝐝𝐝 <𝐚𝐦𝐨𝐮𝐧𝐭>\n" +
+                "• 𝐞𝐜𝐨 𝐫𝐞𝐬𝐞𝐭 𝐚𝐥𝐥\n" +
+                "• 𝐞𝐜𝐨 𝐫𝐞𝐬𝐞𝐭 <𝐚𝐦𝐨𝐮𝐧𝐭>\n\n" +
+                "• 𝐞𝐜𝐨 𝐫𝐞𝐬𝐞𝐭 𝐚𝐥𝐥 <𝐮𝐢𝐝>\n" +
+                "• 𝐞𝐜𝐨 𝐫𝐞𝐬𝐞𝐭 <𝐚𝐦𝐨𝐮𝐧𝐭> <𝐮𝐢𝐝>\n" +
+                "• 𝐞𝐜𝐨 𝐚𝐝𝐝 <𝐚𝐦𝐨𝐮𝐧𝐭> <𝐮𝐢𝐝>",
       resetUser: "✅ User (%1) balance fully reset.",
       resetAllUsers: "✅ All users balance fully reset.",
       deductedUser: "📉 Deducted %1 from user (%2) wallet.",
