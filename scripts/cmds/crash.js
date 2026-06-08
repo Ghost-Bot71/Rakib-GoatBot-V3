@@ -5,7 +5,7 @@ module.exports = {
   config: {
     name: "crash",
     aliases: ["rocket"],
-    version: "3.0",
+    version: "3.1",
     author: "Rakib",
     role: 0,
     category: "economy"
@@ -17,6 +17,12 @@ module.exports = {
     const data = user.data || {};
     const name = user.name || "Unknown";
     const isVIP = data.vip === true;
+
+    /* ===== PLAY LIMIT (MAX 50) ===== */
+    let crashCount = Number(data.crashCount || 0);
+    if (crashCount >= 30) {
+      return message.reply("❌ আপনি আপনার দৈনিক ৩০ বারের খেলার লিমিট শেষ করে ফেলেছেন!");
+    }
 
     /* ===== COOLDOWN ===== */
     const now = Date.now();
@@ -44,6 +50,9 @@ module.exports = {
     if (wallet < bet)
       return message.reply("❌ Not enough balance.");
 
+    // লিমিট ১ বাড়িয়ে দেওয়া হলো
+    crashCount += 1;
+
     /* ===== CRASH POINT ===== */
     const crashPoint =
       Math.max(
@@ -57,21 +66,21 @@ module.exports = {
     /* ===== EDIT 1 ===== */
     await sleep(350);
     api.editMessage(
-      `🚀 CRASH GAME\n\n👤 Player: ${name}\n💥 Multiplier: 1.35x`,
+      `🚀 CRASH GAME\n\n👤 Player: ${name}\n📊 Played: ${crashCount}/30\n💥 Multiplier: 1.35x`,
       sent.messageID
     );
 
     /* ===== EDIT 2 ===== */
     await sleep(350);
     api.editMessage(
-      `🚀 CRASH GAME\n\n👤 Player: ${name}\n💥 Multiplier: 1.82x`,
+      `🚀 CRASH GAME\n\n👤 Player: ${name}\n📊 Played: ${crashCount}/30\n💥 Multiplier: 1.82x`,
       sent.messageID
     );
 
     /* ===== EDIT 3 ===== */
     await sleep(350);
     api.editMessage(
-      `🚀 CRASH GAME\n\n👤 Player: ${name}\n💥 Multiplier: 2.24x`,
+      `🚀 CRASH GAME\n\n👤 Player: ${name}\n📊 Played: ${crashCount}/30\n💥 Multiplier: 2.24x`,
       sent.messageID
     );
 
@@ -120,6 +129,7 @@ module.exports = {
         ...data,
         bank: bank.toString(),
         lastCrash: now,
+        crashCount: crashCount,
         crashStats
       }
     });
@@ -129,6 +139,7 @@ module.exports = {
     api.editMessage(
       `🚀 CRASH RESULT\n\n` +
       `👤 Player: ${name}\n` +
+      `📊 Played: ${crashCount}/30\n` + 
       `💥 Final Multiplier: ${Math.min(cashout, crashPoint).toFixed(2)}x\n\n` +
       `${resultText}\n` +
       `💵 Bet: ${utils.formatMoney(bet)}\n` +
