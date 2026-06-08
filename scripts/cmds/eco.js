@@ -4,150 +4,193 @@ const { loadOwner } = require("../../rakib/customId/ownerUid");
 module.exports = {
   config: {
     name: "eco",
-    version: "3.0",
+    version: "1.0",
     author: "Rakib",
     role: 0,
     category: "owner",
     shortDescription: {
-      en: "Economy control system"
+      en: "Advanced economy control system"
     }
   },
 
   langs: {
     en: {
-      resetUser: "✅ User balance reset.",
-      resetAll: "✅ All users balance reset.",
-      addedUser: "💰 Added %1 to user.",
-      addedAll: "💰 Added %1 to all users.",
-      invalid: "❌ Invalid amount",
+      helpMenu: "➜ **Help Menu**\n\n"
+                "• eco add users <amount>\n"
+                "• eco reset users all\n"
+                "• eco reset users <amount>\n\n"
+                "• eco add <amount>\n"
+                "• eco reset all\n"
+                "• eco reset <amount>\n\n"
+                "• eco reset all <uid>\n"
+                "• eco reset <amount> <uid>\n"
+                "• eco add <amount> <uid>",
+      resetUser: "✅ User (%1) balance fully reset.",
+      resetAllUsers: "✅ All users balance fully reset.",
+      deductedUser: "📉 Deducted %1 from user (%2) wallet.",
+      deductedAllUsers: "📉 Deducted %1 from all users wallet.",
+      addedUser: "💰 Added %1 to user (%2) wallet.",
+      addedAllUsers: "💰 Added %1 to all users wallet.",
+      invalid: "❌ Invalid Command or Amount! Use `eco` to see help menu.",
       notOwner: "❌ Only bot owner can use this command."
     }
   },
 
   onStart: async function ({ message, event, args, usersData, getLang }) {
 
-    // 🔒 Owner Check (dynamic + multi support)
+    // 🔒 Owner Check
     const ownerUID = await loadOwner();
     const isOwner = Array.isArray(ownerUID)
       ? ownerUID.includes(String(event.senderID))
       : String(event.senderID) === String(ownerUID);
 
-    if (!isOwner)
-      return message.reply(getLang("notOwner"));
+    if (!isOwner) return message.reply(getLang("notOwner"));
 
-    const WALLET_LIMIT = utils.parseAmount("150cs");
-    const sub = args[0];
-
-    if (!sub)
-      return message.reply(getLang("invalid"));
-
-    // =========================
-    // RESET SYSTEM
-    // =========================
-    if (sub === "reset") {
-
-      // 🔁 single user
-      if (event.messageReply) {
-
-        const uid = event.messageReply.senderID;
-
-        await usersData.set(uid, {
-          money: "0",
-          data: {
-            bank: "0",
-            loan: "0"
-          }
-        });
-
-        return message.reply(getLang("resetUser"));
-      }
-
-      // 🔁 all users
-      const allUsers = await usersData.getAll();
-
-      for (const user of allUsers) {
-        await usersData.set(user.userID, {
-          money: "0",
-          data: {
-            bank: "0",
-            loan: "0"
-          }
-        });
-      }
-
-      return message.reply(getLang("resetAll"));
+    // 📖 Help Menu Display
+    if (args.length === 0) {
+      return message.reply(getLang("helpMenu"));
     }
 
-    // =========================
-    // ADD MONEY
-    // =========================
-    if (sub === "add") {
+    const WALLET_LIMIT = utils.parseAmount("150cs");
+    const action = args[0]?.toLowerCase(); // add, reset
 
+    // Target User ID (UID) বের করার লজিক (Reply, Mention, বা direct Input)
+    let targetUID = null;
+    if (event.messageReply) {
+      targetUID = event.messageReply.senderID;
+    } else if (Object.keys(event.mentions).length > 0) {
+      targetUID = Object.keys(event.mentions)[0];
+    }
+
+    // ==========================================
+    // 💥 ACTION: ADD
+    // ==========================================
+    if (action === "add") {
+      const sub = args[1]?.toLowerCase();
+
+      if (!sub) return message.reply(getLang("invalid"));
+
+      // ➜ eco add users 5b (সবার ওয়ালেটে যোগ)
+      if (sub === "users") {
+        const amount = utils.parseAmount(args[2]);
+        if (!amount || typeof amount !== "bigint" || amount <= 0n) return message.reply(getLang("invalid"));
+
+        const allUsers = await usersData.getAll();
+        for (const user of allUsers) {
+          let wallet = BigInt(user.money || 0);
+          let bank = BigInt(user.data?.bank || 0);
+          let loan = BigInt(user.data?.loan || 0);
+
+          wallet += amount;
+          if (wallet > WALLET_LIMIT) {
+            bank += (wallet - WALLET_LIMIT);
+            wallet = WALLET_LIMIT;
+          }
+
+          await usersData.set(user.userID, { money: wallet.toString(), data: { bank: bank.toString(), loan: loan.toString() } });
+        }
+        return message.reply(getLang("addedAllUsers", utils.formatMoney(amount)));
+      }
+
+      // ➜ eco add 5b <uid> OR eco add 5b (Reply/Mention)
       const amount = utils.parseAmount(args[1]);
+      if (!amount || typeof amount !== "bigint" || amount <= 0n) return message.reply(getLang("invalid"));
 
-      if (!amount || typeof amount !== "bigint" || amount <= 0n)
-        return message.reply(getLang("invalid"));
-
-      // ➕ ONE USER
-      if (event.messageReply) {
-
-        const uid = event.messageReply.senderID;
-        const userData = await usersData.get(uid) || {};
-
-        let wallet = BigInt(userData.money || 0);
-        let bank = BigInt(userData.data?.bank || 0);
-        let loan = BigInt(userData.data?.loan || 0);
-
-        wallet += amount;
-
-        if (wallet > WALLET_LIMIT) {
-          const extra = wallet - WALLET_LIMIT;
-          wallet = WALLET_LIMIT;
-          bank += extra;
-        }
-
-        await usersData.set(uid, {
-          money: wallet.toString(),
-          data: {
-            bank: bank.toString(),
-            loan: loan.toString()
-          }
-        });
-
-        return message.reply(
-          getLang("addedUser", utils.formatMoney(amount))
-        );
+      // যদি আর্গুমেন্টে UID থাকে (যেমন: eco add 5b 1000xxx)
+      if (args[2] && !targetUID) {
+        targetUID = args[2];
       }
 
-      // ➕ ALL USERS
-      const allUsers = await usersData.getAll();
+      if (!targetUID) return message.reply(getLang("invalid"));
 
-      for (const user of allUsers) {
+      const userData = await usersData.get(targetUID) || {};
+      let wallet = BigInt(userData.money || 0);
+      let bank = BigInt(userData.data?.bank || 0);
+      let loan = BigInt(userData.data?.loan || 0);
 
-        let wallet = BigInt(user.money || 0);
-        let bank = BigInt(user.data?.bank || 0);
-        let loan = BigInt(user.data?.loan || 0);
-
-        wallet += amount;
-
-        if (wallet > WALLET_LIMIT) {
-          const extra = wallet - WALLET_LIMIT;
-          wallet = WALLET_LIMIT;
-          bank += extra;
-        }
-
-        await usersData.set(user.userID, {
-          money: wallet.toString(),
-          data: {
-            bank: bank.toString(),
-            loan: loan.toString()
-          }
-        });
+      wallet += amount;
+      if (wallet > WALLET_LIMIT) {
+        bank += (wallet - WALLET_LIMIT);
+        wallet = WALLET_LIMIT;
       }
 
-      return message.reply(
-        getLang("addedAll", utils.formatMoney(amount))
-      );
+      await usersData.set(targetUID, { money: wallet.toString(), data: { bank: bank.toString(), loan: loan.toString() } });
+      return message.reply(getLang("addedUser", utils.formatMoney(amount), targetUID));
+    }
+
+    // ==========================================
+    // 💥 ACTION: RESET
+    // ==========================================
+    if (action === "reset") {
+      const sub = args[1]?.toLowerCase();
+
+      if (!sub) return message.reply(getLang("invalid"));
+
+      // ----------------------------------------
+      // SUB-ACTION: USERS (সবার জন্য)
+      // ----------------------------------------
+      if (sub === "users") {
+        const nextArg = args[2]?.toLowerCase();
+
+        // ➜ eco reset users all
+        if (nextArg === "all") {
+          const allUsers = await usersData.getAll();
+          for (const user of allUsers) {
+            await usersData.set(user.userID, { money: "0", data: { bank: "0", loan: "0" } });
+          }
+          return message.reply(getLang("resetAllUsers"));
+        }
+
+        // ➜ eco reset users 5b
+        const amount = utils.parseAmount(args[2]);
+        if (!amount || typeof amount !== "bigint" || amount <= 0n) return message.reply(getLang("invalid"));
+
+        const allUsers = await usersData.getAll();
+        for (const user of allUsers) {
+          let wallet = BigInt(user.money || 0);
+          let bank = BigInt(user.data?.bank || 0);
+          let loan = BigInt(user.data?.loan || 0);
+
+          wallet = wallet > amount ? wallet - amount : 0n;
+
+          await usersData.set(user.userID, { money: wallet.toString(), data: { bank: bank.toString(), loan: loan.toString() } });
+        }
+        return message.reply(getLang("deductedAllUsers", utils.formatMoney(amount)));
+      }
+
+      // ----------------------------------------
+      // SUB-ACTION: ALL (ব্যক্তিগত সম্পূর্ণ রিসেট)
+      // ----------------------------------------
+      // ➜ eco reset all <uid> OR eco reset all (Reply/Mention)
+      if (sub === "all") {
+        if (args[2] && !targetUID) targetUID = args[2];
+
+        if (!targetUID) return message.reply(getLang("invalid"));
+
+        await usersData.set(targetUID, { money: "0", data: { bank: "0", loan: "0" } });
+        return message.reply(getLang("resetUser", targetUID));
+      }
+
+      // ----------------------------------------
+      // SUB-ACTION: AMOUNT DEDUCT (টাকা কেটে নেওয়া)
+      // ----------------------------------------
+      // ➜ eco reset 5b <uid> OR eco reset 5b (Reply/Mention)
+      const amount = utils.parseAmount(args[1]);
+      if (!amount || typeof amount !== "bigint" || amount <= 0n) return message.reply(getLang("invalid"));
+
+      if (args[2] && !targetUID) targetUID = args[2];
+
+      if (!targetUID) return message.reply(getLang("invalid"));
+
+      const userData = await usersData.get(targetUID) || {};
+      let wallet = BigInt(userData.money || 0);
+      let bank = BigInt(userData.data?.bank || 0);
+      let loan = BigInt(userData.data?.loan || 0);
+
+      wallet = wallet > amount ? wallet - amount : 0n;
+
+      await usersData.set(targetUID, { money: wallet.toString(), data: { bank: bank.toString(), loan: loan.toString() } });
+      return message.reply(getLang("deductedUser", utils.formatMoney(amount), targetUID));
     }
 
     return message.reply(getLang("invalid"));
