@@ -101,6 +101,30 @@ if (!threadData || !threadData.userInfo) {
           type: "circle",
           pos: [{ x: 65, y: 104, size: 210 }, { x: 460, y: 104, size: 210 }]
         },
+        {
+          id: 12,
+          url: "https://drive.google.com/uc?export=download&id=1_3FpXsHNhuVgP_i39a_AIqDuSNatS3VA",
+          type: "circle",
+          pos: [{ x: 93, y: 111, size: 190 }, { x: 434, y: 107, size: 190 }]
+        },
+        {
+          id: 13,
+          url: "https://drive.google.com/uc?export=download&id=1aWij6G1FgYDAVtdXALrocCA6xQzC5MMV",
+          type: "circle",
+          pos: [{ x: 93, y: 111, size: 190 }, { x: 434, y: 107, size: 190 }]
+        },
+        {
+          id: 14,
+          url: "https://drive.google.com/uc?export=download&id=1pVnWlpZt0F1w0sTwgU3zJWiRkKHygikk",
+          type: "circle",
+          pos: [{ x: 93, y: 111, size: 190 }, { x: 434, y: 107, size: 190 }]
+        },
+        {
+          id: 15,
+          url: "https://drive.google.com/uc?export=download&id=1WFqm4AXEAS54XmBTsJNNUjcsFw781PkC",
+          type: "circle",
+          pos: [{ x: 93, y: 111, size: 190 }, { x: 434, y: 107, size: 190 }]
+        },
 
         { id: 9, type: "dynamic" },
         { id: 10, type: "dynamic" },
