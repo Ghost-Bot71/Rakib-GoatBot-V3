@@ -27,8 +27,8 @@ function isURL(str) {
 module.exports = {
 	config: {
 		name: "cmd",
-		version: "1.17",
-		author: "NTKhang",
+		version: "1.20",
+		author: "NTKhang & Rakib",
 		countDown: 5,
 		role: 2,
 		description: {
@@ -38,13 +38,17 @@ module.exports = {
 		category: "owner",
 		guide: {
 			vi: "   {pn} load <tên file lệnh>"
-				+ "\n   {pn} loadAll"
-				+ "\n   {pn} install <url> <tên file lệnh>: Tải xuống và cài đặt một tệp lệnh từ một url, url là đường dẫn đến tệp lệnh (raw)"
-				+ "\n   {pn} install <tên file lệnh> <code>: Tải xuống và cài đặt một tệp lệnh từ một code, code là mã của lệnh",
+				+ "\n   {pn} loadall: Load lại tất cả các lệnh trong thư mục"
+				+ "\n   {pn} unload <tên file lệnh>"
+				+ "\n   {pn} unload all: Unload tất cả các lệnh ngoại trừ lệnh này"
+				+ "\n   {pn} install <url> <tên file lệnh>"
+				+ "\n   {pn} install <tên file lệnh> <code>",
 			en: "   {pn} load <command file name>"
-				+ "\n   {pn} loadAll"
-				+ "\n   {pn} install <url> <command file name>: Download and install a command file from a url, url is the path to the file (raw)"
-				+ "\n   {pn} install <command file name> <code>: Download and install a command file from a code, code is the code of the command"
+				+ "\n   {pn} loadall: Load all command files in the directory"
+				+ "\n   {pn} unload <command file name>"
+				+ "\n   {pn} unload all: Unload all commands except this one"
+				+ "\n   {pn} install <url> <command file name>"
+				+ "\n   {pn} install <command file name> <code>"
 		}
 	},
 
@@ -56,9 +60,10 @@ module.exports = {
 			loadedSuccess: "✅ | Đã load thành công (%1) command",
 			loadedFail: "❌ | Load thất bại (%1) command\n%2",
 			openConsoleToSeeError: "👀 | Hãy mở console để xem chi tiết lỗi",
-			missingCommandNameUnload: "⚠️ | Vui lòng nhập vào tên lệnh bạn muốn unload",
+			missingCommandNameUnload: "⚠️ | Vui lòng nhập vào tên lệnh bạn muốn unload hoặc gõ 'all'",
 			unloaded: "✅ | Đã unload command \"%1\" thành công",
 			unloadedError: "❌ | Unload command \"%1\" thất bại với lỗi\n%2: %3",
+			unloadAllSuccess: "✅ | Đã unload thành công (%1) command, ngoại trừ lệnh '%2'",
 			missingUrlCodeOrFileName: "⚠️ | Vui lòng nhập vào url hoặc code và tên file lệnh bạn muốn cài đặt",
 			missingUrlOrCode: "⚠️ | Vui lòng nhập vào url hoặc code của tệp lệnh bạn muốn cài đặt",
 			missingFileNameInstall: "⚠️ | Vui lòng nhập vào tên file để lưu lệnh (đuôi .js)",
@@ -78,9 +83,10 @@ module.exports = {
 			loadedSuccess: "✅ | Loaded successfully (%1) command",
 			loadedFail: "❌ | Failed to load (%1) command\n%2",
 			openConsoleToSeeError: "👀 | Open console to see error details",
-			missingCommandNameUnload: "⚠️ | Please enter the command name you want to unload",
+			missingCommandNameUnload: "⚠️ | Please enter the command name you want to unload or type 'all'",
 			unloaded: "✅ | Unloaded command \"%1\" successfully",
 			unloadedError: "❌ | Failed to unload command \"%1\" with error\n%2: %3",
+			unloadAllSuccess: "✅ | Unloaded successfully (%1) commands, except command '%2'",
 			missingUrlCodeOrFileName: "⚠️ | Please enter the url or code and command file name you want to install",
 			missingUrlOrCode: "⚠️ | Please enter the url or code of the command file you want to install",
 			missingFileNameInstall: "⚠️ | Please enter the file name to save the command (with .js extension)",
@@ -97,37 +103,24 @@ module.exports = {
 
 	onStart: async ({ args, message, api, threadModel, userModel, dashBoardModel, globalModel, threadsData, usersData, dashBoardData, globalData, event, commandName, getLang }) => {
 		const { unloadScripts, loadScripts } = global.utils;
+
+		// Handle cmd loadall OR cmd load all
 		if (
-			args[0] == "load"
-			&& args.length == 2
+			(args[0] || "").toLowerCase() == "loadall" || 
+			(args[0] == "load" && args[1] && args[1].toLowerCase() == "all")
 		) {
-			if (!args[1])
-				return message.reply(getLang("missingFileName"));
-			const infoLoad = loadScripts("cmds", args[1], log, configCommands, api, threadModel, userModel, dashBoardModel, globalModel, threadsData, usersData, dashBoardData, globalData, getLang);
-			if (infoLoad.status == "success")
-				message.reply(getLang("loaded", infoLoad.name));
-			else {
-				message.reply(
-					getLang("loadedError", infoLoad.name, infoLoad.error.name, infoLoad.error.message)
-					+ "\n" + infoLoad.error.stack
-				);
-				console.log(infoLoad.errorWithThoutRemoveHomeDir);
-			}
-		}
-		else if (
-			(args[0] || "").toLowerCase() == "loadall"
-			|| (args[0] == "load" && args.length > 2)
-		) {
-			const fileNeedToLoad = args[0].toLowerCase() == "loadall" ?
-				fs.readdirSync(__dirname)
-					.filter(file =>
-						file.endsWith(".js") &&
-						!file.match(/(eg)\.js$/g) &&
-						(process.env.NODE_ENV == "development" ? true : !file.match(/(dev)\.js$/g)) &&
-						!configCommands.commandUnload?.includes(file)
-					)
-					.map(item => item = item.split(".")[0]) :
-				args.slice(1);
+			// আনলোড লিস্ট ক্লিয়ার করে দেওয়া হচ্ছে যাতে সব ফাইল ফ্রেশভাবে লোড হয়
+			configCommands.commandUnload = [];
+			fs.writeFileSync(client.dirConfigCommands, JSON.stringify(configCommands, null, 2));
+
+			const fileNeedToLoad = fs.readdirSync(__dirname)
+				.filter(file =>
+					file.endsWith(".js") &&
+					!file.match(/(eg)\.js$/g) &&
+					(process.env.NODE_ENV == "development" ? true : !file.match(/(dev)\.js$/g))
+				)
+				.map(item => item.split(".")[0]);
+
 			const arraySucces = [];
 			const arrayFail = [];
 
@@ -147,11 +140,55 @@ module.exports = {
 				msg += "\n" + getLang("openConsoleToSeeError");
 			}
 
-			message.reply(msg);
+			return message.reply(msg);
+		}
+		else if (
+			args[0] == "load"
+			&& args.length == 2
+		) {
+			if (!args[1])
+				return message.reply(getLang("missingFileName"));
+			const infoLoad = loadScripts("cmds", args[1], log, configCommands, api, threadModel, userModel, dashBoardModel, globalModel, threadsData, usersData, dashBoardData, globalData, getLang);
+			if (infoLoad.status == "success")
+				message.reply(getLang("loaded", infoLoad.name));
+			else {
+				message.reply(
+					getLang("loadedError", infoLoad.name, infoLoad.error.name, infoLoad.error.message)
+					+ "\n" + infoLoad.error.stack
+				);
+				console.log(infoLoad.errorWithThoutRemoveHomeDir);
+			}
 		}
 		else if (args[0] == "unload") {
 			if (!args[1])
 				return message.reply(getLang("missingCommandNameUnload"));
+			
+			// Unload all files except this command file
+			if (args[1].toLowerCase() == "all") {
+				const allFiles = fs.readdirSync(__dirname)
+					.filter(file => file.endsWith(".js") && file != path.basename(__filename));
+				
+				let countUnloaded = 0;
+				for (const file of allFiles) {
+					try {
+						const fileName = file.split(".")[0];
+						const checkCmd = require(path.join(__dirname, file));
+						if (!checkCmd || !checkCmd.config || !checkCmd.config.name) {
+							delete require.cache[require.resolve(path.join(__dirname, file))];
+							continue;
+						}
+						
+						unloadScripts("cmds", fileName, configCommands, getLang);
+						countUnloaded++;
+					} catch (e) {
+						try {
+							delete require.cache[require.resolve(path.join(__dirname, file))];
+						} catch(err){}
+					}
+				}
+				return message.reply(getLang("unloadAllSuccess", countUnloaded, this.config.name));
+			}
+
 			const infoUnload = unloadScripts("cmds", args[1], configCommands, getLang);
 			infoUnload.status == "success" ?
 				message.reply(getLang("unloaded", infoUnload.name)) :
@@ -262,10 +299,6 @@ const spinner = "\\|/-";
 let count = 0;
 
 function loadScripts(folder, fileName, log, configCommands, api, threadModel, userModel, dashBoardModel, globalModel, threadsData, usersData, dashBoardData, globalData, getLang, rawCode) {
-	// global.GoatBot[folderModules == "cmds" ? "commandFilesPath" : "eventCommandsFilesPath"].push({
-	// 	filePath: pathCommand,
-	// 	commandName: [commandName, ...validAliases]
-	// });
 	const storageCommandFilesPath = global.GoatBot[folder == "cmds" ? "commandFilesPath" : "eventCommandsFilesPath"];
 
 	try {
@@ -287,7 +320,6 @@ function loadScripts(folder, fileName, log, configCommands, api, threadModel, us
 			setMap = "eventCommands";
 			commandType = "event command";
 		}
-		// const pathCommand = path.normalize(path.normalize(process.cwd() + `/${folder}/${fileName}.js`));
 		let pathCommand;
 		if (process.env.NODE_ENV == "development") {
 			const devPath = path.normalize(process.cwd() + `/scripts/${folder}/${fileName}.dev.js`);
@@ -299,7 +331,6 @@ function loadScripts(folder, fileName, log, configCommands, api, threadModel, us
 		else
 			pathCommand = path.normalize(process.cwd() + `/scripts/${folder}/${fileName}.js`);
 
-		// ————————————————— CHECK PACKAGE ————————————————— //
 		const contentFile = fs.readFileSync(pathCommand, "utf8");
 		let allPackage = contentFile.match(regExpCheckPackage);
 		if (allPackage) {
@@ -307,9 +338,6 @@ function loadScripts(folder, fileName, log, configCommands, api, threadModel, us
 				.map(p => p.match(/[`'"]([^`'"]+)[`'"]/)[1])
 				.filter(p => p.indexOf("/") !== 0 && p.indexOf("./") !== 0 && p.indexOf("../") !== 0 && p.indexOf(__dirname) !== 0);
 			for (let packageName of allPackage) {
-				// @user/abc => @user/abc
-				// @user/abc/dist/xyz.js => @user/abc
-				// @user/abc/dist/xyz => @user/abc
 				if (packageName.startsWith('@'))
 					packageName = packageName.split('/').slice(0, 2).join('/');
 				else
@@ -337,43 +365,32 @@ function loadScripts(folder, fileName, log, configCommands, api, threadModel, us
 				}
 			}
 		}
-		// ———————————————— GET OLD COMMAND ———————————————— //
 		const oldCommand = require(pathCommand);
 		const oldCommandName = oldCommand?.config?.name;
-		// —————————————— CHECK COMMAND EXIST ——————————————— //
 		if (!oldCommandName) {
 			if (GoatBot[setMap].get(oldCommandName)?.location != pathCommand)
 				throw new Error(`${commandType} name "${oldCommandName}" is already exist in command "${removeHomeDir(GoatBot[setMap].get(oldCommandName)?.location || "")}"`);
 		}
-		// ————————————————— CHECK ALIASES ————————————————— //
-		if (oldCommand.config.aliases) {
+		if (oldCommand.config && oldCommand.config.aliases) {
 			let oldAliases = oldCommand.config.aliases;
 			if (typeof oldAliases == "string")
 				oldAliases = [oldAliases];
 			for (const alias of oldAliases)
 				GoatBot.aliases.delete(alias);
 		}
-		// ——————————————— DELETE OLD COMMAND ——————————————— //
 		delete require.cache[require.resolve(pathCommand)];
-		// —————————————————————————————————————————————————— //
 
-
-
-		// ———————————————— GET NEW COMMAND ———————————————— //
 		const command = require(pathCommand);
 		command.location = pathCommand;
 		const configCommand = command.config;
 		if (!configCommand || typeof configCommand != "object")
 			throw new Error("config of command must be an object");
-		// —————————————————— CHECK SYNTAX —————————————————— //
 		const scriptName = configCommand.name;
 
-		// Check onChat function
 		const indexOnChat = allOnChat.findIndex(item => item == oldCommandName);
 		if (indexOnChat != -1)
 			allOnChat.splice(indexOnChat, 1);
 
-		// Check onFirstChat function
 		const indexOnFirstChat = allOnChat.findIndex(item => item == oldCommandName);
 		let oldOnFirstChat;
 		if (indexOnFirstChat != -1) {
@@ -381,17 +398,14 @@ function loadScripts(folder, fileName, log, configCommands, api, threadModel, us
 			allOnFirstChat.splice(indexOnFirstChat, 1);
 		}
 
-		// Check onEvent function
 		const indexOnEvent = allOnEvent.findIndex(item => item == oldCommandName);
 		if (indexOnEvent != -1)
 			allOnEvent.splice(indexOnEvent, 1);
 
-		// Check onAnyEvent function
 		const indexOnAnyEvent = allOnAnyEvent.findIndex(item => item == oldCommandName);
 		if (indexOnAnyEvent != -1)
 			allOnAnyEvent.splice(indexOnAnyEvent, 1);
 
-		// Check onLoad function
 		if (command.onLoad)
 			command.onLoad({ api, threadModel, userModel, dashBoardModel, globalModel, threadsData, usersData, dashBoardData, globalData });
 
@@ -402,7 +416,6 @@ function loadScripts(folder, fileName, log, configCommands, api, threadModel, us
 			throw new Error('Function onStart must be a function!');
 		if (!scriptName)
 			throw new Error('Name of command is missing!');
-		// ————————————————— CHECK ALIASES ————————————————— //
 		if (configCommand.aliases) {
 			let { aliases } = configCommand;
 			if (typeof aliases == "string")
@@ -415,15 +428,12 @@ function loadScripts(folder, fileName, log, configCommands, api, threadModel, us
 				GoatBot.aliases.set(alias, scriptName);
 			}
 		}
-		// ————————————————— CHECK ENVCONFIG ————————————————— //
-		// env Global
 		if (envGlobal) {
 			if (typeof envGlobal != "object" || Array.isArray(envGlobal))
 				throw new Error("envGlobal must be an object");
 			for (const key in envGlobal)
 				configCommands.envGlobal[key] = envGlobal[key];
 		}
-		// env Config
 		if (envConfig && typeof envConfig == "object" && !Array.isArray(envConfig)) {
 			if (!configCommands[typeEnvCommand][scriptName])
 				configCommands[typeEnvCommand][scriptName] = {};
@@ -504,8 +514,7 @@ function unloadScripts(folder, fileName, configCommands, getLang) {
 	const indexOnAnyEvent = allOnAnyEvent.findIndex(item => item == commandName);
 	if (indexOnAnyEvent != -1)
 		allOnAnyEvent.splice(indexOnAnyEvent, 1);
-	// ————————————————— CHECK ALIASES ————————————————— //
-	if (command.config.aliases) {
+	if (command.config && command.config.aliases) {
 		let aliases = command.config?.aliases || [];
 		if (typeof aliases == "string")
 			aliases = [aliases];
