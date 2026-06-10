@@ -1,7 +1,7 @@
 module.exports = {
   config: {
-    name: "approved",
-    aliases: ["aprv", "aprvd","approve"],
+    name: "approvedinbox",
+    aliases: ["approveinbox", "approvedib","approveib"],
     version: "1.0",
     author: "Rakib",
     countDown: 5,
