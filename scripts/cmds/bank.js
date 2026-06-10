@@ -4,7 +4,7 @@ module.exports = {
   config: {
     name: "bank",
     aliases: ["vault"],
-    version: "5.1",
+    version: "1.0",
     author: "Rakib",
     role: 0,
     category: "economy"
@@ -44,18 +44,20 @@ module.exports = {
     let bank = BigInt(user.data?.bank || 0);
     let loan = BigInt(user.data?.loan || 0);
 
+    const LOAN_LIMIT = 10_000_000n;
+
+    // ===== SAFE SAVE (রিসেট প্রবলেম ফিক্সড) =====
     const save = async () => {
       await usersData.set(uid, {
+        ...user,
         money: wallet.toString(),
         data: {
+          ...(user.data || {}),
           bank: bank.toString(),
           loan: loan.toString()
         }
       });
     };
-
-    const LOAN_LIMIT = 1_000_000_000_000n; // 1 trillion
-    const WALLET_LIMIT = 150n; // wallet cap
 
     // ===== SHOW STATUS =====
     if (!args[0]) {
@@ -93,49 +95,47 @@ module.exports = {
       await save();
     }
 
-// ===== WITHDRAW (FINAL & CORRECT) =====
-      else if (sub === "withdraw" || sub === "with") {
+    // ===== WITHDRAW =====
+    else if (sub === "withdraw" || sub === "with") {
+      if (bank <= 0n)
+        return message.reply(getLang("notEnoughBank"));
 
-  if (bank <= 0n)
-    return message.reply(getLang("notEnoughBank"));
-
-  let reqAmt;
-  if (!args[1] || args[1].toLowerCase() === "all") {
-    reqAmt = bank;
-  } else {
-    reqAmt = utils.parseAmount(args[1], "bank", wallet, bank, loan);
-  }
-
-  if (!reqAmt || typeof reqAmt !== "bigint" || reqAmt <= 0n)
-    return message.reply(getLang("invalidAmount"));
-
-  // 1️⃣ raw withdraw
-  const actual = reqAmt > bank ? bank : reqAmt;
-  wallet += actual;
-  bank -= actual;
-
-  // 2️⃣ GLOBAL wallet cap (150cs auto bank)
-  ({ wallet, bank } = utils.applyWalletLimit(wallet, bank));
-
-  await save();
+      let reqAmt;
+      if (!args[1] || args[1].toLowerCase() === "all") {
+        reqAmt = bank;
+      } else {
+        reqAmt = utils.parseAmount(args[1], "bank", wallet, bank, loan);
       }
-  // ===== LOAN =====
-else if (sub === "loan") {
 
-  const LOAN_LIMIT = 10_000_000n; // 10M limit
+      if (!reqAmt || typeof reqAmt !== "bigint" || reqAmt <= 0n)
+        return message.reply(getLang("invalidAmount"));
 
-  // already has loan
-  if (loan > 0n)
-    return message.reply("❌ You already have an active loan. Repay it first.");
+      // 1️⃣ raw withdraw
+      const actual = reqAmt > bank ? bank : reqAmt;
+      wallet += actual;
+      bank -= actual;
 
-  // limit check
-  if (amt > LOAN_LIMIT)
-    return message.reply("❌ Maximum loan limit is 10,000,000");
+      // 2️⃣ GLOBAL wallet cap (150cs auto bank)
+      ({ wallet, bank } = utils.applyWalletLimit(wallet, bank));
 
-  loan += amt;
-  wallet += amt;
-  await save();
-          }
+      await save();
+    }
+
+    // ===== LOAN =====
+    else if (sub === "loan") {
+      // already has loan
+      if (loan > 0n)
+        return message.reply("❌ You already have an active loan. Repay it first.");
+
+      // limit check
+      if (amt > LOAN_LIMIT)
+        return message.reply("❌ Maximum loan limit is 10,000,000");
+
+      loan += amt;
+      wallet += amt;
+      await save();
+    }
+
     // ===== REPAY =====
     else if (sub === "repay" || sub === "pay") {
       if (loan <= 0n)
