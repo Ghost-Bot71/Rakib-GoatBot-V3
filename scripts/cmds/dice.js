@@ -7,7 +7,7 @@ module.exports = {
   config: {
     name: "dice",
     aliases: ["roll"],
-    version: "2.0",
+    version: "1.1",
     author: "Rakib",
     role: 0,
     category: "economy"
@@ -18,6 +18,19 @@ module.exports = {
     const user = await usersData.get(uid) || {};
     const data = user.data || {};
     const name = user.name || "Unknown";
+
+    /* ===== DAILY RESET LOGIC (30 LIMIT) ===== */
+    const today = new Date().toLocaleDateString("en-US", { timeZone: "Asia/Dhaka" }); // বাংলাদেশের সময় অনুযায়ী ডেট ট্র্যাকিং
+    let diceCount = 0;
+
+    // যদি আজকের দিনটি আগে সেভ করা দিনের সাথে মিলে, তবে আগের কাউন্ট নিবে, নাহলে নতুন দিন হিসেবে ০ হয়ে যাবে
+    if (data.diceLog && data.diceLog.date === today) {
+      diceCount = Number(data.diceLog.count || 0);
+    }
+
+    if (diceCount >= 30) {
+      return message.reply("❌ আপনি আজকে আপনার সর্বোচ্চ ৩০ বার খেলার লিমিট শেষ করে ফেলেছেন! আগামীকাল আবার খেলতে পারবেন।");
+    }
 
     /* ===== COOLDOWN ===== */
     const now = Date.now();
@@ -42,6 +55,9 @@ module.exports = {
 
     if (wallet < bet)
       return message.reply("❌ You don't have enough balance.");
+
+    // লিমিট ১ বাড়ানো হলো
+    diceCount += 1;
 
     /* ===== ROLL ===== */
     const playerRoll = Math.floor(Math.random() * 6) + 1;
@@ -73,7 +89,7 @@ module.exports = {
     wallet = fixed.wallet;
     bank   = fixed.bank;
 
-    /* ===== SAVE USER ===== */
+    /* ===== SAFE SAVE USER (রিসেট প্রোটেকশন) ===== */
     await usersData.set(uid, {
       ...user,
       money: wallet.toString(),
@@ -81,7 +97,10 @@ module.exports = {
         ...data,
         bank: bank.toString(),
         lastDiceTime: now,
-
+        diceLog: {
+          date: today,
+          count: diceCount
+        },
         // stats
         dicePlayed: (data.dicePlayed || 0) + 1,
         diceWin: (
@@ -96,6 +115,7 @@ module.exports = {
       `🎲 ⚀ vs ⚀\n` +
       `✨ Rolling the dice...\n\n` +
       `👤 Player: ${name}\n` +
+      `📊 Today's Play: ${diceCount}/30\n` +
       `💵 Bet: ${utils.formatMoney(bet)}\n` +
       `💼 Wallet: ${utils.formatMoney(wallet)}\n` +
       `🏦 Bank: ${utils.formatMoney(bank)}`
@@ -108,6 +128,7 @@ module.exports = {
         `🎲 ${DICE[Math.floor(Math.random()*6)]} vs ${DICE[Math.floor(Math.random()*6)]}\n` +
         `✨ Rolling the dice...\n\n` +
         `👤 Player: ${name}\n` +
+        `📊 Today's Play: ${diceCount}/30\n` +
         `💵 Bet: ${utils.formatMoney(bet)}\n` +
         `💼 Wallet: ${utils.formatMoney(wallet)}\n` +
         `🏦 Bank: ${utils.formatMoney(bank)}`,
@@ -122,6 +143,7 @@ module.exports = {
       `${resultLine}\n\n` +
       `${title}\n\n` +
       `👤 Player: ${name}\n` +
+      `📊 Today's Play: ${diceCount}/30\n` +
       `💵 Bet: ${utils.formatMoney(bet)}\n` +
       `💼 Wallet: ${utils.formatMoney(wallet)}\n` +
       `🏦 Bank: ${utils.formatMoney(bank)}`,
