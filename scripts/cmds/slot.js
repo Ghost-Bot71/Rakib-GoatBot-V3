@@ -7,7 +7,7 @@ module.exports = {
   config: {
     name: "slot",
     aliases: ["slots"],
-    version: "6.0",
+    version: "1.1",
     author: "Rakib",
     role: 0,
     category: "economy"
@@ -18,6 +18,19 @@ module.exports = {
     const user = await usersData.get(uid) || {};
     const data = user.data || {};
     const name = user.name || "Unknown";
+
+    /* ===== DAILY RESET LOGIC (30 LIMIT) ===== */
+    const today = new Date().toLocaleDateString("en-US", { timeZone: "Asia/Dhaka" }); // বাংলাদেশের সময় অনুযায়ী ডেট ট্র্যাকিং
+    let slotCount = 0;
+
+    // যদি আজকের দিনটি আগে সেভ করা দিনের সাথে মিলে, তবে আগের কাউন্ট নিবে, নাহলে নতুন দিন হিসেবে ০ হয়ে যাবে
+    if (data.slotLog && data.slotLog.date === today) {
+      slotCount = Number(data.slotLog.count || 0);
+    }
+
+    if (slotCount >= 30) {
+      return message.reply("❌ আপনি আজকে আপনার সর্বোচ্চ ৩০ বার খেলার লিমিট শেষ করে ফেলেছেন! আগামীকাল আবার খেলতে পারবেন।");
+    }
 
     /* ===== COOLDOWN ===== */
     const now = Date.now();
@@ -42,6 +55,9 @@ module.exports = {
 
     if (wallet < bet)
       return message.reply("❌ You don't have enough balance.");
+
+    // লিমিট ১ বাড়ানো হলো
+    slotCount += 1;
 
     /* ===== FINAL SYMBOLS (DECIDED FIRST) ===== */
     const spin = () => EMOJIS[Math.floor(Math.random() * EMOJIS.length)];
@@ -80,7 +96,7 @@ module.exports = {
     wallet = fixed.wallet;
     bank   = fixed.bank;
 
-    /* ===== SAVE USER ===== */
+    /* ===== SAFE SAVE USER (রিসেট প্রোটেকশন) ===== */
     await usersData.set(uid, {
       ...user,
       money: wallet.toString(),
@@ -88,6 +104,10 @@ module.exports = {
         ...data,
         bank: bank.toString(),
         lastSlotTime: now,
+        slotLog: {
+          date: today,
+          count: slotCount
+        },
         slotWin: (
           utils.safeBigInt(data.slotWin) +
           (profit > 0n ? profit : 0n)
@@ -100,6 +120,7 @@ module.exports = {
       `🎰 ❓ | ❓ | ❓\n` +
       `✨ The wheel is spinning...\n\n` +
       `👤 Player: ${name}\n` +
+      `📊 Today's Play: ${slotCount}/30\n` +
       `💵 Bet: ${utils.formatMoney(bet)}\n` +
       `💼 Wallet: ${utils.formatMoney(wallet)}\n` +
       `🏦 Bank: ${utils.formatMoney(bank)}`
@@ -112,6 +133,7 @@ module.exports = {
         `🎰 ${spin()} | ${spin()} | ${spin()}\n` +
         `✨ The wheel is spinning...\n\n` +
         `👤 Player: ${name}\n` +
+        `📊 Today's Play: ${slotCount}/30\n` +
         `💵 Bet: ${utils.formatMoney(bet)}\n` +
         `💼 Wallet: ${utils.formatMoney(wallet)}\n` +
         `🏦 Bank: ${utils.formatMoney(bank)}`,
@@ -126,6 +148,7 @@ module.exports = {
       `${resultLine}\n\n` +
       `${finalTitle}\n\n` +
       `👤 Player: ${name}\n` +
+      `📊 Today's Play: ${slotCount}/30\n` +
       `💵 Bet: ${utils.formatMoney(bet)}\n` +
       `💼 Wallet: ${utils.formatMoney(wallet)}\n` +
       `🏦 Bank: ${utils.formatMoney(bank)}`,
