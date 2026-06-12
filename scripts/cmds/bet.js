@@ -15,7 +15,7 @@ module.exports = {
 	config: {
 		name: "bet",
 		aliases: ["gamble"],
-		version: "3.1",
+		version: "3.2",
 		author: "Rakib",
 		role: 0,
 		category: "economy",
@@ -42,6 +42,19 @@ module.exports = {
 		const user = await usersData.get(uid) || {};
 		const data = user.data || {};
 		const name = user.name || "Unknown";
+
+		/* ===== DAILY RESET LOGIC (30 LIMIT) ===== */
+		const today = new Date().toLocaleDateString("en-US", { timeZone: "Asia/Dhaka" }); // বাংলাদেশের সময় অনুযায়ী ডেট ট্র্যাকিং
+		let betCount = 0;
+
+		// যদি আজকের দিনটি আগে সেভ করা দিনের সাথে মিলে, তবে আগের কাউন্ট নিবে, নাহলে নতুন দিন হিসেবে ০ হয়ে যাবে
+		if (data.betLog && data.betLog.date === today) {
+			betCount = Number(data.betLog.count || 0);
+		}
+
+		if (betCount >= 30) {
+			return message.reply("❌ আপনি আজকে আপনার সর্বোচ্চ ৩০ বার খেলার লিমিট শেষ করে ফেলেছেন! আগামীকাল আবার খেলতে পারবেন।");
+		}
 
 		/* ===== COOLDOWN ===== */
 		const now = Date.now();
@@ -77,6 +90,9 @@ module.exports = {
 
 		if (wallet < betAmount)
 			return message.reply(getLang("notEnough"));
+
+		// লিমিট ১ বাড়ানো হলো
+		betCount += 1;
 
 		/* ===== STREAK & RANK ===== */
 		let streak = utils.safeBigInt(data.betStreak);
@@ -114,6 +130,7 @@ module.exports = {
 			text =
 				"🎉 **BET WIN!** 🎉\n\n" +
 				`👤 Player: ${name}\n` +
+				`📊 Today's Play: ${betCount}/30\n` + // এখানে আজকের কাউন্ট দেখাবে
 				`🎖️ Rank: ${rank.name} (+${rank.bonus}%)\n` +
 				`🎯 Risk: ${risk.toUpperCase()}\n` +
 				`🔥 Win Streak: ${streak} (+${streakBonus}%)\n` +
@@ -130,6 +147,7 @@ module.exports = {
 			text =
 				"💀 **BET LOSS! 😓** 💀\n\n" +
 				`👤 Player: ${name}\n` +
+				`📊 Today's Play: ${betCount}/30\n` + // এখানে আজকের কাউন্ট দেখাবে
 				`🎖️ Rank: ${rank.name}\n` +
 				`🎯 Risk: ${risk.toUpperCase()}\n` +
 				`📉 Final Chance: ${finalChance.toFixed(2)}%\n` +
@@ -155,7 +173,7 @@ module.exports = {
 		});
 		if (history.length > 10) history.shift();
 
-		/* ===== SAVE USER ===== */
+		/* ===== SAFE SAVE USER (রিসেট প্রোটেকশন) ===== */
 		await usersData.set(uid, {
 			...user,
 			money: wallet.toString(),
@@ -165,7 +183,11 @@ module.exports = {
 				betStreak: streak.toString(),
 				betWins: wins,
 				betHistory: history,
-				lastBetTime: now
+				lastBetTime: now,
+				betLog: {
+					date: today,
+					count: betCount
+				}
 			}
 		});
 
