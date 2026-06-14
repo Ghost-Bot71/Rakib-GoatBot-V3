@@ -4,8 +4,8 @@ const { commands, aliases } = global.GoatBot;
 module.exports = {
   config: {
     name: "help",
-    version: "2.6.0",
-    author: "Ktkhang | modified HOON",
+    version: "2.0",
+    author: "Ktkhang & Rakib",
     countDown: 5,
     role: 0,
     shortDescription: { en: "View command list with beautiful pages" },
