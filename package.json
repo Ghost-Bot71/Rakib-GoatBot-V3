@@ -86,6 +86,7 @@
     "passport-local": "^1.0.0",
     "path": "^0.12.7",
     "pretty-ms": "^7.0.1",
+    "puppeteer": "^24.0.0",
     "puppeteer-core": "^22.15.0",
     "qrcode-reader": "^1.0.4",
     "qs": "^6.13.1",
