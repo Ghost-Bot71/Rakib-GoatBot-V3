@@ -1,3 +1,5 @@
+const loadOwner = require("../../rakib/customId/ownerUid");
+
 module.exports = {
   config: {
     name: "order",
@@ -11,8 +13,17 @@ module.exports = {
     category: "utility",
   },
 
-  onStart: async function ({ api, event, args }) {
+  onStart: async function ({ api, event, message, args }) {
     try {
+      const ownerUID = await loadOwner();
+      const isOwner = Array.isArray(ownerUID)
+        ? ownerUID.includes(String(event.senderID))
+        : String(event.senderID) === String(ownerUID);
+
+      if (!isOwner) {
+        return message.reply("❌ Owner only command.");
+      }
+
       if (args.length < 2) {
         return api.sendMessage(
           "Usage:\norder <count> <text>\norder list <count> <text>",
@@ -24,7 +35,6 @@ module.exports = {
       let isList = false;
       let count, text;
 
-      // check if list mode
       if (args[0].toLowerCase() === "list") {
         isList = true;
         count = parseInt(args[1]);
@@ -43,7 +53,6 @@ module.exports = {
       }
 
       let result = "";
-
       for (let i = 1; i <= count; i++) {
         if (isList) {
           result += `${i}. ${text}\n`;
@@ -52,7 +61,6 @@ module.exports = {
         }
       }
 
-      // Messenger limit safe (optional trim)
       if (result.length > 15000) {
         result = result.slice(0, 15000) + "\n...";
       }
