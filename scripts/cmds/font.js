@@ -20,13 +20,15 @@ font 2 Rakib`
 
   onStart: async function ({ message, args }) {
 
-    const { ownerUid } = loadOwner();
+  const ownerUID = await loadOwner();
 
-    if (!ownerUid.includes(message.senderID)) {
-      return message.reply(
-        "❌ | এই কমান্ডটি শুধুমাত্র বটের ওনার ব্যবহার করতে পারবেন।"
-      );
-    }
+  const isOwner = Array.isArray(ownerUID)
+    ? ownerUID.includes(String(message.senderID))
+    : String(message.senderID) === String(ownerUID);
+
+  if (!isOwner) {
+    return message.reply("❌ you'are not allowed this cmd");
+  }
 
     if (!args[0]) {
       return message.reply(
