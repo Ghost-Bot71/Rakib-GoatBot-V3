@@ -18,20 +18,22 @@ font 2 Rakib`
     }
   },
 
-  onStart: async function ({ message, args }) {
+  onStart: async function ({ api, event, message, args }) {
+    try {
+      // 🔒 Owner Check (dynamic)
+      const ownerUID = await loadOwner();
+      const senderID = String(event?.senderID || message?.senderID);
+      
+      const isOwner = Array.isArray(ownerUID)
+        ? ownerUID.includes(senderID)
+        : String(ownerUID) === senderID;
 
-  const ownerUID = await loadOwner();
+      if (!isOwner) {
+        return (message?.reply || api.sendMessage)("❌ you'are not allowed this cmd", event.threadID, event.messageID);
+      }
 
-  const isOwner = Array.isArray(ownerUID)
-    ? ownerUID.includes(String(message.senderID))
-    : String(message.senderID) === String(ownerUID);
-
-  if (!isOwner) {
-    return message.reply("❌ you'are not allowed this cmd");
-  }
-
-    if (!args[0]) {
-      return message.reply(
+      if (!args[0]) {
+        return message.reply(
 `✨ FONT SYSTEM
 
 font list
@@ -39,205 +41,118 @@ font <number> <text>
 
 Example:
 font 2 Rakib Hasan`
-      );
+        );
+      }
+
+      const fonts = getFonts();
+
+      /* ================= LIST ================= */
+      if (args[0].toLowerCase() === "list") {
+        let msg = "✨ AVAILABLE FONTS ✨\n\n";
+
+        fonts.forEach((font, index) => {
+          msg += `${index + 1}. ${font.preview}\n`;
+        });
+
+        msg += `\n📌 Example:\nfont 2 Rakib`;
+
+        return message.reply(msg);
+      }
+
+      /* ================= CONVERT ================= */
+      const fontNumber = parseInt(args[0]);
+
+      if (
+        isNaN(fontNumber) ||
+        fontNumber < 1 ||
+        fontNumber > fonts.length
+      ) {
+        return message.reply(`❌ Invalid Font Number\n\nUse: font list`);
+      }
+
+      const text = args.slice(1).join(" ");
+
+      if (!text) {
+        return message.reply("❌ Please provide text.");
+      }
+
+      const selectedFont = fonts[fontNumber - 1];
+      return message.reply(selectedFont.convert(text));
+
+    } catch (err) {
+      console.error(err);
+      return (message?.reply || api.sendMessage)("❌ An error occurred inside Font Command.", event.threadID, event.messageID);
     }
-
-    const fonts = getFonts();
-
-    if (args[0].toLowerCase() === "list") {
-
-      let msg = "✨ AVAILABLE FONTS ✨\n\n";
-
-      fonts.forEach((font, index) => {
-        msg += `${index + 1}. ${font.preview}\n`;
-      });
-
-      msg += `\n📌 Example:\nfont 2 Rakib`;
-
-      return message.reply(msg);
-    }
-
-    const fontNumber = parseInt(args[0]);
-
-    if (
-      isNaN(fontNumber) ||
-      fontNumber < 1 ||
-      fontNumber > fonts.length
-    ) {
-      return message.reply(
-        `❌ Invalid Font Number\n\nUse: font list`
-      );
-    }
-
-    const text = args.slice(1).join(" ");
-
-    if (!text) {
-      return message.reply(
-        "❌ Please provide text."
-      );
-    }
-
-    const selectedFont = fonts[fontNumber - 1];
-
-    return message.reply(
-      selectedFont.convert(text)
-    );
   }
 };
 
+/* ================= FONTS LIST ================= */
 function getFonts() {
   return [
-    {
-      name: "Normal",
-      preview: "Normal Text",
-      convert: normalFont
-    },
-    {
-      name: "Bold",
-      preview: "𝐁𝐨𝐥𝐝 𝐓𝐞𝐱𝐭",
-      convert: boldFont
-    },
-    {
-      name: "Italic",
-      preview: "𝘈𝘭𝘪𝘵𝘢𝘭𝘪𝘤 𝘛𝘦𝘹𝘵",
-      convert: italicFont
-    },
-    {
-      name: "Bold Italic",
-      preview: "𝑩𝒐𝒍𝒅 𝑰𝒕𝒂𝒍𝒊𝒄",
-      convert: boldItalicFont
-    },
-    {
-      name: "Monospace",
-      preview: "𝙼𝚘𝚗𝚘 𝚃𝚎𝚡𝚝",
-      convert: monoFont
-    },
-    {
-      name: "Script",
-      preview: "𝒮𝒸𝓇𝒾𝓅𝓉 𝒯𝑒𝓍𝓉",
-      convert: scriptFont
-    },
-    {
-      name: "Bold Script",
-      preview: "𝓑𝓸𝓵𝓭 𝓢𝓬𝓻𝓲𝓹𝓽",
-      convert: boldScriptFont
-    },
-    {
-      name: "Fraktur",
-      preview: "𝔉𝔯𝔞𝔨𝔱𝔲𝔯",
-      convert: frakturFont
-    },
-    {
-      name: "Double Struck",
-      preview: "𝔻𝕠𝕦𝕓𝕝𝕖 𝕋𝕖𝕩𝕥",
-      convert: doubleFont
-    },
-    {
-      name: "Circled",
-      preview: "Ⓒⓘⓡⓒⓛⓔⓓ",
-      convert: circledFont
-    },
-    {
-      name: "Squared",
-      preview: "🅂🅀🅄🄰🅁🄴🄳",
-      convert: squaredFont
-    },
-    {
-      name: "Tiny",
-      preview: "ᵀⁱⁿʸ ᵀᵉˣᵗ",
-      convert: tinyFont
-    },
-    {
-      name: "Full Width",
-      preview: "Ｆｕｌｌ Ｗｉｄｔｈ",
-      convert: fullWidthFont
-    }
+    { name: "Normal", preview: "Normal Text", convert: normalFont },
+    { name: "Bold", preview: "𝐁𝐨𝐥𝐝 𝐓𝐞𝐱𝐭", convert: boldFont },
+    { name: "Italic", preview: "𝘐𝘵𝘢𝘭𝘪𝘤 𝘛𝘦𝘹𝘵", convert: italicFont },
+    { name: "Bold Italic", preview: "𝑩𝒐𝒍𝒅 𝑰𝒕𝒂𝒍𝒊𝒄", convert: boldItalicFont },
+    { name: "Monospace", preview: "𝙼𝚘𝚗𝚘 𝚃𝚎𝚡𝚝", convert: monoFont },
+    { name: "Script", preview: "𝒮𝒸𝓇𝒾𝓅𝓉 𝒯𝑒𝓍𝓉", convert: scriptFont },
+    { name: "Bold Script", preview: "𝓑𝓸𝓵𝓭 𝓢𝓬𝓻𝓲𝓹𝓽", convert: boldScriptFont },
+    { name: "Fraktur", preview: "𝔉𝔯𝔞𝔨𝔱𝔲𝔯", convert: frakturFont },
+    { name: "Double Struck", preview: "Double Text", convert: doubleFont },
+    { name: "Circled", preview: "Ⓒⓘⓡⓒⓛⓔⓓ", convert: circledFont },
+    { name: "Squared", preview: "🅂🅀🅄🄰🅁🄴🄳", convert: squaredFont },
+    { name: "Tiny", preview: "ᵀⁱⁿʸ ᵀᵉˣᵗ", convert: tinyFont },
+    { name: "Full Width", preview: "Ｆｕｌｌ Ｗｉｄｔｈ", convert: fullWidthFont },
+    { name: "Small Caps", preview: "Sᴍᴀʟʟ Cᴀᴘs", convert: smallCapsFont }
   ];
-      }
-
+}
 
 function convertText(text, chars) {
   return text.replace(/[A-Za-z0-9]/g, char => chars[char] || char);
 }
 
-/* ================= NORMAL ================= */
+/* ================= FONT FUNCTIONS ================= */
 
 function normalFont(text) {
   return text;
 }
 
-/* ================= BOLD ================= */
-
 function boldFont(text) {
   return text.replace(/[A-Za-z0-9]/g, c => {
     const code = c.charCodeAt(0);
-
-    if (code >= 65 && code <= 90)
-      return String.fromCodePoint(0x1D400 + (code - 65));
-
-    if (code >= 97 && code <= 122)
-      return String.fromCodePoint(0x1D41A + (code - 97));
-
-    if (code >= 48 && code <= 57)
-      return String.fromCodePoint(0x1D7CE + (code - 48));
-
+    if (code >= 65 && code <= 90) return String.fromCodePoint(0x1D400 + (code - 65));
+    if (code >= 97 && code <= 122) return String.fromCodePoint(0x1D41A + (code - 97));
+    if (code >= 48 && code <= 57) return String.fromCodePoint(0x1D7CE + (code - 48));
     return c;
   });
 }
-
-/* ================= ITALIC ================= */
 
 function italicFont(text) {
   return text.replace(/[A-Za-z]/g, c => {
     const code = c.charCodeAt(0);
-
-    if (code >= 65 && code <= 90)
-      return String.fromCodePoint(0x1D434 + (code - 65));
-
-    if (code >= 97 && code <= 122)
-      return String.fromCodePoint(0x1D44E + (code - 97));
-
+    if (code >= 65 && code <= 90) return String.fromCodePoint(0x1D434 + (code - 65));
+    if (code >= 97 && code <= 122) return String.fromCodePoint(0x1D44E + (code - 97));
     return c;
   });
 }
-
-/* ================= BOLD ITALIC ================= */
 
 function boldItalicFont(text) {
   return text.replace(/[A-Za-z]/g, c => {
     const code = c.charCodeAt(0);
-
-    if (code >= 65 && code <= 90)
-      return String.fromCodePoint(0x1D468 + (code - 65));
-
-    if (code >= 97 && code <= 122)
-      return String.fromCodePoint(0x1D482 + (code - 97));
-
+    if (code >= 65 && code <= 90) return String.fromCodePoint(0x1D468 + (code - 65));
+    if (code >= 97 && code <= 122) return String.fromCodePoint(0x1D482 + (code - 97));
     return c;
   });
 }
-
-/* ================= MONOSPACE ================= */
 
 function monoFont(text) {
   return text.replace(/[A-Za-z0-9]/g, c => {
     const code = c.charCodeAt(0);
-
-    if (code >= 65 && code <= 90)
-      return String.fromCodePoint(0x1D670 + (code - 65));
-
-    if (code >= 97 && code <= 122)
-      return String.fromCodePoint(0x1D68A + (code - 97));
-
-    if (code >= 48 && code <= 57)
-      return String.fromCodePoint(0x1D7F6 + (code - 48));
-
+    if (code >= 65 && code <= 90) return String.fromCodePoint(0x1D670 + (code - 65));
+    if (code >= 97 && code <= 122) return String.fromCodePoint(0x1D68A + (code - 97));
+    if (code >= 48 && code <= 57) return String.fromCodePoint(0x1D7F6 + (code - 48));
     return c;
   });
 }
-
-
-/* ================= SCRIPT ================= */
 
 function scriptFont(text) {
   const map = {
@@ -245,29 +160,20 @@ function scriptFont(text) {
     K:"𝒦",L:"ℒ",M:"ℳ",N:"𝒩",O:"𝒪",P:"𝒫",Q:"𝒬",R:"ℛ",S:"𝒮",T:"𝒯",
     U:"𝒰",V:"𝒱",W:"𝒲",X:"𝒳",Y:"𝒴",Z:"𝒵",
     a:"𝒶",b:"𝒷",c:"𝒸",d:"𝒹",e:"ℯ",f:"𝒻",g:"ℊ",h:"𝒽",i:"𝒾",j:"𝒿",
-    k:"𝓀",l:"𝓁",m:"𝓂",n:"𝓃",o:"𝑜",p:"𝓅",q:"𝓆",r:"𝓇",s:"𝓈",t:"𝓉",
-    u:"𝓊",v:"𝓋",w:"𝓌",x:"𝓍",y:"𝓎",z:"𝓏"
+    k:"𝓀",l:"𝓁",m:"𝓂",n:"<b>n</b>",o:"<b>o</b>",p:"𝓅",q:"𝓆",r:"𝓇",s:"𝓈",t:"𝓉",
+    u:"<b>u</b>",v:"𝓋",w:"𝓌",x:"𝓍",y:"𝓎",z:"𝓏"
   };
   return convertText(text, map);
 }
 
-/* ================= BOLD SCRIPT ================= */
-
 function boldScriptFont(text) {
   return text.replace(/[A-Za-z]/g, c => {
     const code = c.charCodeAt(0);
-
-    if (code >= 65 && code <= 90)
-      return String.fromCodePoint(0x1D4D0 + (code - 65));
-
-    if (code >= 97 && code <= 122)
-      return String.fromCodePoint(0x1D4EA + (code - 97));
-
+    if (code >= 65 && code <= 90) return String.fromCodePoint(0x1D4D0 + (code - 65));
+    if (code >= 97 && code <= 122) return String.fromCodePoint(0x1D4EA + (code - 97));
     return c;
   });
 }
-
-/* ================= FRAKTUR ================= */
 
 function frakturFont(text) {
   const map = {
@@ -281,23 +187,19 @@ function frakturFont(text) {
   return convertText(text, map);
 }
 
-/* ================= DOUBLE STRUCK ================= */
-
 function doubleFont(text) {
   const map = {
     A:"𝔸",B:"𝔹",C:"ℂ",D:"𝔻",E:"𝔼",F:"𝔽",G:"𝔾",H:"ℍ",I:"𝕀",J:"𝕁",
     K:"𝕂",L:"𝕃",M:"𝕄",N:"ℕ",O:"𝕆",P:"ℙ",Q:"ℚ",R:"ℝ",S:"𝕊",T:"𝕋",
     U:"𝕌",V:"𝕍",W:"𝕎",X:"𝕏",Y:"𝕐",Z:"ℤ",
-    a:"𝕒",b:"𝕓",c:"𝕔",d:"𝕕",e:"𝕖",f:"𝕗",g:"𝕘",h:"𝕙",i:"𝕚",j:"𝕛",
+    a:"𝕒",b:"𝕓",c:"𝕔",d:"𝕕",e:"𝕖",f:"𝕗",g:"𝕘",h:"𝕙",i:"𝕚",
     k:"𝕜",l:"𝕝",m:"𝕞",n:"𝕟",o:"𝕠",p:"𝕡",q:"𝕢",r:"𝕣",s:"𝕤",t:"𝕥",
     u:"𝕦",v:"𝕧",w:"𝕨",x:"𝕩",y:"𝕪",z:"𝕫",
-    0:"𝟘",1:"𝟙",2:"𝟚",3:"𝟛",4:"𝟜",
+    0:"𝟘",1:"𝟙",2:"𝟚",3:"🟫",4:"𝟜",
     5:"𝟝",6:"𝟞",7:"𝟟",8:"𝟠",9:"𝟡"
   };
   return convertText(text, map);
 }
-
-/* ================= CIRCLED ================= */
 
 function circledFont(text) {
   const map = {
@@ -313,8 +215,6 @@ function circledFont(text) {
   return convertText(text, map);
 }
 
-/* ================= SQUARED ================= */
-
 function squaredFont(text) {
   const map = {
     A:"🄰",B:"🄱",C:"🄲",D:"🄳",E:"🄴",F:"🄵",G:"🄶",H:"🄷",I:"🄸",J:"🄹",
@@ -323,8 +223,6 @@ function squaredFont(text) {
   };
   return convertText(text.toUpperCase(), map);
 }
-
-/* ================= TINY ================= */
 
 function tinyFont(text) {
   const map = {
@@ -337,10 +235,22 @@ function tinyFont(text) {
   return convertText(text.toLowerCase(), map);
 }
 
-/* ================= FULL WIDTH ================= */
-
 function fullWidthFont(text) {
-  return text.replace(/[A-Za-z0-9]/g, c =>
+  return text.replace(/ /g, " ").replace(/[A-Za-z0-9]/g, c =>
     String.fromCharCode(c.charCodeAt(0) + 0xFEE0)
   );
-    }
+}
+
+function smallCapsFont(text) {
+  const map = {
+    a:"ᴀ", b:"ʙ", c:"ᴄ", d:"ᴅ", e:"ᴇ",
+    f:"ꜰ", g:"ɢ", h:"ʜ", i:"ɪ", j:"ᴊ",
+    k:"ᴋ", l:"ʟ", m:"ᴍ", n:"ɴ", o:"ᴏ",
+    p:"ᴘ", q:"ǫ", r:"ʀ", s:"s", t:"ᴛ",
+    u:"ᴜ", v:"ᴠ", w:"ᴡ", x:"x", y:"ʏ", z:"ᴢ"
+  };
+
+  return text.replace(/[a-z]/gi, c =>
+    map[c.toLowerCase()] || c
+  );
+        }
