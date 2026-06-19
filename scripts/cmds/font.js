@@ -107,9 +107,10 @@ function getFonts() {
 }
 
 function convertText(text, chars) {
-  return text.replace(/[A-Za-z0-9]/g, char => chars[char] || char);
+  return [...text]
+    .map(char => chars[char] || char)
+    .join("");
 }
-
 /* ================= FONT FUNCTIONS ================= */
 
 function normalFont(text) {
@@ -160,8 +161,8 @@ function scriptFont(text) {
     K:"𝒦",L:"ℒ",M:"ℳ",N:"𝒩",O:"𝒪",P:"𝒫",Q:"𝒬",R:"ℛ",S:"𝒮",T:"𝒯",
     U:"𝒰",V:"𝒱",W:"𝒲",X:"𝒳",Y:"𝒴",Z:"𝒵",
     a:"𝒶",b:"𝒷",c:"𝒸",d:"𝒹",e:"ℯ",f:"𝒻",g:"ℊ",h:"𝒽",i:"𝒾",j:"𝒿",
-    k:"𝓀",l:"𝓁",m:"𝓂",n:"<b>n</b>",o:"<b>o</b>",p:"𝓅",q:"𝓆",r:"𝓇",s:"𝓈",t:"𝓉",
-    u:"<b>u</b>",v:"𝓋",w:"𝓌",x:"𝓍",y:"𝓎",z:"𝓏"
+    k:"𝓀",l:"𝓁",m:"𝓂",n:"𝓃",o:"𝓸",p:"𝓅",q:"𝓆",r:"𝓇",s:"𝓈",t:"𝓉",
+    u:"𝓊",v:"𝓋",w:"𝓌",x:"𝓍",y:"𝓎",z:"𝓏"
   };
   return convertText(text, map);
 }
@@ -192,10 +193,10 @@ function doubleFont(text) {
     A:"𝔸",B:"𝔹",C:"ℂ",D:"𝔻",E:"𝔼",F:"𝔽",G:"𝔾",H:"ℍ",I:"𝕀",J:"𝕁",
     K:"𝕂",L:"𝕃",M:"𝕄",N:"ℕ",O:"𝕆",P:"ℙ",Q:"ℚ",R:"ℝ",S:"𝕊",T:"𝕋",
     U:"𝕌",V:"𝕍",W:"𝕎",X:"𝕏",Y:"𝕐",Z:"ℤ",
-    a:"𝕒",b:"𝕓",c:"𝕔",d:"𝕕",e:"𝕖",f:"𝕗",g:"𝕘",h:"𝕙",i:"𝕚",
+    a:"𝕒",b:"𝕓",c:"𝕔",d:"𝕕",e:"𝕖",f:"𝕗",g:"𝕘",h:"𝕙",i:"𝕚",j:"𝕛",
     k:"𝕜",l:"𝕝",m:"𝕞",n:"𝕟",o:"𝕠",p:"𝕡",q:"𝕢",r:"𝕣",s:"𝕤",t:"𝕥",
     u:"𝕦",v:"𝕧",w:"𝕨",x:"𝕩",y:"𝕪",z:"𝕫",
-    0:"𝟘",1:"𝟙",2:"𝟚",3:"🟫",4:"𝟜",
+    0:"𝟘",1:"𝟙",2:"𝟚",3:"𝟛",4:"𝟜",
     5:"𝟝",6:"𝟞",7:"𝟟",8:"𝟠",9:"𝟡"
   };
   return convertText(text, map);
@@ -234,11 +235,10 @@ function tinyFont(text) {
   };
   return convertText(text.toLowerCase(), map);
 }
-
 function fullWidthFont(text) {
-  return text.replace(/ /g, " ").replace(/[A-Za-z0-9]/g, c =>
-    String.fromCharCode(c.charCodeAt(0) + 0xFEE0)
-  );
+  return text.replace(/[A-Za-z0-9]/g, c => {
+    return String.fromCharCode(c.charCodeAt(0) + 65248);
+  });
 }
 
 function smallCapsFont(text) {
@@ -246,7 +246,7 @@ function smallCapsFont(text) {
     a:"ᴀ", b:"ʙ", c:"ᴄ", d:"ᴅ", e:"ᴇ",
     f:"ꜰ", g:"ɢ", h:"ʜ", i:"ɪ", j:"ᴊ",
     k:"ᴋ", l:"ʟ", m:"ᴍ", n:"ɴ", o:"ᴏ",
-    p:"ᴘ", q:"ǫ", r:"ʀ", s:"s", t:"ᴛ",
+    p:"ᴘ", q:"ǫ", r:"ʀ", s:"ꜱ", t:"ᴛ",
     u:"ᴜ", v:"ᴠ", w:"ᴡ", x:"x", y:"ʏ", z:"ᴢ"
   };
 
