@@ -1,228 +1,183 @@
 const { loadBox } = require("../../rakib/customId/ownBox");
 
-// cache
+const nicknameCount = {};
+const replyMentionCount = {};
 const joinTime = {};
-const lastMessage = {};
+const replyCache = {};
+
 let multipleStatus = true;
 
 module.exports = {
-	config: {
-		name: "multibot",
-		version: "1.2",
-		author: "Rakib",
-		role: 2,
-		category: "system",
-		shortDescription: "Anti multiple bot system"
-	},
+config: {
+name: "multibot",
+version: "2.5",
+author: "Rakib",
+role: 2,
+category: "system",
+shortDescription: "Multiple bot detector with OwnBox log"
+},
 
-	onStart: async function ({ message, args }) {
+onStart: async function ({ message, args }) {
 
-		if (args[0]?.toLowerCase() === "on") {
-			multipleStatus = true;
-			return message.reply("✅ Multiple Bot Protection Enabled");
-		}
+	const action = args[0]?.toLowerCase();
 
-		if (args[0]?.toLowerCase() === "off") {
-			multipleStatus = false;
-			return message.reply("❌ Multiple Bot Protection Disabled");
-		}
+	if (action === "on") {
+		multipleStatus = true;
+		return message.reply("✅ MultiBot Protection Enabled");
+	}
 
-		return message.reply(
-`📊 MULTIPLE BOT STATUS
+	if (action === "off") {
+		multipleStatus = false;
+		return message.reply("❌ MultiBot Protection Disabled");
+	}
+
+	return message.reply(
+`📊 MULTIBOT STATUS
 
 Status: ${multipleStatus ? "✅ ENABLED" : "❌ DISABLED"}
 
-Usage:
-multiple on
-multiple off`
-		);
-	},
+Rules:
+• Join → Nickname change within 5s
+• Reply → Same user mention within 2s
 
-	onChat: async function ({ api, event }) {
+Warning = 3 detects`
+);
+},
 
-		if (!multipleStatus) return;
+onChat: async function ({ api, event }) {
 
-		const {
-			threadID,
-			senderID,
-			logMessageType,
-			logMessageData,
-			body
-		} = event;
+	if (!multipleStatus) return;
 
-		try {
+	const {
+		threadID,
+		senderID,
+		logMessageType,
+		logMessageData,
+		body
+	} = event;
 
-			// User join track
-			if (logMessageType === "log:subscribe") {
-				const addedUsers = logMessageData?.addedParticipants || [];
-
-				for (const user of addedUsers) {
-					joinTime[user.userFbId] = Date.now();
-				}
-			}
-
-			// Fast nickname change
-			if (logMessageType === "log:user-nickname") {
-
-				const uid = logMessageData?.participant_id;
-
-				if (
-					uid &&
-					joinTime[uid] &&
-					Date.now() - joinTime[uid] <= 10000
-				) {
-					await handleBotDetected({
-						api,
-						threadID,
-						uid,
-						reason: "nickname changed quickly after joining"
-					});
-				}
-			}
-
-			// Media + text
-			if (
-				event.attachments?.length > 0 &&
-				body &&
-				body.trim().length > 0
-			) {
-				await handleBotDetected({
-					api,
-					threadID,
-					uid: senderID,
-					reason: "media + text message"
-				});
-			}
-
-			// Fast reply + mention
-			if (body) {
-
-				const now = Date.now();
-
-				if (
-					lastMessage[senderID] &&
-					now - lastMessage[senderID] <= 1000 &&
-					event.mentions &&
-					Object.keys(event.mentions).length > 0
-				) {
-					await handleBotDetected({
-						api,
-						threadID,
-						uid: senderID,
-						reason: "fast mention reply"
-					});
-				}
-
-				lastMessage[senderID] = now;
-			}
-
-		}
-		catch (err) {
-			console.log("[MULTIPLE BOT]", err);
-		}
-	}
-};
-
-async function handleBotDetected({
-	api,
-	threadID,
-	uid,
-	reason
-}) {
 	try {
 
-		const threadInfo = await api.getThreadInfo(threadID);
-		const botID = api.getCurrentUserID();
+		// Join Track
+		if (logMessageType === "log:subscribe") {
+			const users = logMessageData?.addedParticipants || [];
+			for (const user of users) {
+				joinTime[user.userFbId] = Date.now();
+			}
+		}
 
-		const ADMIN_LOG_THREAD = await loadBox();
+		// Nickname Change Detection
+		if (logMessageType === "log:user-nickname") {
+			const uid = logMessageData?.participant_id;
 
-		const userName = await getUserName(api, uid);
+			if (
+				uid &&
+				joinTime[uid] &&
+				Date.now() - joinTime[uid] <= 5000
+			) {
+				nicknameCount[uid] = (nicknameCount[uid] || 0) + 1;
 
-		await api.sendMessage({
-			body:
-`⚠️ MULTIPLE BOT DETECTED
-
-User: ${userName}
-Reason: ${reason}
-
-⏳ 20 সেকেন্ডের মধ্যে remove না করলে action নেওয়া হবে.`,
-			mentions: [{
-				id: uid,
-				tag: userName
-			}]
-		}, threadID);
-
-		setTimeout(async () => {
-			try {
-
-				const updatedInfo = await api.getThreadInfo(threadID);
-
-				const stillExists =
-					updatedInfo.participantIDs.includes(uid);
-
-				if (!stillExists)
-					return;
-
-				const botIsAdmin =
-					updatedInfo.adminIDs.some(
-						item => item.id == botID
-					);
-
-				if (botIsAdmin) {
-
-					await api.removeUserFromGroup(
+				if (nicknameCount[uid] >= 3) {
+					await handleDetected({
+						api,
+						threadID,
 						uid,
-						threadID
-					);
-
-					await api.sendMessage(
-						`✅ Removed: ${userName}`,
-						threadID
-					);
-
+						reason: "Nickname changed within 5 seconds",
+						count: nicknameCount[uid]
+					});
 				}
-				else {
+			}
+		}
 
-					await api.sendMessage(
-						"❌ Multiple bot detected, leaving group.",
-						threadID
-					);
+		// Save Reply Info
+		if (event.messageReply) {
+			replyCache[senderID] = {
+				target: event.messageReply.senderID,
+				time: Date.now()
+			};
+		}
 
-					if (ADMIN_LOG_THREAD) {
-						await api.sendMessage(
-`⚠️ MULTIPLE BOT DETECTED
+		// Reply -> Mention Detection
+		if (
+			body &&
+			event.mentions &&
+			Object.keys(event.mentions).length > 0 &&
+			replyCache[senderID]
+		) {
+			const cache = replyCache[senderID];
+			const diff = Date.now() - cache.time;
 
-Group: ${updatedInfo.threadName}
-ThreadID: ${threadID}`,
-							ADMIN_LOG_THREAD
-						);
+			if (diff <= 2000) {
+				const mentionIDs = Object.keys(event.mentions);
+
+				if (mentionIDs.includes(String(cache.target))) {
+					replyMentionCount[senderID] = (replyMentionCount[senderID] || 0) + 1;
+
+					if (replyMentionCount[senderID] >= 3) {
+						await handleDetected({
+							api,
+							threadID,
+							uid: senderID,
+							reason: "Reply + Same User Mention within 2 seconds",
+							count: replyMentionCount[senderID]
+						});
 					}
-
-					await api.removeUserFromGroup(
-						botID,
-						threadID
-					);
-
 				}
-
 			}
-			catch (err) {
-				console.log("[MULTIPLE BOT DELAY]", err);
-			}
-		}, 20000);
+		}
 
 	}
 	catch (err) {
-		console.log("[MULTIPLE BOT HANDLER]", err);
+		console.log("[MULTIBOT ERROR]", err);
 	}
 }
+};
 
-async function getUserName(api, uid) {
+async function handleDetected({ api, threadID, uid, reason, count }) {
 	try {
-		const user = await api.getUserInfo(uid);
-		return user[uid]?.name || "Unknown User";
-	}
-	catch {
-		return "Unknown User";
+		const info = await api.getUserInfo(uid);
+		const name = info?.[uid]?.name || "Unknown User";
+		
+		// গ্রুপ বা চ্যাটবক্সে পাঠানোর মেসেজ ফরম্যাট
+		const alertMessage = 
+`⚠️ MULTIBOT WARNING
+
+User: ${name}
+UID: ${uid}
+
+Reason:
+${reason}
+
+Detect Count: ${count}/3`;
+
+		// ১. গ্রুপে ওয়ার্নিং মেসেজ পাঠানো হলো
+		await api.sendMessage(alertMessage, threadID);
+
+		// ২. OwnBox বা ওনার বক্সে ডিটেইলস পাঠানো হলো
+		const boxId = loadBox(); 
+		if (boxId) {
+			// থ্রেড (গ্রুপ) এর নাম জানার চেষ্টা
+			let threadName = "Unknown Group/Thread";
+			try {
+				const threadInfo = await api.getThreadInfo(threadID);
+				threadName = threadInfo.threadName || `Thread ID: ${threadID}`;
+			} catch(e) {
+				threadName = `Thread ID: ${threadID}`;
+			}
+
+			const logMessage = 
+`🔔 [MULTIBOT DETECTED LOG]
+
+📍 Location: ${threadName}
+👤 User: ${name} (${uid})
+📝 Reason: ${reason}
+📊 Count: ${count}/3
+🕒 Time: ${new Date().toLocaleString('en-US', { timeZone: 'Asia/Dhaka' })}`
+
+			await api.sendMessage(logMessage, boxId);
+		}
+
+	} catch (e) {
+		console.log("[HANDLE DETECTED ERROR]", e);
 	}
 }
