@@ -139,7 +139,7 @@ if (!threadData || !threadData.userInfo) {
       if (args[1] && !isNaN(args[1])) {
         selectedBg = backgrounds.find(bg => bg.id == args[1]);
         if (!selectedBg)
-          return api.sendMessage("❌ Invalid number! Use 1-11", event.threadID);
+          return api.sendMessage("❌ Invalid number! Use 1-15", event.threadID);
       } else {
         selectedBg = backgrounds[Math.floor(Math.random() * backgrounds.length)];
       }
