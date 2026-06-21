@@ -1,120 +1,228 @@
-const axios = require("axios");
 const { loadBox } = require("../../rakib/customId/ownBox");
-// bot detect cache
+
+// cache
 const joinTime = {};
 const lastMessage = {};
+let multipleStatus = true;
+
 module.exports = {
-config: {
-name: "multibot",
-version: "1.1",
-author: "Rakib",
-category: "system",
-shortDescription: "Anti multiple bot system"
-},
-run: async function () {},
-onEvent: async function ({ api, event }) {
-const { threadID, senderID, logMessageType, logMessageData, body } = event;
-try {
-// =============================
-// 1. USER JOIN TRACK
-// =============================
-if (logMessageType === "log:subscribe") {
-const addedUsers = logMessageData.addedParticipants;
-for (let user of addedUsers) {
-joinTime[user.userFbId] = Date.now();
-}
-}
-// =============================
-// 2. DETECT NICK CHANGE (10s)
-// =============================
-if (logMessageType === "log:user-nickname") {
-const uid = logMessageData.participant_id;
-if (joinTime[uid] && Date.now() - joinTime[uid] <= 10000) {
-await handleBotDetected({ api, threadID, uid, reason: "nickname change fast" });
-}
-}
-// =============================
-// 3. MEDIA + BODY DETECT
-// =============================
-if (
-event.attachments?.length > 0 &&
-body &&
-body.trim().length > 0
-) {
-await handleBotDetected({ api, threadID, uid: senderID, reason: "media + text" });
-}
-// =============================
-// 4. FAST REPLY DETECT
-// =============================
-if (body) {
-const now = Date.now();
-if (lastMessage[senderID]) {
-const diff = now - lastMessage[senderID];
-if (diff <= 1000 && event.mentions && Object.keys(event.mentions).length > 0) {
-await handleBotDetected({ api, threadID, uid: senderID, reason: "fast reply mention" });
-}
-}
-lastMessage[senderID] = now;
-}
-} catch (err) {
-console.log(err);
-}
-}
+	config: {
+		name: "multibot",
+		version: "1.2",
+		author: "Rakib",
+		role: 2,
+		category: "system",
+		shortDescription: "Anti multiple bot system"
+	},
+
+	onStart: async function ({ message, args }) {
+
+		if (args[0]?.toLowerCase() === "on") {
+			multipleStatus = true;
+			return message.reply("✅ Multiple Bot Protection Enabled");
+		}
+
+		if (args[0]?.toLowerCase() === "off") {
+			multipleStatus = false;
+			return message.reply("❌ Multiple Bot Protection Disabled");
+		}
+
+		return message.reply(
+`📊 MULTIPLE BOT STATUS
+
+Status: ${multipleStatus ? "✅ ENABLED" : "❌ DISABLED"}
+
+Usage:
+multiple on
+multiple off`
+		);
+	},
+
+	onChat: async function ({ api, event }) {
+
+		if (!multipleStatus) return;
+
+		const {
+			threadID,
+			senderID,
+			logMessageType,
+			logMessageData,
+			body
+		} = event;
+
+		try {
+
+			// User join track
+			if (logMessageType === "log:subscribe") {
+				const addedUsers = logMessageData?.addedParticipants || [];
+
+				for (const user of addedUsers) {
+					joinTime[user.userFbId] = Date.now();
+				}
+			}
+
+			// Fast nickname change
+			if (logMessageType === "log:user-nickname") {
+
+				const uid = logMessageData?.participant_id;
+
+				if (
+					uid &&
+					joinTime[uid] &&
+					Date.now() - joinTime[uid] <= 10000
+				) {
+					await handleBotDetected({
+						api,
+						threadID,
+						uid,
+						reason: "nickname changed quickly after joining"
+					});
+				}
+			}
+
+			// Media + text
+			if (
+				event.attachments?.length > 0 &&
+				body &&
+				body.trim().length > 0
+			) {
+				await handleBotDetected({
+					api,
+					threadID,
+					uid: senderID,
+					reason: "media + text message"
+				});
+			}
+
+			// Fast reply + mention
+			if (body) {
+
+				const now = Date.now();
+
+				if (
+					lastMessage[senderID] &&
+					now - lastMessage[senderID] <= 1000 &&
+					event.mentions &&
+					Object.keys(event.mentions).length > 0
+				) {
+					await handleBotDetected({
+						api,
+						threadID,
+						uid: senderID,
+						reason: "fast mention reply"
+					});
+				}
+
+				lastMessage[senderID] = now;
+			}
+
+		}
+		catch (err) {
+			console.log("[MULTIPLE BOT]", err);
+		}
+	}
 };
-// =============================
-// MAIN HANDLER
-// =============================
-async function handleBotDetected({ api, threadID, uid, reason }) {
-try {
-const threadInfo = await api.getThreadInfo(threadID);
-const botID = api.getCurrentUserID();
-const adminBox = await loadBox();
-const ADMIN_LOG_THREAD = adminBox;
-const userName = await getUserName(api, uid);
-const isAdmin = threadInfo.adminIDs.some(e => e.id == botID);
-// ⚠️ warning msg
-await api.sendMessage(
-`⚠️ multiple bot detected <@${userName}>\nReason: ${reason}\n⏳ 20s এর মধ্যে remove না
-করলে action নেওয়া হবে .`,
-threadID,
-null,
-{ mentions: [{ id: uid, tag: userName }] }
-);
-// =============================
-// ⏳ WAIT 20 SECONDS
-// =============================
-setTimeout(async () => {
-try {
-const updatedInfo = await api.getThreadInfo(threadID);
-// user এখনও আছে কি না check
-const stillExists = updatedInfo.participantIDs.includes(uid);
-if (!stillExists) return; // already removed → do nothing
-const stillAdmin = updatedInfo.adminIDs.some(e => e.id == botID);
-if (stillAdmin) {
-// ✅ kick bot
-await api.removeUserFromGroup(uid, threadID);
-await api.sendMessage(
-`✅ Bot removed after warning: ${userName}`,
-threadID
-);
-} else {
-// ❌ leave নি জে
-await api.sendMessage(
-"❌ multiple bot detected, I am leaving now.",
-threadID
-);
-await api.sendMessage(
-`⚠️ MULTIPLE BOT DETECTED\nGroup: ${updatedInfo.threadName}\nThreadID:
-${threadID}`,
-ADMIN_LOG_THREAD
-);
-await api.removeUserFromGroup(botID, threadID);
+
+async function handleBotDetected({
+	api,
+	threadID,
+	uid,
+	reason
+}) {
+	try {
+
+		const threadInfo = await api.getThreadInfo(threadID);
+		const botID = api.getCurrentUserID();
+
+		const ADMIN_LOG_THREAD = await loadBox();
+
+		const userName = await getUserName(api, uid);
+
+		await api.sendMessage({
+			body:
+`⚠️ MULTIPLE BOT DETECTED
+
+User: ${userName}
+Reason: ${reason}
+
+⏳ 20 সেকেন্ডের মধ্যে remove না করলে action নেওয়া হবে.`,
+			mentions: [{
+				id: uid,
+				tag: userName
+			}]
+		}, threadID);
+
+		setTimeout(async () => {
+			try {
+
+				const updatedInfo = await api.getThreadInfo(threadID);
+
+				const stillExists =
+					updatedInfo.participantIDs.includes(uid);
+
+				if (!stillExists)
+					return;
+
+				const botIsAdmin =
+					updatedInfo.adminIDs.some(
+						item => item.id == botID
+					);
+
+				if (botIsAdmin) {
+
+					await api.removeUserFromGroup(
+						uid,
+						threadID
+					);
+
+					await api.sendMessage(
+						`✅ Removed: ${userName}`,
+						threadID
+					);
+
+				}
+				else {
+
+					await api.sendMessage(
+						"❌ Multiple bot detected, leaving group.",
+						threadID
+					);
+
+					if (ADMIN_LOG_THREAD) {
+						await api.sendMessage(
+`⚠️ MULTIPLE BOT DETECTED
+
+Group: ${updatedInfo.threadName}
+ThreadID: ${threadID}`,
+							ADMIN_LOG_THREAD
+						);
+					}
+
+					await api.removeUserFromGroup(
+						botID,
+						threadID
+					);
+
+				}
+
+			}
+			catch (err) {
+				console.log("[MULTIPLE BOT DELAY]", err);
+			}
+		}, 20000);
+
+	}
+	catch (err) {
+		console.log("[MULTIPLE BOT HANDLER]", err);
+	}
 }
-} catch (err) {
-console.log("Delay error:", err);
+
+async function getUserName(api, uid) {
+	try {
+		const user = await api.getUserInfo(uid);
+		return user[uid]?.name || "Unknown User";
+	}
+	catch {
+		return "Unknown User";
+	}
 }
-}, 20000); // ⏱️ 20 seconds
-} catch (err) {
-console.log(err);
-}
-  }
