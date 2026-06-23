@@ -1,14 +1,14 @@
 const axios = require("axios");
 const fs = require("fs");
 const path = require("path");
-const { upscaleImage } = require("../../rakib/customApi/4kApi");
+const sharp = require("sharp");
 
 module.exports = {
   config: {
     name: "4k",
-    version: "1.0",
-    author: "Rakib Hasan",
-    countDown: 5,
+    version: "1.1",
+    author: "Rakib",
+    countDown: 10,
     role: 0,
     shortDescription: "Upscale image to 4K",
     longDescription: "Reply to an image to upscale it",
@@ -17,7 +17,6 @@ module.exports = {
   },
 
   onStart: async function ({ message, event }) {
-
     const reply = event.messageReply;
 
     if (!reply || !reply.attachments || reply.attachments.length === 0)
@@ -29,8 +28,7 @@ module.exports = {
       return message.reply("❌ Please reply to a valid image.");
 
     try {
-
-      await message.reply("⏳ Upscaling to 4K...");
+      await message.reply("⏳ বটের লোকাল সার্ভারে 4K আপস্কেল হচ্ছে, কিছুটা সময় লাগতে পারে...");
 
       const cacheFolder = path.join(__dirname, "cache");
       if (!fs.existsSync(cacheFolder)) fs.mkdirSync(cacheFolder, { recursive: true });
@@ -38,32 +36,38 @@ module.exports = {
       const inputPath = path.join(cacheFolder, `input_${Date.now()}.jpg`);
       const outputPath = path.join(cacheFolder, `output_${Date.now()}.jpg`);
 
-      // Download image first
-      const img = await axios({
+      // ১. আসল ইমেজটি ডাউনলোড করা
+      const response = await axios({
         method: "GET",
         url: attachment.url,
-        responseType: "stream"
+        responseType: "arraybuffer"
+      });
+      const inputBuffer = Buffer.from(response.data, "binary");
+
+      // ২. সরাসরি বটের সার্ভারেই শার্প দিয়ে আপস্কেল করা
+      const metadata = await sharp(inputBuffer).metadata();
+      const newWidth = 3840;
+      const newHeight = Math.round((metadata.height / metadata.width) * newWidth);
+
+      await sharp(inputBuffer)
+        .resize(newWidth, newHeight, { kernel: sharp.kernel.lanczos3 })
+        .sharpen()
+        .modulate({ brightness: 1.02, saturation: 1.02 })
+        .toFormat("jpeg", { quality: 95 })
+        .toFile(outputPath);
+
+      // ৩. ইউজারকে পাঠানো
+      await message.reply({
+        body: "✨ Here is your 4K image!",
+        attachment: fs.createReadStream(outputPath)
       });
 
-      const writer = fs.createWriteStream(inputPath);
-      img.data.pipe(writer);
-
-      writer.on("finish", async () => {
-
-        await upscaleImage(inputPath, outputPath);
-
-        await message.reply({
-          body: "✨ Here is your 4K image!",
-          attachment: fs.createReadStream(outputPath)
-        });
-
-        fs.unlinkSync(inputPath);
-        fs.unlinkSync(outputPath);
-      });
+      // ক্যাশ ফাইল ডিলিট
+      if (fs.existsSync(outputPath)) fs.unlinkSync(outputPath);
 
     } catch (err) {
-      console.error(err.message);
-      return message.reply("❌ Upscale failed.");
+      console.error("Local Upscale Error:", err.message);
+      return message.reply("❌ আপস্কেল করতে ব্যর্থ হয়েছে। মনে হয় api ডাওন।");
     }
   }
 };
