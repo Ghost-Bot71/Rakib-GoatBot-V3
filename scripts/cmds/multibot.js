@@ -4,13 +4,15 @@ const nicknameCount = {};
 const replyMentionCount = {};
 const joinTime = {};
 const replyCache = {};
+const editCount = {};
+const editCache = {};
 
 let multipleStatus = true;
 
 module.exports = {
 config: {
 name: "multibot",
-version: "2.5",
+version: "1.0",
 author: "Rakib",
 role: 2,
 category: "system",
@@ -39,6 +41,7 @@ Status: ${multipleStatus ? "✅ ENABLED" : "❌ DISABLED"}
 Rules:
 • Join → Nickname change within 5s
 • Reply → Same user mention within 2s
+• Edit → Message edit within 2s 🆕
 
 Warning = 3 detects`
 );
@@ -53,7 +56,8 @@ onChat: async function ({ api, event }) {
 		senderID,
 		logMessageType,
 		logMessageData,
-		body
+		body,
+		type 
 	} = event;
 
 	try {
@@ -126,6 +130,33 @@ onChat: async function ({ api, event }) {
 			}
 		}
 
+		
+		if (type === "message_edit" || logMessageType === "log:message-edit") {
+			const lastEditTime = editCache[senderID] || 0;
+			const currentTime = Date.now();
+
+			
+			if (currentTime - lastEditTime <= 2000) {
+				editCount[senderID] = (editCount[senderID] || 0) + 1;
+
+				if (editCount[senderID] >= 3) {
+					await handleDetected({
+						api,
+						threadID,
+						uid: senderID,
+						reason: "Message edited 3+ times within 2 seconds",
+						count: editCount[senderID]
+					});
+					
+					editCount[senderID] = 0; 
+				}
+			} else {
+				editCount[senderID] = 1;
+			}
+			
+			editCache[senderID] = currentTime;
+		}
+
 	}
 	catch (err) {
 		console.log("[MULTIBOT ERROR]", err);
@@ -138,7 +169,6 @@ async function handleDetected({ api, threadID, uid, reason, count }) {
 		const info = await api.getUserInfo(uid);
 		const name = info?.[uid]?.name || "Unknown User";
 		
-		// গ্রুপ বা চ্যাটবক্সে পাঠানোর মেসেজ ফরম্যাট
 		const alertMessage = 
 `⚠️ MULTIBOT WARNING
 
@@ -150,13 +180,10 @@ ${reason}
 
 Detect Count: ${count}/3`;
 
-		// ১. গ্রুপে ওয়ার্নিং মেসেজ পাঠানো হলো
 		await api.sendMessage(alertMessage, threadID);
 
-		// ২. OwnBox বা ওনার বক্সে ডিটেইলস পাঠানো হলো
 		const boxId = loadBox(); 
 		if (boxId) {
-			// থ্রেড (গ্রুপ) এর নাম জানার চেষ্টা
 			let threadName = "Unknown Group/Thread";
 			try {
 				const threadInfo = await api.getThreadInfo(threadID);
@@ -180,4 +207,4 @@ Detect Count: ${count}/3`;
 	} catch (e) {
 		console.log("[HANDLE DETECTED ERROR]", e);
 	}
-}
+						}
