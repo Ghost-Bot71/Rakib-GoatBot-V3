@@ -4,7 +4,7 @@ const { loadOwner } = require("../../rakib/customId/ownerUid");
 module.exports = {
   config: {
     name: "eco",
-    version: "4.0",
+    version: "1.0",
     author: "Rakib",
     role: 0,
     category: "owner",
@@ -54,7 +54,7 @@ module.exports = {
     const WALLET_LIMIT = utils.parseAmount("150cs");
     const action = args[0]?.toLowerCase(); // add, reset
 
-    // Target User ID (UID) বের করার লজিক (Reply, Mention, বা direct Input)
+    // Target User ID (UID) বের করার লজিক
     let targetUID = null;
     if (event.messageReply) {
       targetUID = event.messageReply.senderID;
@@ -70,13 +70,16 @@ module.exports = {
 
       if (!sub) return message.reply(getLang("invalid"));
 
-      // ➜ eco add users 5b (সবার ওয়ালেটে যোগ)
+      // ➜ eco add users <amount> (সবার ওয়ালেটে যোগ)
       if (sub === "users") {
         const amount = utils.parseAmount(args[2]);
         if (!amount || typeof amount !== "bigint" || amount <= 0n) return message.reply(getLang("invalid"));
 
         const allUsers = await usersData.getAll();
         for (const user of allUsers) {
+          const currentUserID = user.id || user.userID;
+          if (!currentUserID) continue;
+
           let wallet = BigInt(user.money || 0);
           let bank = BigInt(user.data?.bank || 0);
           let loan = BigInt(user.data?.loan || 0);
@@ -87,7 +90,7 @@ module.exports = {
             wallet = WALLET_LIMIT;
           }
 
-          await usersData.set(user.userID, { money: wallet.toString(), data: { bank: bank.toString(), loan: loan.toString() } });
+          await usersData.set(currentUserID, { money: wallet.toString(), data: { bank: bank.toString(), loan: loan.toString() } });
         }
         return message.reply(getLang("addedAllUsers", utils.formatMoney(amount)));
       }
@@ -96,7 +99,6 @@ module.exports = {
       const amount = utils.parseAmount(args[1]);
       if (!amount || typeof amount !== "bigint" || amount <= 0n) return message.reply(getLang("invalid"));
 
-      // যদি আর্গুমেন্টে UID থাকে (যেমন: eco add 5b 1000xxx)
       if (args[2] && !targetUID) {
         targetUID = args[2];
       }
@@ -136,7 +138,10 @@ module.exports = {
         if (nextArg === "all") {
           const allUsers = await usersData.getAll();
           for (const user of allUsers) {
-            await usersData.set(user.userID, { money: "0", data: { bank: "0", loan: "0" } });
+            const currentUserID = user.id || user.userID;
+            if (!currentUserID) continue;
+
+            await usersData.set(currentUserID, { money: "0", data: { bank: "0", loan: "0" } });
           }
           return message.reply(getLang("resetAllUsers"));
         }
@@ -147,13 +152,16 @@ module.exports = {
 
         const allUsers = await usersData.getAll();
         for (const user of allUsers) {
+          const currentUserID = user.id || user.userID;
+          if (!currentUserID) continue;
+
           let wallet = BigInt(user.money || 0);
           let bank = BigInt(user.data?.bank || 0);
           let loan = BigInt(user.data?.loan || 0);
 
           wallet = wallet > amount ? wallet - amount : 0n;
 
-          await usersData.set(user.userID, { money: wallet.toString(), data: { bank: bank.toString(), loan: loan.toString() } });
+          await usersData.set(currentUserID, { money: wallet.toString(), data: { bank: bank.toString(), loan: loan.toString() } });
         }
         return message.reply(getLang("deductedAllUsers", utils.formatMoney(amount)));
       }
@@ -161,7 +169,6 @@ module.exports = {
       // ----------------------------------------
       // SUB-ACTION: ALL (ব্যক্তিগত সম্পূর্ণ রিসেট)
       // ----------------------------------------
-      // ➜ eco reset all <uid> OR eco reset all (Reply/Mention)
       if (sub === "all") {
         if (args[2] && !targetUID) targetUID = args[2];
 
@@ -174,7 +181,6 @@ module.exports = {
       // ----------------------------------------
       // SUB-ACTION: AMOUNT DEDUCT (টাকা কেটে নেওয়া)
       // ----------------------------------------
-      // ➜ eco reset 5b <uid> OR eco reset 5b (Reply/Mention)
       const amount = utils.parseAmount(args[1]);
       if (!amount || typeof amount !== "bigint" || amount <= 0n) return message.reply(getLang("invalid"));
 
