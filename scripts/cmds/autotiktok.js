@@ -92,6 +92,7 @@ ${data.title || "TikTok Video"}
 module.exports = {
   config: {
     name: "autotiktok",
+    aliases: [],
     version: "1.0",
     author: "Rakib Hasan",
     role: 0,
@@ -99,7 +100,6 @@ module.exports = {
     shortDescription: "Auto TikTok Downloader",
     longDescription: "Automatically download TikTok videos",
     guide: "{pn} <tiktok link>",
-    aliases: ["tik", "tt", "tiktok"],
     countDown: 5
   },
 
