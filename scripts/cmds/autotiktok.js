@@ -2,55 +2,78 @@ const axios = require("axios");
 const fs = require("fs-extra");
 const path = require("path");
 
-// ডাউনলোডার ফাংশন যা Raw API ব্যবহার করবে
+const RAW_API = "https://raw.githubusercontent.com/bdrakib6t9/HOON/main/apiUrl.json";
+const recentLinks = new Set();
+
+async function getBaseUrl() {
+  const { data } = await axios.get(RAW_API);
+  if (!data.tik) throw new Error("TikTok API URL not found.");
+  return data.tik.replace(/\/$/, "");
+}
+
 async function downloadTikTok(link, message, api) {
+  if (!link) return message.reply("❌ | Invalid TikTok link.");
+  
+  if (recentLinks.has(link)) return;
+
+  let wait;
   try {
-    const rawApi = "https://raw.githubusercontent.com/bdrakib6t9/HOON/main/apiUrl.json";
-    const apiData = await axios.get(rawApi);
-    const baseUrl = apiData.data.tik;
+    recentLinks.add(link);
+    wait = await message.reply("⏳ | 𝗧𝗘𝗦𝗦𝗔 𝗕𝗢𝗧\n\nটিকটক ভিডিওটি প্রসেস হচ্ছে, অনুগ্রহ করে অপেক্ষা করুন...");
 
-    if (!baseUrl) return message.reply("❌ | TikTok API URL not found.");
+    const baseUrl = await getBaseUrl();
+    const apiUrl = `${baseUrl}/api/tiktok?url=${encodeURIComponent(link)}&apikey=rakib69`;
 
-    const wait = await message.reply("⏳ Downloading TikTok video...");
-
-    // Raw API এর ডকুমেন্টেশন অনুযায়ী লিংক পাঠানো হচ্ছে
-    const apiUrl = `${baseUrl}/api/tiktok/download?url=${encodeURIComponent(link)}&apikey=rakib69`;
     const res = await axios.get(apiUrl);
-
-    if (!res.data || !res.data.status) {
-      await api.unsendMessage(wait.messageID);
-      return message.reply("❌ | No result found for this link.");
+    if (!res.data || !res.data.status || !res.data.data) {
+      if (wait?.messageID) await api.unsendMessage(wait.messageID).catch(() => {});
+      return message.reply("❌ | দুঃখিত, ভিডিওটি ডাউনলোড করা সম্ভব হয়নি।");
     }
 
-    const videoUrl = res.data.data.no_watermark || res.data.data.video;
-    const title = res.data.data.title || "TikTok Video";
+    const data = res.data.data;
+    const videoUrl = data.no_watermark || data.nowatermark || data.video || data.play || data.download;
 
-    const cacheFolder = path.join(__dirname, "cache");
-    if (!fs.existsSync(cacheFolder)) fs.mkdirSync(cacheFolder, { recursive: true });
-    
-    const filePath = path.join(cacheFolder, `tik_${Date.now()}.mp4`);
+    if (!videoUrl) {
+      if (wait?.messageID) await api.unsendMessage(wait.messageID).catch(() => {});
+      return message.reply("❌ | ভিডিও ফাইলটি খুঁজে পাওয়া যায়নি।");
+    }
 
-    const downloadRes = await axios({
-      method: "GET",
+    const cache = path.join(__dirname, "cache");
+    if (!fs.existsSync(cache)) fs.mkdirSync(cache, { recursive: true });
+    const filePath = path.join(cache, `tiktok_${Date.now()}.mp4`);
+
+    const stream = await axios({
       url: videoUrl,
+      method: "GET",
       responseType: "stream",
-      headers: { "User-Agent": "Mozilla/5.0" },
-      timeout: 300000
+      timeout: 300000,
+      headers: { "User-Agent": "Mozilla/5.0" }
     });
 
     const writer = fs.createWriteStream(filePath);
-    downloadRes.data.pipe(writer);
+    stream.data.pipe(writer);
 
     await new Promise((resolve, reject) => {
       writer.on("finish", resolve);
       writer.on("error", reject);
     });
 
-    await api.unsendMessage(wait.messageID);
+    if (wait?.messageID) await api.unsendMessage(wait.messageID).catch(() => {});
 
     return message.reply(
       {
-        body: `🚀 𝗧𝗘𝗦𝗦𝗔 𝗕𝗢𝗧 🤖\n🎬 𝗧𝗶𝗸𝗧𝗼𝗸 𝗩𝗶𝗱𝗲𝗼 𝗗𝗲𝗹𝗶𝘃𝗲𝗿𝗲𝗱\n💎 ${title}\nmodified:hoon`,
+        body: `🚀 𝗧𝗘𝗦𝗦𝗔 𝗕𝗢𝗧 𝗔𝘂𝘁𝗼-𝗗𝗼𝘄𝗻𝗹𝗼𝗮𝗱𝗲𝗿
+
+✅ ভিডিও সফলভাবে ডাউনলোড হয়েছে!
+
+🎬 টাইটেল:
+${data.title || "TikTok Video"}
+
+⚡ ওয়াটারমার্ক: ❌
+📥 কোয়ালিটি: HD / Original
+
+━━━━━━━━━━━━━━━━━━
+💙 Powered By 𝗧𝗘𝗦𝗦𝗔 𝗕𝗢𝗧`,
         attachment: fs.createReadStream(filePath)
       },
       () => {
@@ -58,38 +81,49 @@ async function downloadTikTok(link, message, api) {
       }
     );
   } catch (err) {
-    console.error(err);
-    return message.reply(`❌ | Download failed.\n\n${err.message}`);
+    console.log(err);
+    if (wait?.messageID) await api.unsendMessage(wait.messageID).catch(() => {});
+    return message.reply("❌ | ত্রুটি হয়েছে: " + err.message);
+  } finally {
+    setTimeout(() => recentLinks.delete(link), 30000);
   }
 }
 
 module.exports = {
   config: {
     name: "autotiktok",
-    aliases: [],
-    version: "2.0",
+    version: "1.0",
     author: "Rakib Hasan",
-    countDown: 5,
     role: 0,
-    shortDescription: "Auto TikTok Downloader",
-    longDescription: "Download TikTok video from link using Raw API",
     category: "media",
-    guide: "{pn} <tiktok link>"
+    shortDescription: "Auto TikTok Downloader",
+    longDescription: "Automatically download TikTok videos",
+    guide: "{pn} <tiktok link>",
+    aliases: ["tik", "tt", "tiktok"],
+    countDown: 5
   },
 
   onStart: async function ({ message, args, api }) {
-    const link = args.join(" ");
-    if (!link) return message.reply("⚠️ | Please enter a TikTok link.");
-    await downloadTikTok(link, message, api);
+    if (!args[0]) return message.reply("⚠️ | দয়া করে একটি টিকটক ভিডিও লিঙ্ক দিন।");
+    
+    const link = args[0].trim();
+    if (!/^https?:\/\/(?:www\.|m\.|vt\.|vm\.)?tiktok\.com\/[^\s]+/i.test(link)) {
+      return message.reply("❌ | ইনভ্যালিড টিকটক লিঙ্ক।");
+    }
+    
+    return downloadTikTok(link, message, api);
   },
 
   onChat: async function ({ event, message, api }) {
-    if (event.body) {
-      const tiktokRegex = /https:\/\/(www\.|vt\.|vm\.|lite\.)?tiktok\.com\/[A-Za-z0-9_-]+/g;
-      const match = event.body.match(tiktokRegex);
-      if (match) {
-        await downloadTikTok(match[0], message, api);
-      }
+    if (typeof event.body !== "string") return;
+    
+    if (typeof api.getCurrentUserID === "function" && event.senderID == api.getCurrentUserID()) {
+      return;
     }
+
+    const match = event.body.match(/https?:\/\/(?:www\.|m\.|vt\.|vm\.)?tiktok\.com\/[^\s]+/i);
+    if (!match) return;
+
+    return downloadTikTok(match[0], message, api);
   }
 };
