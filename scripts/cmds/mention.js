@@ -1,68 +1,70 @@
 module.exports = {
-  config: {
-    name: "mention",
-    aliases: ["men"],
-    version: "1.0",
-    author: "Rakib Hasan",
-    countDown: 3,
-    role: 0,
-    shortDescription: {
-      en: "Mention a replied person or everyone"
-    },
-    longDescription: {
-      en: "Reply to someone and type mention to tag them, or type mention everyone to tag all members."
-    },
-    category: "utility",
-    guide: {
-      en: "{pn} (while replying) — mention replied user\n{pn} everyone — tag everyone"
-    }
-  },
+	config: {
+		name: "mention",
+		aliases: ["mens"],
+		version: "1.1",
+		author: "Rakib",
+		countDown: 5,
+		role: 0,
+		shortDescription: {
+			en: "Mention replied user or everyone"
+		},
+		longDescription: {
+			en: "Reply to a user to mention them, or use 'mention everyone' to tag all members."
+		},
+		category: "utility",
+		guide: {
+			en: "{pn} (reply)\n{pn} everyone"
+		}
+	},
 
-  onStart: async function ({ message, event, args, threadsData }) {
+	onStart: async function ({ message, event, args, api, usersData }) {
 
-    // ---------- EVERYONE MENTION ----------
-    if (args[0] && args[0].toLowerCase() === "everyone") {
+		// Mention Everyone
+		if (args[0] && args[0].toLowerCase() === "everyone") {
+			try {
+				const threadInfo = await api.getThreadInfo(event.threadID);
 
-      const threadInfo = await threadsData.get(event.threadID);
-      const members = threadInfo.members;
+				const mentions = [];
+				let body = "📢 @Everyone\n\n";
 
-      const mentions = [];
-      let msg = "⚠️ @Everyone Mention:\n";
+				for (const user of threadInfo.userInfo) {
+					if (user.id == api.getCurrentUserID()) continue;
 
-      for (const mem of members) {
-        mentions.push({
-          id: mem.userID,
-          tag: mem.name
-        });
-        msg += `• ${mem.name}\n`;
-      }
+					mentions.push({
+						id: user.id,
+						tag: user.name
+					});
 
-      message.reply({
-        body: msg,
-        mentions
-      });
+					body += `@${user.name}\n`;
+				}
 
-      return;
-    }
+				return message.reply({
+					body,
+					mentions
+				});
+			}
+			catch (e) {
+				return message.reply("❌ সবাইকে মেনশন করা যায়নি।");
+			}
+		}
 
-    // ---------- REPLIED USER MENTION ----------
-    if (event.type === "message_reply") {
-      const replied = event.messageReply;
+		// Mention Reply User
+		if (event.type === "message_reply") {
+			const uid = event.messageReply.senderID;
 
-      const name = replied.senderName || "User";
+			const userData = await usersData.get(uid);
+			const name = userData?.name || event.messageReply.senderName || "User";
 
-      message.reply({
-        body: `🎯 Mentioned: @${name}`,
-        mentions: [{
-          id: replied.senderID,
-          tag: name
-        }]
-      });
+			return message.reply({
+				body: `🎯 @${name}`,
+				mentions: [{
+					id: uid,
+					tag: name
+				}]
+			});
+		}
 
-      return;
-    }
-
-    // ---------- NO REPLY + NOT EVERYONE ----------
-    message.reply("❌ কারো মেসেজে রিপ্লাই দাও বা 'mention everyone' লিখো।");
-  }
+		return message.reply("❌ কারো মেসেজে রিপ্লাই দাও অথবা 'mention everyone' লিখো।");
+	}
 };
