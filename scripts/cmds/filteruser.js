@@ -5,8 +5,9 @@ function sleep(time) {
 module.exports = {
 	config: {
 		name: "filteruser",
-		version: "1.6",
-		author: "NTKhang",
+		version: "1.7",
+		aliases: ["filter", "flt"],
+		author: "NTKhang & Rakib",
 		countDown: 5,
 		role: 1,
 		description: {
@@ -22,7 +23,6 @@ module.exports = {
 
 	langs: {
 		vi: {
-			needAdmin: "⚠️ | Vui lòng thêm bot làm quản trị viên của box để sử dụng lệnh này",
 			confirm: "⚠️ | Bạn có chắc chắn muốn xóa thành viên nhóm có số tin nhắn nhỏ hơn %1 không?\nThả cảm xúc bất kì vào tin nhắn này để xác nhận",
 			kickByBlock: "✅ | Đã xóa thành công %1 thành viên bị khóa acc",
 			kickByMsg: "✅ | Đã xóa thành công %1 thành viên có số tin nhắn nhỏ hơn %2",
@@ -31,7 +31,6 @@ module.exports = {
 			noMsg: "✅ | Không có thành viên nào có số tin nhắn nhỏ hơn %1"
 		},
 		en: {
-			needAdmin: "⚠️ | Please add the bot as a group admin to use this command",
 			confirm: "⚠️ | Are you sure you want to delete group members with less than %1 messages?\nReact to this message to confirm",
 			kickByBlock: "✅ | Successfully removed %1 members unavailable account",
 			kickByMsg: "✅ | Successfully removed %1 members with less than %2 messages",
@@ -42,9 +41,14 @@ module.exports = {
 	},
 
 	onStart: async function ({ api, args, threadsData, message, event, commandName, getLang }) {
-		const threadData = await threadsData.get(event.threadID);
-		if (!threadData.adminIDs.includes(api.getCurrentUserID()))
-			return message.reply(getLang("needAdmin"));
+		// Fetch fresh thread info to check admin status properly
+		const threadInfo = await api.getThreadInfo(event.threadID);
+		const botID = api.getCurrentUserID();
+		
+		// Custom Banglish Admin Warning
+		if (!threadInfo.adminIDs.some(admin => admin.id == botID)) {
+			return message.reply("⚠️ 𝘽𝙤𝙩 𝙠𝙚 𝙖𝙙𝙢𝙞𝙣 𝙗𝙖𝙣𝙖𝙣! 𝙂𝙧𝙤𝙪𝙥 𝙚𝙧 𝙢𝙚𝙢𝙗𝙚𝙧 𝙛𝙞𝙡𝙩𝙚𝙧 𝙠𝙤𝙧𝙩𝙚 𝙝𝙤𝙡𝙚 𝙗𝙤𝙩 𝙠𝙚 𝙖𝙙min 𝙙𝙚𝙤𝙮𝙖 𝙡𝙖𝙜𝙗𝙚. 𝙋𝙡𝙚𝙖𝙨𝙚 𝙖𝙙𝙙 𝙗𝙤𝙩 𝙖𝙨 𝙖𝙣 𝙖𝙙𝙢𝙞𝙣.");
+		}
 
 		if (!isNaN(args[0])) {
 			message.reply(getLang("confirm", args[0]), (err, info) => {
@@ -57,18 +61,19 @@ module.exports = {
 			});
 		}
 		else if (args[0] == "die") {
-			const threadData = await api.getThreadInfo(event.threadID);
-			const membersBlocked = threadData.userInfo.filter(user => user.type !== "User");
+			const membersBlocked = threadInfo.userInfo.filter(user => user.type !== "User");
 			const errors = [];
 			const success = [];
+			
 			for (const user of membersBlocked) {
-				if (user.type !== "User" && !threadData.adminIDs.some(id => id == user.id)) {
+				// Don't kick if the user is a group admin or the bot itself
+				if (!threadInfo.adminIDs.some(admin => admin.id == user.id) && user.id != botID) {
 					try {
 						await api.removeUserFromGroup(user.id, event.threadID);
 						success.push(user.id);
 					}
 					catch (e) {
-						errors.push(user.name);
+						errors.push(user.name || user.id);
 					}
 					await sleep(700);
 				}
@@ -83,32 +88,43 @@ module.exports = {
 				msg += getLang("noBlock");
 			message.reply(msg);
 		}
-		else
+		else {
 			message.SyntaxError();
+		}
 	},
 
 	onReaction: async function ({ api, Reaction, event, threadsData, message, getLang }) {
 		const { minimum = 1, author } = Reaction;
-		if (event.userID != author)
-			return;
-		const threadData = await threadsData.get(event.threadID);
+		if (event.userID != author) return;
+
+		const threadInfo = await api.getThreadInfo(event.threadID);
 		const botID = api.getCurrentUserID();
+		
+		// Safety check if bot lost admin role during reaction wait
+		if (!threadInfo.adminIDs.some(admin => admin.id == botID)) {
+			return message.reply("⚠️ 𝘽𝙤𝙩 𝙚𝙧 𝙖𝙙𝙢𝙞𝙣 𝙥𝙤𝙫𝙚𝙧 𝙘𝙝𝙚𝙡𝙚 𝙜𝙚𝙘𝙝𝙚, 𝙖𝙙𝙢𝙞𝙣 𝙙𝙞𝙮𝙚 𝙖𝙗𝙖𝙧 𝙩𝙧𝙮 𝙠𝙤𝙧𝙪𝙣.");
+		}
+
+		const threadData = await threadsData.get(event.threadID);
+		
+		// Filter low message members safely
 		const membersCountLess = threadData.members.filter(member =>
 			member.count < minimum
 			&& member.inGroup == true
-			// ignore bot and admin box
 			&& member.userID != botID
-			&& !threadData.adminIDs.some(id => id == member.userID)
+			&& !threadInfo.adminIDs.some(admin => admin.id == member.userID)
 		);
+
 		const errors = [];
 		const success = [];
+		
 		for (const member of membersCountLess) {
 			try {
 				await api.removeUserFromGroup(member.userID, event.threadID);
 				success.push(member.userID);
 			}
 			catch (e) {
-				errors.push(member.name);
+				errors.push(member.name || member.userID);
 			}
 			await sleep(700);
 		}
@@ -120,6 +136,7 @@ module.exports = {
 			msg += `${getLang("kickError", errors.length, errors.join("\n"))}\n`;
 		if (msg == "")
 			msg += getLang("noMsg", minimum);
+			
 		message.reply(msg);
 	}
 };
