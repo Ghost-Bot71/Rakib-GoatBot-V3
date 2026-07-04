@@ -42,37 +42,39 @@ Goat Bot is a Messenger Multi-Device automation bot with advanced features. It c
 
 🚀 How To Run Locally
 
-    name: Node.js CI
+    name: Run Bot
 
     on:
-     push:
-      branches: [main]
-       pull_request:
-        branches: [main]
+      workflow_dispatch:
+        push:
+    branches:
+      - main
+      - master
+    schedule:
+    - cron: "*/30 * * * *"
 
     jobs:
-     build:
-      runs-on: ubuntu-latest
-
-    strategy:
-      matrix:
-        node-version: [20.x]
+    run-bot:
+    runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v2
+      - name: Checkout Repository
+        uses: actions/checkout@v4
 
-    - name: Use Node.js ${{ matrix.node-version }}
-      uses: actions/setup-node@v2
-      with:
-        node-version: ${{ matrix.node-version }}
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
 
-    - name: Install dependencies
-      run: npm install
+      - name: Install Dependencies
+        run: npm install
 
-    - name: Start the bot
-      env:
-        PORT: 8080
-      run: npm start
+      - name: Start Bot
+        env:
+          TZ: Asia/Dhaka
+        run: |
+          node index.js
 
 
 ---
