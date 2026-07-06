@@ -1,167 +1,110 @@
-const fs = require("fs");
-
-const header = `👑 𝗧𝗘𝗦𝗦𝗔 𝗩𝗜𝗣 𝗨𝗦𝗘𝗥𝗦 👑`;
-
-const vipFilePath = "vip.json";
-const changelogFilePath = "changelog.json";
-
-/* -------------------- FILE HELPERS -------------------- */
-
-function loadVIPData() {
-	try {
-		if (!fs.existsSync(vipFilePath)) return {};
-		return JSON.parse(fs.readFileSync(vipFilePath));
-	} catch (err) {
-		console.error("Error loading VIP data:", err);
-		return {};
-	}
-}
-
-function saveVIPData(data) {
-	try {
-		fs.writeFileSync(vipFilePath, JSON.stringify(data, null, 2));
-	} catch (err) {
-		console.error("Error saving VIP data:", err);
-	}
-}
-
-function loadChangelog() {
-	try {
-		if (!fs.existsSync(changelogFilePath)) return {};
-		return JSON.parse(fs.readFileSync(changelogFilePath));
-	} catch (err) {
-		console.error("Error loading changelog:", err);
-		return {};
-	}
-}
-
-/* -------------------- SAFE USERNAME -------------------- */
-
-async function getUserNameSafe(usersData, uid) {
-	try {
-		const userData = await usersData.get(uid);
-		if (!userData || !userData.name) return `Unknown User (${uid})`;
-		return `${userData.name} (${uid})`;
-	} catch {
-		return `Unknown User (${uid})`;
-	}
-}
-
-/* -------------------- COMMAND -------------------- */
-
 module.exports = {
 	config: {
 		name: "vip",
-		version: "1.1",
+		version: "1.0",
 		author: "Rakib",
 		role: 2,
-		category: "Config",
+		category: "config",
+		shortDescription: "Temporary VIP manager",
 		guide: {
-			en:
-				"!vip add <uid>\n" +
-				"!vip rm <uid>\n" +
-				"!vip list\n" +
-				"!vip changelog"
+			en: "{pn} add <uid>\n{pn} rm <uid>\n{pn} list"
 		}
 	},
 
-	onStart: async function ({ api, event, args, message, usersData }) {
-		const sub = args[0];
-		if (!sub) return;
+	onStart: async function ({ args, message, usersData }) {
+		if (!global.GoatBot.config.premiumUsers)
+			global.GoatBot.config.premiumUsers = [];
 
-		let vipData = loadVIPData();
+		const vip = global.GoatBot.config.premiumUsers;
 
-		/* ---------------- ADD VIP ---------------- */
+		switch ((args[0] || "").toLowerCase()) {
 
-		if (sub === "add") {
-			const uid = args[1];
-			if (!uid)
-				return message.reply(`${header}\nPlease provide a UID.`);
+			case "add": {
+				const uid = args[1];
+				if (!uid)
+					return message.reply("⚠️ | Please provide a UID.");
 
-			const userName = await getUserNameSafe(usersData, uid);
+				if (vip.includes(uid))
+					return message.reply("✅ | This user is already VIP.");
 
-			if (vipData[uid])
-				return message.reply(`${header}\nUser is already VIP.`);
+				vip.push(uid);
 
-			vipData[uid] = true;
-			saveVIPData(vipData);
+				let name = uid;
+				try {
+					const user = await usersData.get(uid);
+					if (user?.name)
+						name = user.name;
+				} catch {}
 
-			message.reply(`${header}\n${userName} has been added to VIP list.`);
-			api.sendMessage(
-				`${header}\nCongratulations! You are now a VIP member 🎉`,
-				uid
-			);
+				return message.reply(
+`👑 VIP Added
 
-			for (const vid of Object.keys(vipData)) {
-				if (vid !== uid) {
-					api.sendMessage(
-						`${header}\nWelcome our new VIP member:\n${userName}`,
-						vid
-					);
-				}
-			}
-		}
+Name: ${name}
+UID: ${uid}
 
-		/* ---------------- REMOVE VIP ---------------- */
-
-		else if (sub === "rm") {
-			const uid = args[1];
-			if (!uid || !vipData[uid])
-				return message.reply(`${header}\nInvalid VIP UID.`);
-
-			const userName = await getUserNameSafe(usersData, uid);
-
-			delete vipData[uid];
-			saveVIPData(vipData);
-
-			message.reply(`${header}\n${userName} removed from VIP list.`);
-			api.sendMessage(
-				`${header}\nYou have been removed from VIP list.`,
-				uid
-			);
-
-			for (const vid of Object.keys(vipData)) {
-				api.sendMessage(
-					`${header}\nVIP update:\n${userName} is no longer VIP.`,
-					vid
+⚠️ Temporary VIP only.
+It will reset after bot restart.`
 				);
 			}
-		}
 
-		/* ---------------- VIP LIST ---------------- */
+			case "rm":
+			case "remove": {
+				const uid = args[1];
+				if (!uid)
+					return message.reply("⚠️ | Please provide a UID.");
 
-		else if (sub === "list") {
-			const ids = Object.keys(vipData);
+				const index = vip.indexOf(uid);
 
-			if (!ids.length)
-				return message.reply(`${header}\nVIP list is empty.`);
+				if (index === -1)
+					return message.reply("❌ | User is not in VIP list.");
 
-			const list = [];
-			for (const uid of ids) {
-				list.push(`• ${await getUserNameSafe(usersData, uid)}`);
+				vip.splice(index, 1);
+
+				let name = uid;
+				try {
+					const user = await usersData.get(uid);
+					if (user?.name)
+						name = user.name;
+				} catch {}
+
+				return message.reply(
+`✅ VIP Removed
+
+Name: ${name}
+UID: ${uid}`
+				);
 			}
 
-			message.reply(
-				`${header}\n\n» VIP Members:\n\n${list.join("\n")}`
-			);
-		}
+			case "list": {
+				if (!vip.length)
+					return message.reply("📭 VIP list is empty.");
 
-		/* ---------------- CHANGELOG ---------------- */
+				let text = "👑 Temporary VIP Users\n\n";
 
-		else if (sub === "changelog") {
-			const changelog = loadChangelog();
-			const versions = Object.keys(changelog);
+				for (let i = 0; i < vip.length; i++) {
+					let name = vip[i];
+					try {
+						const user = await usersData.get(vip[i]);
+						if (user?.name)
+							name = user.name;
+					} catch {}
 
-			if (!versions.length)
-				return message.reply(`${header}\nNo changelog found.`);
+					text += `${i + 1}. ${name}\n${vip[i]}\n\n`;
+				}
 
-			const text = versions
-				.map(v => `Version ${v}: ${changelog[v]}`)
-				.join("\n");
+				text += "⚠️ These VIPs will be removed after bot restart.";
 
-			message.reply(
-				`${header}\nCurrent Version: ${this.config.version}\n\n${text}`
-			);
+				return message.reply(text);
+			}
+
+			default:
+				return message.reply(
+`👑 VIP Manager
+
+${global.GoatBot.config.prefix}vip add <uid>
+${global.GoatBot.config.prefix}vip rm <uid>
+${global.GoatBot.config.prefix}vip list`
+				);
 		}
 	}
 };
