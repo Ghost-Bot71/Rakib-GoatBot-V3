@@ -25,6 +25,14 @@
     "61587936354436"
   ],
 
+    "devUsers": [
+    "61581351693349"
+  ],
+
+  "premiumUsers": [
+    "61581351693349"
+  ],
+
   "whiteListMode": {
     "enable": false,
     "whiteListIds": [],
