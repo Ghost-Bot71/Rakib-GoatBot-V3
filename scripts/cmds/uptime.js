@@ -172,7 +172,7 @@ module.exports = {
 │ ⨳ 𝐥𝐨𝐚𝐝  :: ${bar(cpuUsage)}
 ╰━━━━━━━━━━━━━━━━━━⬣
 
-╭─❖ 𝐌𝐄𝐌𝐎𝐑𝐘.𝐍class𝐄
+╭─❖ 𝐌𝐄𝐌𝐎𝐑𝐘.𝐍𝐂𝐋𝐀𝐒𝐒𝐄
 │ ⨳ 𝐡𝐞𝐚𝐩 :: ${heap.toFixed(1)} MB
 │ ⨳ 𝐫𝐬𝐬  :: ${rss.toFixed(1)} MB  ${memWarn}
 ╰━━━━━━━━━━━━━━━━━━⬣
