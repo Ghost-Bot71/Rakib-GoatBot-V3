@@ -176,6 +176,7 @@ module.exports = {
 │ ⨳ 𝐡𝐞𝐚𝐩 :: ${heap.toFixed(1)} MB
 │ ⨳ 𝐫𝐬𝐬  :: ${rss.toFixed(1)} MB  ${memWarn}
 ╰━━━━━━━━━━━━━━━━━━⬣
+
 ╭─❖ 𝐌𝐄𝐌𝐎𝐑𝐘.𝐒𝐘𝐒𝐓𝐄𝐌
 │ ⨳ 𝐮𝐬𝐚𝐠𝐞 :: ${usedRAM.toFixed(2)} / ${totalRAM.toFixed(2)} GB
 │ ⨳ 𝐥𝐨𝐚𝐝  :: ${bar((usedRAM / totalRAM) * 100)}
