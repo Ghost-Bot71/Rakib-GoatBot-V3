@@ -9,10 +9,10 @@ module.exports = {
     role: 0,
     category: "system",
     shortDescription: {
-      en: "Premium system stats"
+      en: "Premium system stats with host info"
     },
     longDescription: {
-      en: "Real-time bot, CPU, RAM, latency with clean premium UI"
+      en: "Real-time bot, CPU, RAM, latency and hosting provider with clean premium UI"
     },
     guide: {
       en: "{pn}"
@@ -62,19 +62,16 @@ module.exports = {
         setTimeout(() => {
 
           const latency = Date.now() - startTime;
-
           const endSnap = snapshotCPU();
 
           // CPU CALC
           let totalUsage = 0;
-          let perCore = [];
 
           endSnap.forEach((core, i) => {
             const idleDiff = core.idle - startSnap[i].idle;
             const totalDiff = core.total - startSnap[i].total;
             const usage = 100 - (100 * idleDiff / totalDiff);
             totalUsage += usage;
-            perCore.push(`C${i + 1}: ${usage.toFixed(0)}%`);
           });
 
           const cpuUsage = totalUsage / endSnap.length;
@@ -99,8 +96,44 @@ module.exports = {
           const uptimeBot = formatTime(process.uptime());
           const uptimeSys = formatTime(os.uptime());
 
+          // HOSTING DETECTOR
+          const env = process.env;
+          let host = "Unknown Host";
+
+          if (env.RENDER || env.RENDER_EXTERNAL_URL) {
+            host = "🟦 Render";
+          } else if (env.RAILWAY_ENVIRONMENT || env.RAILWAY_PROJECT_ID) {
+            host = "🚂 Railway";
+          } else if (env.GITHUB_ACTIONS === "true") {
+            host = "⚙️ GitHub Actions";
+          } else if (env.REPL_ID || env.REPLIT_DB_URL) {
+            host = "🟧 Replit";
+          } else if (env.HEROKU_APP_NAME || env.DYNO) {
+            host = "🟪 Heroku";
+          } else if (env.KOYEB_SERVICE_ID) {
+            host = "🟨 Koyeb";
+          } else if (env.VERCEL) {
+            host = "▲ Vercel";
+          } else if (env.NETLIFY) {
+            host = "🌐 Netlify";
+          } else if (env.FLY_APP_NAME) {
+            host = "🪰 Fly.io";
+          } else if (env.GLITCH_PROJECT_NAME) {
+            host = "✨ Glitch";
+          } else if (env.CODESPACE_NAME) {
+            host = "💻 GitHub Codespaces";
+          } else if (
+            env.HOME === "/root" ||
+            env.USER === "root" ||
+            env.SSH_CONNECTION ||
+            env.SSH_CLIENT
+          ) {
+            host = "🖥️ VPS / Dedicated Server";
+          }
+
           const platform = os.platform();
           const node = process.version;
+          const arch = process.arch;
 
           // LATENCY SPLIT (approx)
           const apiLatency = Math.max(latency - 50, 0);
@@ -118,7 +151,7 @@ module.exports = {
             cpuUsage < 70 ? "🟡 Busy" :
             "🔴 High";
 
-        const msg = `
+          const msg = `
 ╔═━━━❰  💠 𝐔𝐏𝐓𝐈𝐌𝐄  💠  ❱━━━═╗
 
 ╭─❖ 𝐒𝐘𝐒𝐓𝐄𝐌.𝐑𝐔𝐍𝐓𝐈𝐌𝐄
@@ -137,15 +170,12 @@ module.exports = {
 │ ⨳ 𝐜𝐨𝐫𝐞𝐬 :: ${cpuCores}
 │ ⨳ 𝐮𝐬𝐚𝐠𝐞 :: ${cpuUsage.toFixed(1)}%  ${cpuStatus}
 │ ⨳ 𝐥𝐨𝐚𝐝  :: ${bar(cpuUsage)}
-
-│ ⨳ 𝐜𝐨𝐫𝐞𝐬 →
-│ ${perCore.join(" ⫶ ")}
 ╰━━━━━━━━━━━━━━━━━━⬣
 
-╭─❖ 𝐌𝐄𝐌𝐎𝐑𝐘.𝐍𝐎𝐃𝐄
+╭─❖ 𝐌𝐄𝐌𝐎𝐑𝐘.𝐍class𝐄
 │ ⨳ 𝐡𝐞𝐚𝐩 :: ${heap.toFixed(1)} MB
 │ ⨳ 𝐫𝐬𝐬  :: ${rss.toFixed(1)} MB  ${memWarn}
-
+╰━━━━━━━━━━━━━━━━━━⬣
 ╭─❖ 𝐌𝐄𝐌𝐎𝐑𝐘.𝐒𝐘𝐒𝐓𝐄𝐌
 │ ⨳ 𝐮𝐬𝐚𝐠𝐞 :: ${usedRAM.toFixed(2)} / ${totalRAM.toFixed(2)} GB
 │ ⨳ 𝐥𝐨𝐚𝐝  :: ${bar((usedRAM / totalRAM) * 100)}
@@ -157,7 +187,9 @@ module.exports = {
 ╰━━━━━━━━━━━━━━━━━━⬣
 
 ╭─❖ 𝐒𝐘𝐒𝐓𝐄𝐌.𝐈𝐍𝐅𝐎
+│ ⨳ 𝐡𝐨𝐬𝐭 :: ${host}
 │ ⨳ 𝐨𝐬   :: ${platform}
+│ ⨳ 𝐚𝐫𝐜𝐡 :: ${arch}
 │ ⨳ 𝐧𝐨𝐝𝐞 :: ${node}
 ╰━━━━━━━━━━━━━━━━━━⬣
 
