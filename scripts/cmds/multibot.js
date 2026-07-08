@@ -12,9 +12,9 @@ let multipleStatus = true;
 module.exports = {
 config: {
 name: "multibot",
-version: "1.3",
+version: "1.0",
 author: "Rakib",
-role: 2,
+role: 4,
 category: "system",
 shortDescription: "Multiple bot detector with OwnBox log and Auto-Kick"
 },
