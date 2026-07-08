@@ -6,7 +6,7 @@ on:
     branches:
       - main
   schedule:
-    - cron: "*/300 * * * *"
+    - cron: "*/30 * * * *"
 
 jobs:
   bot:
@@ -27,4 +27,5 @@ jobs:
         run: npm install
 
       - name: Start Bot
-  run: node index.js
+        run: |
+          timeout 5h npm start
