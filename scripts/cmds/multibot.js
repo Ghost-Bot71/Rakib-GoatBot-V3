@@ -12,11 +12,11 @@ let multipleStatus = true;
 module.exports = {
 config: {
 name: "multibot",
-version: "1.0",
+version: "1.3",
 author: "Rakib",
 role: 2,
 category: "system",
-shortDescription: "Multiple bot detector with OwnBox log"
+shortDescription: "Multiple bot detector with OwnBox log and Auto-Kick"
 },
 
 onStart: async function ({ message, args }) {
@@ -39,11 +39,11 @@ onStart: async function ({ message, args }) {
 Status: ${multipleStatus ? "✅ ENABLED" : "❌ DISABLED"}
 
 Rules:
-• Join → Nickname change within 5s
-• Reply → Same user mention within 2s
-• Edit → Message edit within 2s 🆕
+• Join → Nickname change within 5s (3 detects)
+• Reply → Same user mention within 2s (3 detects)
+• Edit → Message edit within 2s (2 detects) ⚠️ Updated
 
-Warning = 3 detects`
+Action: Auto-Kick`
 );
 },
 
@@ -62,7 +62,7 @@ onChat: async function ({ api, event }) {
 
 	try {
 
-		// Join Track
+		// 1. Join Track
 		if (logMessageType === "log:subscribe") {
 			const users = logMessageData?.addedParticipants || [];
 			for (const user of users) {
@@ -70,7 +70,7 @@ onChat: async function ({ api, event }) {
 			}
 		}
 
-		// Nickname Change Detection
+		// 2. Nickname Change Detection
 		if (logMessageType === "log:user-nickname") {
 			const uid = logMessageData?.participant_id;
 
@@ -82,73 +82,65 @@ onChat: async function ({ api, event }) {
 				nicknameCount[uid] = (nicknameCount[uid] || 0) + 1;
 
 				if (nicknameCount[uid] >= 3) {
+					nicknameCount[uid] = 0; // রিসেট
 					await handleDetected({
 						api,
 						threadID,
 						uid,
 						reason: "Nickname changed within 5 seconds",
-						count: nicknameCount[uid]
+						count: 3
 					});
 				}
 			}
 		}
 
-		// Save Reply Info
+		// 3. Reply -> Mention Detection
 		if (event.messageReply) {
-			replyCache[senderID] = {
-				target: event.messageReply.senderID,
-				time: Date.now()
-			};
-		}
+			const targetUser = event.messageReply.senderID;
+			const mentions = event.mentions ? Object.keys(event.mentions) : [];
 
-		// Reply -> Mention Detection
-		if (
-			body &&
-			event.mentions &&
-			Object.keys(event.mentions).length > 0 &&
-			replyCache[senderID]
-		) {
-			const cache = replyCache[senderID];
-			const diff = Date.now() - cache.time;
-
-			if (diff <= 2000) {
-				const mentionIDs = Object.keys(event.mentions);
-
-				if (mentionIDs.includes(String(cache.target))) {
+			if (mentions.includes(String(targetUser))) {
+				const now = Date.now();
+				
+				if (replyCache[senderID] && (now - replyCache[senderID].time <= 2000)) {
 					replyMentionCount[senderID] = (replyMentionCount[senderID] || 0) + 1;
 
 					if (replyMentionCount[senderID] >= 3) {
+						replyMentionCount[senderID] = 0; // রিসেট
 						await handleDetected({
 							api,
 							threadID,
 							uid: senderID,
-							reason: "Reply + Same User Mention within 2 seconds",
-							count: replyMentionCount[senderID]
+							reason: "Spamming replies with mentions within 2 seconds",
+							count: 3
 						});
 					}
+				} else {
+					replyMentionCount[senderID] = 1;
 				}
+				
+				replyCache[senderID] = { time: now };
 			}
 		}
 
-		
+		// 4. Message Edit Detection (২ সেকেন্ডে ২ বার বা তার বেশি এডিট)
 		if (type === "message_edit" || logMessageType === "log:message-edit") {
 			const lastEditTime = editCache[senderID] || 0;
 			const currentTime = Date.now();
 
-			
 			if (currentTime - lastEditTime <= 2000) {
 				editCount[senderID] = (editCount[senderID] || 0) + 1;
 
-				if (editCount[senderID] >= 3) {
+				// ৩ এর জায়গায় ২ করে দেওয়া হয়েছে
+				if (editCount[senderID] >= 2) {
+					editCount[senderID] = 0; // রিসেট
 					await handleDetected({
 						api,
 						threadID,
 						uid: senderID,
-						reason: "Message edited 3+ times within 2 seconds",
-						count: editCount[senderID]
+						reason: "Message edited 2+ times within 2 seconds",
+						count: 2
 					});
-					
-					editCount[senderID] = 0; 
 				}
 			} else {
 				editCount[senderID] = 1;
@@ -170,7 +162,7 @@ async function handleDetected({ api, threadID, uid, reason, count }) {
 		const name = info?.[uid]?.name || "Unknown User";
 		
 		const alertMessage = 
-`⚠️ MULTIBOT WARNING
+`⚠️ MULTIBOT DETECTED
 
 User: ${name}
 UID: ${uid}
@@ -178,12 +170,21 @@ UID: ${uid}
 Reason:
 ${reason}
 
-Detect Count: ${count}/3`;
+Action: Removing from group...`;
 
+		// গ্রুপে এলার্ট পাঠানো
 		await api.sendMessage(alertMessage, threadID);
 
-		const boxId = loadBox(); 
-		if (boxId) {
+		// গ্রুপ থেকে কিক করা
+		try {
+			await api.removeUserFromGroup(uid, threadID);
+		} catch (kickError) {
+			console.log("[KICK ERROR] বোটের অ্যাডমিন পারমিশন নেই অথবা ওনারকে কিক দেওয়া সম্ভব নয়।");
+		}
+
+		// ওনার বক্সে লুপ আকারে নোটিফিকেশন পাঠানো
+		const ownBox = await loadBox(); 
+		if (ownBox && ownBox.length > 0) {
 			let threadName = "Unknown Group/Thread";
 			try {
 				const threadInfo = await api.getThreadInfo(threadID);
@@ -198,13 +199,20 @@ Detect Count: ${count}/3`;
 📍 Location: ${threadName}
 👤 User: ${name} (${uid})
 📝 Reason: ${reason}
-📊 Count: ${count}/3
+📊 Count: ${count} detects
 🕒 Time: ${new Date().toLocaleString('en-US', { timeZone: 'Asia/Dhaka' })}`
 
-			await api.sendMessage(logMessage, boxId);
+			// ওনার বক্স লুপ প্যাথ
+			for (const boxID of ownBox) {
+				try {
+					await api.sendMessage(logMessage, boxID);
+				} catch (err) {
+					console.log("[OWNBOX SEND ERROR]", boxID, err);
+				}
+			}
 		}
 
 	} catch (e) {
 		console.log("[HANDLE DETECTED ERROR]", e);
 	}
-						}
+			}
