@@ -19,7 +19,6 @@ module.exports = {
     const { threadID } = event;
     const prefix = getPrefix(threadID);
 
-    // ১. নির্দিষ্ট কমান্ডের ডিটেইলস দেখতে চাইলে
     if (args.length > 0 && isNaN(args[0])) {
       const commandName = args[0].toLowerCase();
       const command = commands.get(commandName) || commands.get(aliases.get(commandName));
@@ -32,7 +31,6 @@ module.exports = {
       const guideBody = configCommand.guide?.en || "No guide available.";
       const usage = guideBody.replace(/{p}/g, prefix).replace(/{n}/g, configCommand.name);
 
-      // এখানে অ্যাডমিন রিমুভ করে Owner & Support যুক্ত করা হয়েছে
       const response = 
         `╭─────────────────────⭓\n` +
         `│  ❀ 𝗖𝗢𝗠𝗠𝗔𝗡𝗗 𝗗𝗘𝗧𝗔𝗜𝗟𝗦 ❀\n` +
@@ -51,7 +49,6 @@ module.exports = {
       return message.reply(response);
     }
 
-    // ২. পেজ সিস্টেম জেনারেট করা
     const pageInput = args[0] ? parseInt(args[0]) : 1;
     const { msg } = generateHelpMenu(prefix, role, pageInput);
 
@@ -99,7 +96,9 @@ function generateHelpMenu(prefix, role, pageInput) {
   }
 
   const categoryKeys = Object.keys(categories).sort();
-  const itemsPerPage = 5; 
+  
+  // প্রতি পেজে ১০টি ক্যাটাগরি সেট করা হয়েছে
+  const itemsPerPage = 10; 
   const totalPage = Math.ceil(categoryKeys.length / itemsPerPage);
   
   let currentPage = pageInput;
