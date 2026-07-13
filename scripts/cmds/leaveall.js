@@ -1,12 +1,10 @@
-const { loadOwner } = require("../../rakib/customId/ownerUid");
-
 module.exports = {
 	config: {
 		name: "leaveall",
 		author: "Rakib",
 		version: "2.0",
 		countDown: 10,
-		role: 0,
+		role: 4,
 		category: "Admin",
 		shortDescription: {
 			en: "leave all group (owner only)"
@@ -14,21 +12,6 @@ module.exports = {
 	},
 
 	onStart: async function ({ api, event }) {
-
-		// 🔒 Owner Check (dynamic + safe)
-		const ownerUID = await loadOwner();
-		const isOwner = Array.isArray(ownerUID)
-			? ownerUID.includes(String(event.senderID))
-			: String(event.senderID) === String(ownerUID);
-
-		if (!isOwner) {
-			return api.sendMessage(
-				"❌ এই কমান্ডটা শুধু বট ওনার ব্যবহার করতে পারবে।",
-				event.threadID,
-				event.messageID
-			);
-		}
-
 		let list;
 
 		try {
