@@ -1,14 +1,13 @@
 const { findUid } = global.utils;
 const moment = require("moment-timezone");
-const { loadOwner } = require(process.cwd() + "/rakib/customId/ownerUid.js");
 
 module.exports = {
 	config: {
 		name: "ownban",
 		version: "3.0",
-		author: "NTKhang + Rakib Edit",
+		author: "NTKhang + Rakib",
 		countDown: 5,
-		role: 0,
+		role: 4,
 		description: "Ban user from box chat",
 		category: "box chat"
 	},
@@ -16,12 +15,6 @@ module.exports = {
 	onStart: async function ({ message, event, args, threadsData, usersData, api }) {
 
 		const { senderID, threadID } = event;
-
-		// 🔒 Owner Load
-		const ownerUID = await loadOwner();
-		const isOwner = Array.isArray(ownerUID)
-			? ownerUID.includes(String(senderID))
-			: String(senderID) === String(ownerUID);
 
 		const threadData = await threadsData.get(threadID);
 		const members = threadData.members || {};
@@ -61,26 +54,6 @@ module.exports = {
 		}
 
 		// =========================
-		// 📑 LIST
-		// =========================
-		if (args[0] === "list") {
-
-			if (!dataBanned.length)
-				return message.reply("📑 | No banned users");
-
-			let msg = "📑 Banned users:\n\n";
-
-			for (const user of dataBanned) {
-
-				const name = await usersData.getName(user.id);
-
-				msg += `${name}\nUID: ${user.id}\nReason: ${user.reason}\nTime: ${user.time}\n\n`;
-			}
-
-			return message.reply(msg);
-		}
-
-		// =========================
 		// 🎯 TARGET DETECT
 		// =========================
 		if (event.messageReply?.senderID) {
@@ -106,8 +79,8 @@ module.exports = {
 		if (!target)
 			return message.reply("⚠️ | User not found");
 
-		// 🚫 SELF BAN (only owner allowed)
-		if (String(target) === String(senderID) && !isOwner)
+		// 🚫 SELF BAN CHECK (Prevent self ban)
+		if (String(target) === String(senderID))
 			return message.reply("⚠️ | You can't ban yourself!");
 
 		// 🔁 EXIST CHECK
