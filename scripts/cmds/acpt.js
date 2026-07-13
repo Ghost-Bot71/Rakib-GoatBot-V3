@@ -1,5 +1,3 @@
-const { loadOwner } = require("../../rakib/customId/ownerUid");
-
 module.exports = {
   config: {
     name: "acpt",
@@ -7,28 +5,13 @@ module.exports = {
     version: "2.0",
     author: "Rakib",
     countDown: 8,
-    role: 0,
+    role: 4,
     shortDescription: "Send friend request (Owner only)",
     longDescription: "Send friend request by reply or UID (Owner only)",
     category: "Utility",
   },
 
   onStart: async function ({ event, api, args }) {
-
-    // 🔒 Owner Check (multi + single support)
-    const ownerUID = await loadOwner();
-    const isOwner = Array.isArray(ownerUID)
-      ? ownerUID.includes(String(event.senderID))
-      : String(event.senderID) === String(ownerUID);
-
-    if (!isOwner) {
-      return api.sendMessage(
-        "❌ এই কমান্ডটি শুধু Bot Owner ব্যবহার করতে পারবেন।",
-        event.threadID,
-        event.messageID
-      );
-    }
-
     let targetUID;
 
     // 📌 reply হলে
