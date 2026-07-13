@@ -1,12 +1,10 @@
-const { loadOwner } = require("../../rakib/customId/ownerUid");
-
 module.exports = {
   config: {
     name: "spam",
     version: "1.2",
     author: "Rakib",
     countDown: 5,
-    role: 0,
+    role: 4,
     shortDescription: {
       en: "Spam text message"
     },
@@ -20,19 +18,6 @@ module.exports = {
   },
 
   onStart: async function ({ api, event, args, message }) {
-
-    // Load owner UID
-    const ownerUid = await loadOwner();
-
-    // Support single UID / array UID
-    const isOwner = Array.isArray(ownerUid)
-      ? ownerUid.includes(event.senderID)
-      : String(ownerUid) === String(event.senderID);
-
-    if (!isOwner) {
-      return message.reply("⚠️ | এই কমান্ড শুধু বট Owner ব্যবহার করতে পারবে।");
-    }
-
     const count = parseInt(args[0]);
 
     if (!count || count < 1) {
