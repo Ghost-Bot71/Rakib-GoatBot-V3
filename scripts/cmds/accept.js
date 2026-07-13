@@ -1,5 +1,4 @@
 const moment = require("moment-timezone");
-const { loadOwner } = require("../../rakib/customId/ownerUid");
 
 module.exports = {
   config: {
@@ -8,22 +7,13 @@ module.exports = {
     version: "2.0",
     author: "Rakib",
     countDown: 8,
-    role: 0,
+    role: 4,
     shortDescription: "Accept/Delete friend requests (Owner only)",
     longDescription: "Accept or delete friend requests (Owner only)",
     category: "Utility",
   },
 
   onReply: async function ({ Reply, event, api }) {
-
-    // 🔒 Owner Check (multi + single support)
-    const ownerUID = await loadOwner();
-    const isOwner = Array.isArray(ownerUID)
-      ? ownerUID.includes(String(event.senderID))
-      : String(event.senderID) === String(ownerUID);
-
-    if (!isOwner) return;
-
     const { author, listRequest, messageID } = Reply;
     if (author !== event.senderID) return;
 
@@ -126,21 +116,6 @@ module.exports = {
   },
 
   onStart: async function ({ event, api, commandName }) {
-
-    // 🔒 Owner Check
-    const ownerUID = await loadOwner();
-    const isOwner = Array.isArray(ownerUID)
-      ? ownerUID.includes(String(event.senderID))
-      : String(event.senderID) === String(ownerUID);
-
-    if (!isOwner) {
-      return api.sendMessage(
-        "❌ এই কমান্ডটি শুধু Bot Owner ব্যবহার করতে পারবেন।",
-        event.threadID,
-        event.messageID
-      );
-    }
-
     const form = {
       av: api.getCurrentUserID(),
       fb_api_req_friendly_name: "FriendingCometFriendRequestsRootQueryRelayPreloader",
@@ -170,7 +145,7 @@ module.exports = {
         + `\nID: ${user.node.id}`
         + `\nURL: ${user.node.url.replace("www.facebook", "fb")}`
         + `\nTime: ${moment(user.time * 1000)
-            .tz("Asia/Dhaka") // ✅ fixed timezone
+            .tz("Asia/Dhaka")
             .format("DD/MM/YYYY HH:mm:ss")}\n`;
     }
 
