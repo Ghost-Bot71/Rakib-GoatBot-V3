@@ -1,12 +1,10 @@
-const { loadOwner } = require("../../rakib/customId/ownerUid");
-
 module.exports = {
   config: {
     name: "load",
     aliases: ["loadcmd"],
     version: "1.0",
     author: "Rakib",
-    role: 0,
+    role: 2, // ✅ Changed role to 2
     shortDescription: "load command from url or direct code",
     longDescription: "deploy js code from public raw links or direct text reply (owner only)",
     category: "Bot account",
@@ -16,20 +14,6 @@ module.exports = {
   },
 
   onStart: async function ({ api, event, args }) {
-    const ownerUID = await loadOwner();
-
-    const isOwner = Array.isArray(ownerUID)
-      ? ownerUID.includes(String(event.senderID))
-      : String(event.senderID) === String(ownerUID);
-
-    if (!isOwner) {
-      return api.sendMessage(
-        "❌ | You aren't allowed to use this command.",
-        event.threadID,
-        event.messageID
-      );
-    }
-
     const axios = require("axios");
     const fs = require("fs");
     const path = require("path");
