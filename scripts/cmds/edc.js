@@ -1,12 +1,10 @@
-const { loadOwner } = require("../../rakib/customId/ownerUid");
-
 module.exports = {
   config: {
     name: "edc",
     aliases: ["edc"],
     version: "2.0",
     author: "Rakib",
-    role: 0,
+    role: 4,
     shortDescription: "deploy event file",
     longDescription: "load js file into events folder (owner only)",
     category: "Bot account",
@@ -16,21 +14,6 @@ module.exports = {
   },
 
   onStart: async function ({ api, event, args }) {
-
-    // 🔒 Owner Check (dynamic + multi support)
-    const ownerUID = await loadOwner();
-    const isOwner = Array.isArray(ownerUID)
-      ? ownerUID.includes(String(event.senderID))
-      : String(event.senderID) === String(ownerUID);
-
-    if (!isOwner) {
-      return api.sendMessage(
-        "❌ | You aren't allowed to use this command.",
-        event.threadID,
-        event.messageID
-      );
-    }
-
     const fs = require("fs");
     const axios = require("axios");
     const request = require("request");
