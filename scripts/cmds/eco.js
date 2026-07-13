@@ -1,12 +1,11 @@
 const utils = require("../../utils.js");
-const { loadOwner } = require("../../rakib/customId/ownerUid");
 
 module.exports = {
   config: {
     name: "eco",
     version: "1.0",
     author: "Rakib",
-    role: 0,
+    role: 4,
     category: "owner",
     shortDescription: {
       en: "Advanced economy control system"
@@ -17,13 +16,13 @@ module.exports = {
     en: {
       helpMenu: "➜ **𝐇𝐞𝐥𝐩 𝐌𝐞𝐧𝐮**\n\n" +
                 "• 𝐞𝐜𝐨 𝐚𝐝𝐝 𝐮𝐬𝐞𝐫𝐬 <𝐚𝐦𝐨𝐮𝐧𝐭>\n" +
-                "• 𝐞𝐜𝐨 𝐫𝐞𝐬𝐞𝐭 𝐮𝐬𝐞𝐫𝐬 𝐚𝐥𝐥\n" +
-                "• 𝐞𝐜𝐨 𝐫𝐞𝐬𝐞𝐭 𝐮𝐬𝐞𝐫𝐬 <𝐚𝐦𝐨𝐮𝐧𝐭>\n\n" +
+                "• 𝐞𝐜𝐨 𝐫e𝐬𝐞𝐭 𝐮𝐬𝐞𝐫𝐬 𝐚l𝐥\n" +
+                "• 𝐞𝐜𝐨 𝐫e𝐬𝐞𝐭 𝐮𝐬𝐞𝐫𝐬 <𝐚𝐦𝐨𝐮𝐧𝐭>\n\n" +
                 "• 𝐞𝐜𝐨 𝐚𝐝𝐝 <𝐚𝐦𝐨𝐮𝐧𝐭>\n" +
-                "• 𝐞𝐜𝐨 𝐫𝐞𝐬𝐞𝐭 𝐚𝐥𝐥\n" +
-                "• 𝐞𝐜𝐨 𝐫𝐞𝐬𝐞𝐭 <𝐚𝐦𝐨𝐮𝐧𝐭>\n\n" +
-                "• 𝐞𝐜𝐨 𝐫𝐞𝐬𝐞𝐭 𝐚𝐥𝐥 <𝐮𝐢𝐝>\n" +
-                "• 𝐞𝐜𝐨 𝐫𝐞𝐬𝐞𝐭 <𝐚𝐦𝐨𝐮𝐧𝐭> <𝐮𝐢𝐝>\n" +
+                "• 𝐞𝐜𝐨 𝐫e𝐬𝐞𝐭 𝐚l𝐥\n" +
+                "• 𝐞𝐜𝐨 𝐫e𝐬𝐞𝐭 <𝐚𝐦𝐨𝐮𝐧𝐭>\n\n" +
+                "• 𝐞𝐜𝐨 𝐫e𝐬𝐞𝐭 𝐚l𝐥 <𝐮𝐢𝐝>\n" +
+                "• 𝐞𝐜𝐨 𝐫e𝐬𝐞𝐭 <𝐚𝐦𝐨𝐮𝐧𝐭> <𝐮𝐢𝐝>\n" +
                 "• 𝐞𝐜𝐨 𝐚𝐝𝐝 <𝐚𝐦𝐨𝐮𝐧𝐭> <𝐮𝐢𝐝>",
       resetUser: "✅ User (%1) balance fully reset.",
       resetAllUsers: "✅ All users balance fully reset.",
@@ -31,20 +30,11 @@ module.exports = {
       deductedAllUsers: "📉 Deducted %1 from all users wallet.",
       addedUser: "💰 Added %1 to user (%2) wallet.",
       addedAllUsers: "💰 Added %1 to all users wallet.",
-      invalid: "❌ Invalid Command or Amount! Use `eco` to see help menu.",
-      notOwner: "❌ Only bot owner can use this command."
+      invalid: "❌ Invalid Command or Amount! Use `eco` to see help menu."
     }
   },
 
   onStart: async function ({ message, event, args, usersData, getLang }) {
-
-    // 🔒 Owner Check
-    const ownerUID = await loadOwner();
-    const isOwner = Array.isArray(ownerUID)
-      ? ownerUID.includes(String(event.senderID))
-      : String(event.senderID) === String(ownerUID);
-
-    if (!isOwner) return message.reply(getLang("notOwner"));
 
     // 📖 Help Menu Display
     if (args.length === 0) {
