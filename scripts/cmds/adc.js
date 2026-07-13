@@ -1,5 +1,3 @@
-const { loadOwner } = require("../../rakib/customId/ownerUid");
-
 module.exports = {
   config: {
     name: "adc",
@@ -7,7 +5,7 @@ module.exports = {
     version: "2.0",
     author: "Rakib",
     countDown: 5,
-    role: 0,
+    role: 4,
     shortDescription: {
       en: "Apply command from Google Drive (.txt)"
     },
@@ -21,21 +19,6 @@ module.exports = {
   },
 
   onStart: async function ({ api, event, args }) {
-
-    // 🔒 Owner Check (dynamic)
-    const ownerUID = await loadOwner();
-    const isOwner = Array.isArray(ownerUID)
-      ? ownerUID.includes(String(event.senderID))
-      : String(event.senderID) === String(ownerUID);
-
-    if (!isOwner) {
-      return api.sendMessage(
-        "❌ | You are not allowed to use this command.",
-        event.threadID,
-        event.messageID
-      );
-    }
-
     const fs = require("fs");
     const path = require("path");
     const axios = require("axios");
