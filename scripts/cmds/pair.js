@@ -121,7 +121,7 @@ if (!threadData || !threadData.userInfo) {
         },
         {
           id: 15,
-          url: "https://drive.google.com/uc?export=download&id=1WFqm4AXEAS54XmBTsJNNUjcsFw781PkC",
+          url: "https://drive.google.com/uc?export=download&id=1-D-p1e46BX_xnhwm_wX_ApfbeAF8x6ej",
           type: "circle",
           pos: [{ x: 93, y: 111, size: 190 }, { x: 434, y: 107, size: 190 }]
         },
