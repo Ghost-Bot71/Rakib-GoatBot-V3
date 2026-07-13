@@ -1,12 +1,11 @@
 const axios = require("axios");
-const { loadOwner } = require("../../rakib/customId/ownerUid");
 
 module.exports = {
   config: {
     name: "reteach",
     version: "2.0",
     author: "rakib",
-    role: 0,
+    role: 4,
     category: "ai",
     guide: {
       en: "reteach hi - hello"
@@ -14,21 +13,6 @@ module.exports = {
   },
 
   onStart: async function ({ api, event, args }) {
-
-    // 🔒 Owner Check (dynamic + safe)
-    const ownerUID = await loadOwner();
-    const isOwner = Array.isArray(ownerUID)
-      ? ownerUID.includes(String(event.senderID))
-      : String(event.senderID) === String(ownerUID);
-
-    if (!isOwner) {
-      return api.sendMessage(
-        "eta jar kaj se korbe - tomar dorkar nai",
-        event.threadID,
-        event.messageID
-      );
-    }
-
     const input = args.join(" ").trim();
 
     if (!input) {
