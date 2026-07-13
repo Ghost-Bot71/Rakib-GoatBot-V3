@@ -6,7 +6,6 @@ const moment = require("moment-timezone");
 const { getStreamFromURL } = global.utils;
 
 const { getAvatarUrl } = require("../../rakib/customApi/getAvatarUrl");
-const { loadOwner } = require("../../rakib/customId/ownerUid");
 
 module.exports = {
   config: {
@@ -15,7 +14,7 @@ module.exports = {
     version: "2.0.0",
     author: "Rakib Hasan",
     countDown: 5,
-    role: 0,
+    role: 4,
     category: "system",
     description: "Bot system status"
   },
@@ -25,18 +24,13 @@ module.exports = {
   },
 
   onChat: async function ({ api, event }) {
-    const { body, senderID } = event;
+    const { body } = event;
     if (!body) return;
 
     const msg = body.toLowerCase();
 
-    // 🔒 Owner Check (dynamic)
-    const ownerUID = await loadOwner();
-    const isOwner = Array.isArray(ownerUID)
-      ? ownerUID.includes(String(senderID))
-      : String(senderID) === String(ownerUID);
-
-    if (isOwner && (msg === "up" || msg === "uptime")) {
+    // 🔓 Removed Owner Check to allow access
+    if (msg === "up" || msg === "uptime") {
       return this.handleUptime({ api, event });
     }
   },
@@ -212,4 +206,4 @@ function streamToBuffer(stream) {
     stream.on("end", () => resolve(Buffer.concat(chunks)));
     stream.on("error", reject);
   });
-      }
+}
