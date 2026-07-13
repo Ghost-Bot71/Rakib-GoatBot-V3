@@ -1,12 +1,10 @@
-const { loadOwner } = require("../../rakib/customId/ownerUid");
-
 module.exports = {
   config: {
     name: "font",
     version: "2.0",
     author: "Rakib",
     countDown: 5,
-    role: 0,
+    role: 4,
     category: "utility",
     guide: {
       en: `font list
@@ -20,18 +18,6 @@ font 2 Rakib`
 
   onStart: async function ({ api, event, message, args }) {
     try {
-      // 🔒 Owner Check (dynamic)
-      const ownerUID = await loadOwner();
-      const senderID = String(event?.senderID || message?.senderID);
-      
-      const isOwner = Array.isArray(ownerUID)
-        ? ownerUID.includes(senderID)
-        : String(ownerUID) === senderID;
-
-      if (!isOwner) {
-        return (message?.reply || api.sendMessage)("❌ you'are not allowed this cmd", event.threadID, event.messageID);
-      }
-
       if (!args[0]) {
         return message.reply(
 `✨ FONT SYSTEM
@@ -209,7 +195,7 @@ function circledFont(text) {
     U:"Ⓤ",V:"Ⓥ",W:"Ⓦ",X:"Ⓧ",Y:"Ⓨ",Z:"Ⓩ",
     a:"ⓐ",b:"ⓑ",c:"ⓒ",d:"ⓓ",e:"ⓔ",f:"ⓕ",g:"ⓖ",h:"ⓗ",i:"ⓘ",j:"ⓙ",
     k:"ⓚ",l:"ⓛ",m:"ⓜ",n:"ⓝ",o:"ⓞ",p:"ⓟ",q:"ⓠ",r:"ⓡ",s:"ⓢ",t:"ⓣ",
-    u:"ⓤ",v:"ⓥ",w:"ⓦ",x:"ⓧ",y:"ⓨ",z:"ⓩ",
+    u:"u",v:"ⓥ",w:"ⓦ",x:"ⓧ",y:"ⓨ",z:"ⓩ",
     0:"⓪",1:"①",2:"②",3:"③",4:"④",
     5:"⑤",6:"⑥",7:"⑦",8:"⑧",9:"⑨"
   };
@@ -253,4 +239,4 @@ function smallCapsFont(text) {
   return text.replace(/[a-z]/gi, c =>
     map[c.toLowerCase()] || c
   );
-        }
+}
