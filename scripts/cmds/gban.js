@@ -1,29 +1,16 @@
 const moment = require("moment-timezone");
-const { loadOwner } = require(process.cwd() + "/rakib/customId/ownerUid.js");
 
 module.exports = {
 	config: {
 		name: "gban",
 		version: "2.0",
 		author: "Rakib",
-		role: 0,
+		role: 4,
 		shortDescription: "Owner remote ban system",
 		category: "owner"
 	},
 
 	onStart: async function ({ api, event, args, threadsData }) {
-
-		const { senderID } = event;
-
-		// 🔒 Owner Check (dynamic + safe)
-		const ownerUID = await loadOwner();
-		const isOwner = Array.isArray(ownerUID)
-			? ownerUID.includes(String(senderID))
-			: String(senderID) === String(ownerUID);
-
-		if (!isOwner)
-			return api.sendMessage("❌ | Owner only command", event.threadID);
-
 		const action = args[0];
 		const uid = args[1];
 		const tid = args[2];
