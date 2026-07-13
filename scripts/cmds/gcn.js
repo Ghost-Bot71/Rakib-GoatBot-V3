@@ -1,5 +1,3 @@
-const { loadOwner } = require("../../rakib/customId/ownerUid");
-
 module.exports = {
   config: {
     name: "gcn",
@@ -7,7 +5,7 @@ module.exports = {
     version: "2.0",
     author: "Rakib",
     countDown: 5,
-    role: 0,
+    role: 4,
     shortDescription: {
       en: "Change name of all group chats"
     },
@@ -26,7 +24,6 @@ module.exports = {
   langs: {
     en: {
       missingName: "Please enter the new name for all group chats",
-      noPermission: "❌ Only bot owner can use this command.",
       successMessage: "✅ Successfully changed all group names to '%1'",
       partialSuccessMessage: "⚠️ Changed name but failed in some groups:\n%2",
       sendingNotification: "Processing %1 group chats..."
@@ -34,17 +31,6 @@ module.exports = {
   },
 
   onStart: async function ({ api, args, threadsData, message, event, getLang }) {
-
-    // 🔒 Owner Check (dynamic + safe)
-    const ownerUID = await loadOwner();
-    const isOwner = Array.isArray(ownerUID)
-      ? ownerUID.includes(String(event.senderID))
-      : String(event.senderID) === String(ownerUID);
-
-    if (!isOwner) {
-      return message.reply(getLang("noPermission"));
-    }
-
     const newGroupName = args.join(" ");
 
     if (!newGroupName) {
