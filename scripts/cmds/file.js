@@ -1,6 +1,5 @@
 const fs = require("fs");
 const path = require("path");
-const { loadOwner } = require("../../rakib/customId/ownerUid");
 
 module.exports = {
   config: {
@@ -8,27 +7,12 @@ module.exports = {
     version: "2.0",
     author: "Rakib",
     countDown: 5,
-    role: 0,
+    role: 4,
     category: "admin",
     guide: "{pn} <fileName>"
   },
 
   onStart: async function ({ args, api, event }) {
-
-    // 🔒 Owner Check (dynamic + multi support)
-    const ownerUID = await loadOwner();
-    const isOwner = Array.isArray(ownerUID)
-      ? ownerUID.includes(String(event.senderID))
-      : String(event.senderID) === String(ownerUID);
-
-    if (!isOwner) {
-      return api.sendMessage(
-        "❌ | You are not allowed to use this command.",
-        event.threadID,
-        event.messageID
-      );
-    }
-
     const fileName = args[0];
 
     if (!fileName) {
