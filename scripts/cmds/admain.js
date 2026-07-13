@@ -1,6 +1,5 @@
 const { config } = global.GoatBot;
 const { writeFileSync } = require("fs-extra");
-const { loadOwner } = require("../../rakib/customId/ownerUid");
 
 module.exports = {
 	config: {
@@ -8,7 +7,7 @@ module.exports = {
 		version: "2.0",
 		author: "NTKhang + Rakib",
 		countDown: 5,
-		role: 0,
+		role: 4,
 		description: {
 			en: "Add, remove, edit admin role (owner only)"
 		},
@@ -16,16 +15,6 @@ module.exports = {
 	},
 
 	onStart: async function ({ message, args, usersData, event }) {
-
-		// 🔒 Owner Check (dynamic + safe)
-		const ownerUID = await loadOwner();
-		const isOwner = Array.isArray(ownerUID)
-			? ownerUID.includes(String(event.senderID))
-			: String(event.senderID) === String(ownerUID);
-
-		if (!isOwner)
-			return message.reply("❌ Owner only command.");
-
 		switch (args[0]) {
 
 			case "add":
