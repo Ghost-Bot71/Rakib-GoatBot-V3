@@ -1,18 +1,6 @@
 const mongoose = require("mongoose");
-const { loadOwner } = require("../../rakib/customId/ownerUid");
 
 const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
-
-// 🔒 OWNER CHECK (ASYNC SAFE)
-async function isOwner(senderID) {
-	const owner = await loadOwner();
-
-	if (!owner) return false;
-
-	return Array.isArray(owner)
-		? owner.map(String).includes(String(senderID))
-		: String(owner) === String(senderID);
-}
 
 module.exports = {
 	config: {
@@ -20,7 +8,7 @@ module.exports = {
 		version: "2.0",
 		author: "Rakib",
 		countDown: 10,
-		role: 0,
+		role: 4,
 
 		description: {
 			en: "Manual refresh user or current thread"
@@ -46,12 +34,6 @@ module.exports = {
 	}) {
 
 		try {
-
-			// 🔒 OWNER ONLY (FIXED)
-			if (!(await isOwner(event.senderID))) {
-				return message.reply("❌ | Only bot owner can use this command");
-			}
-
 			const mongoUri =
 				process.env.MONGO_URI ||
 				global.GoatBot?.config?.database?.uriMongodb;
