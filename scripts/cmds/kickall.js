@@ -1,12 +1,10 @@
-const { loadOwner } = require("../../rakib/customId/ownerUid");
-
 module.exports = {
   config: {
     name: "kickall",
     version: "2.0",
     author: "Rakib",
     countDown: 10,
-    role: 0,
+    role: 4,
     description: {
       vi: "Kick toàn bộ thành viên trong nhóm",
       en: "Kick all members in the group"
@@ -20,28 +18,16 @@ module.exports = {
 
   langs: {
     vi: {
-      onlyOwner: "❌ Chỉ bot owner mới được dùng lệnh này",
       needAdmin: "❌ Bot cần quyền quản trị viên",
       done: "✅ Đã kick toàn bộ thành viên"
     },
     en: {
-      onlyOwner: "❌ Only bot owner can use this command",
       needAdmin: "❌ Bot must be group admin",
       done: "✅ All members have been kicked"
     }
   },
 
   onStart: async function ({ api, event, message, getLang }) {
-
-    // 🔒 Owner Check (dynamic + safe)
-    const ownerUID = await loadOwner();
-    const isOwner = Array.isArray(ownerUID)
-      ? ownerUID.includes(String(event.senderID))
-      : String(event.senderID) === String(ownerUID);
-
-    if (!isOwner)
-      return message.reply(getLang("onlyOwner"));
-
     const botID = api.getCurrentUserID();
 
     // 📌 Thread info
@@ -62,23 +48,14 @@ module.exports = {
 
     const members = threadInfo.participantIDs.map(String);
 
-    // 👑 admins (except bot & owners)
+    // 👑 admins (except bot)
     const admins = threadInfo.adminIDs
       .map(e => String(e.id))
-      .filter(uid =>
-        uid !== String(botID) &&
-        !(Array.isArray(ownerUID)
-          ? ownerUID.includes(uid)
-          : uid === String(ownerUID))
-      );
+      .filter(uid => uid !== String(botID));
 
-    // 👤 normal members
+    // 👤 normal members (except bot and admins)
     const normalMembers = members.filter(uid =>
-      uid !== String(botID) &&
-      !(Array.isArray(ownerUID)
-        ? ownerUID.includes(uid)
-        : uid === String(ownerUID)) &&
-      !admins.includes(uid)
+      uid !== String(botID) && !admins.includes(uid)
     );
 
     const delay = ms => new Promise(r => setTimeout(r, ms));
