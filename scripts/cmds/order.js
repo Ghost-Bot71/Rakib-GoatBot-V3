@@ -1,5 +1,3 @@
-const { loadOwner } = require("../../rakib/customId/ownerUid");
-
 module.exports = {
   config: {
     name: "order",
@@ -7,7 +5,7 @@ module.exports = {
     version: "1.0",
     author: "Rakib",
     countDown: 15,
-    role: 0,
+    role: 4,
     shortDescription: "Repeat text",
     longDescription: "Repeat text multiple times in one message",
     category: "utility",
@@ -15,21 +13,6 @@ module.exports = {
 
   onStart: async function ({ api, event, args }) {
     try {
-      // 🔒 Owner Check (dynamic)
-      const ownerUID = await loadOwner();
-      const isOwner = Array.isArray(ownerUID)
-        ? ownerUID.includes(String(event.senderID))
-        : String(event.senderID) === String(ownerUID);
-
-      if (!isOwner) {
-        return api.sendMessage(
-          "❌ | You are not allowed to use this command.",
-          event.threadID,
-          event.messageID
-        );
-      }
-      // ---------------------
-
       if (args.length < 2) {
         return api.sendMessage(
           "Usage:\norder <count> <text>\norder list <count> <text>",
