@@ -123,7 +123,7 @@ if (!threadData || !threadData.userInfo) {
           id: 15,
           url: "https://drive.google.com/uc?export=download&id=15B3leUy_R5GBCXnue32rmzcZIhE834J5",
           type: "circle",
-          pos: [{ x: 93, y: 111, size: 190 }, { x: 434, y: 107, size: 190 }]
+          pos: [{ x: 93, y: 111, size: 190 }, { x: 435, y: 109, size: 190 }]
         },
 
         { id: 9, type: "dynamic" },
