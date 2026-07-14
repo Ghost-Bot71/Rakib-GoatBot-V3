@@ -1,5 +1,3 @@
-const { loadOwner } = require("../../rakib/customId/ownerUid");
-
 module.exports = {
   config: {
     name: "mens",
@@ -7,7 +5,7 @@ module.exports = {
     version: "1.0",
     author: "Rakib",
     countDown: 3,
-    role: 0, 
+    role: 3,
     shortDescription: "Mention the replied user",
     longDescription: "Tag the user from a replied message and add optional text.",
     category: "group",
@@ -17,17 +15,7 @@ module.exports = {
   },
 
   onStart: async function({ api, event, args }) {
-    const { messageReply, threadID, senderID } = event;
-
-    // 🔒 Owner Check
-    const ownerUID = await loadOwner();
-    const isOwner = Array.isArray(ownerUID)
-        ? ownerUID.includes(String(senderID))
-        : String(senderID) === String(ownerUID);
-
-    if (!isOwner) {
-        return api.sendMessage("❌ Owner only command.", threadID);
-    }
+    const { messageReply, threadID } = event;
 
     if (!messageReply) 
       return api.sendMessage("⚠️ Reply to a message to tag that user!", threadID);
