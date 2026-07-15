@@ -75,16 +75,22 @@ module.exports = (
 			// =========================
 			// MESSAGE EVENTS
 			// =========================
-			case "message":
-			case "message_reply":
-			case "message_unsend": {
-				onFirstChat();
-				onChat();
-				onStart();
-				onReply();
-				break;
-			}
+	        case "message": {
+            	onFirstChat();
+            	onChat();
+            	onStart();
+        	break;
+         }
 
+            case "message_reply": {
+	            onReply();
+             	onChat();
+         	break;
+         }
+
+            case "message_unsend": {
+         	break;
+         }
 			// =========================
 			// GROUP EVENTS
 			// =========================
