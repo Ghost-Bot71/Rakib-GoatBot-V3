@@ -31,7 +31,8 @@ module.exports = {
 
     try {
       const apiUrlRes = await axios.get("https://raw.githubusercontent.com/bdrakib6t9/HOON/main/apiUrl.json");
-      const apiHost = apiUrlRes.data.yt; 
+      // yt এর জায়গায় igv সেট করা হলো
+      const apiHost = apiUrlRes.data.igv; 
 
       for (const link of links) {
         
@@ -58,7 +59,7 @@ module.exports = {
         
         // Messenger-এর জন্য উপযোগী টেক্সট স্টাইল
         await message.reply({
-          body: `🚀 𝗧𝗘𝗦𝗦𝗔 𝗕𝗢𝗧 𝗔𝘂𝘁𝗼-𝗗𝗼𝘄𝗻𝗹𝗼𝗮𝗱𝗲𝗿\n\n✅ ভিডিও সফলভাবে ডাউনলোড হয়েছে!\n\n━━━━━━━━━━━━━━━━━━\n💙 Powered By TESSA BOT`,
+          body: `🚀 𝗧𝗘𝗦𝗦𝗔 𝗕𝗢𝗧 𝗔𝘂𝘁ο-𝗗𝗼𝘄𝗻𝗹𝗼𝗮𝗱𝗲𝗿\n\n✅ ভিডিও সফলভাবে ডাউনলোড হয়েছে!\n\n━━━━━━━━━━━━━━━━━━\n💙 Powered By TESSA BOT`,
           attachment: fs.createReadStream(tempPath)
         });
 
