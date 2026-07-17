@@ -30,7 +30,7 @@ module.exports = {
 		version: "1.20",
 		author: "NTKhang & Rakib",
 		countDown: 5,
-		role: 2,
+		role: 1,
 		description: {
 			vi: "Quản lý các tệp lệnh của bạn",
 			en: "Manage your command files"
@@ -40,15 +40,11 @@ module.exports = {
 			vi: "   {pn} load <tên file lệnh>"
 				+ "\n   {pn} loadall: Load lại tất cả các lệnh trong thư mục"
 				+ "\n   {pn} unload <tên file lệnh>"
-				+ "\n   {pn} unload all: Unload tất cả các lệnh ngoại trừ lệnh này"
-				+ "\n   {pn} install <url> <tên file lệnh>"
-				+ "\n   {pn} install <tên file lệnh> <code>",
+				+ "\n   {pn} unload all: Unload tất cả các lệnh ngoại trừ lệnh này",
 			en: "   {pn} load <command file name>"
 				+ "\n   {pn} loadall: Load all command files in the directory"
 				+ "\n   {pn} unload <command file name>"
 				+ "\n   {pn} unload all: Unload all commands except this one"
-				+ "\n   {pn} install <url> <command file name>"
-				+ "\n   {pn} install <command file name> <code>"
 		}
 	},
 
@@ -64,14 +60,6 @@ module.exports = {
 			unloaded: "✅ | Đã unload command \"%1\" thành công",
 			unloadedError: "❌ | Unload command \"%1\" thất bại với lỗi\n%2: %3",
 			unloadAllSuccess: "✅ | Đã unload thành công (%1) command, ngoại trừ lệnh '%2'",
-			missingUrlCodeOrFileName: "⚠️ | Vui lòng nhập vào url hoặc code và tên file lệnh bạn muốn cài đặt",
-			missingUrlOrCode: "⚠️ | Vui lòng nhập vào url hoặc code của tệp lệnh bạn muốn cài đặt",
-			missingFileNameInstall: "⚠️ | Vui lòng nhập vào tên file để lưu lệnh (đuôi .js)",
-			invalidUrl: "⚠️ | Vui lòng nhập vào url hợp lệ",
-			invalidUrlOrCode: "⚠️ | Không thể lấy được mã lệnh",
-			alreadExist: "⚠️ | File lệnh đã tồn tại, bạn có chắc chắn muốn ghi đè lên file lệnh cũ không?\nThả cảm xúc bất kì vào tin nhắn này để tiếp tục",
-			installed: "✅ | Đã cài đặt command \"%1\" thành công, file lệnh được lưu tại %2",
-			installedError: "❌ | Cài đặt command \"%1\" thất bại với lỗi\n%2: %3",
 			missingFile: "⚠️ | Không tìm thấy tệp lệnh \"%1\"",
 			invalidFileName: "⚠️ | Tên tệp lệnh không hợp lệ",
 			unloadedFile: "✅ | Đã unload lệnh \"%1\""
@@ -87,14 +75,6 @@ module.exports = {
 			unloaded: "✅ | Unloaded command \"%1\" successfully",
 			unloadedError: "❌ | Failed to unload command \"%1\" with error\n%2: %3",
 			unloadAllSuccess: "✅ | Unloaded successfully (%1) commands, except command '%2'",
-			missingUrlCodeOrFileName: "⚠️ | Please enter the url or code and command file name you want to install",
-			missingUrlOrCode: "⚠️ | Please enter the url or code of the command file you want to install",
-			missingFileNameInstall: "⚠️ | Please enter the file name to save the command (with .js extension)",
-			invalidUrl: "⚠️ | Please enter a valid url",
-			invalidUrlOrCode: "⚠️ | Unable to get command code",
-			alreadExist: "⚠️ | The command file already exists, are you sure you want to overwrite the old command file?\nReact to this message to continue",
-			installed: "✅ | Installed command \"%1\" successfully, the command file is saved at %2",
-			installedError: "❌ | Failed to install command \"%1\" with error\n%2: %3",
 			missingFile: "⚠️ | Command file \"%1\" not found",
 			invalidFileName: "⚠️ | Invalid command file name",
 			unloadedFile: "✅ | Unloaded command \"%1\""
@@ -109,7 +89,6 @@ module.exports = {
 			(args[0] || "").toLowerCase() == "loadall" || 
 			(args[0] == "load" && args[1] && args[1].toLowerCase() == "all")
 		) {
-			// আনলোড লিস্ট ক্লিয়ার করে দেওয়া হচ্ছে যাতে সব ফাইল ফ্রেশভাবে লোড হয়
 			configCommands.commandUnload = [];
 			fs.writeFileSync(client.dirConfigCommands, JSON.stringify(configCommands, null, 2));
 
@@ -194,102 +173,8 @@ module.exports = {
 				message.reply(getLang("unloaded", infoUnload.name)) :
 				message.reply(getLang("unloadedError", infoUnload.name, infoUnload.error.name, infoUnload.error.message));
 		}
-		else if (args[0] == "install") {
-			let url = args[1];
-			let fileName = args[2];
-			let rawCode;
-
-			if (!url || !fileName)
-				return message.reply(getLang("missingUrlCodeOrFileName"));
-
-			if (
-				url.endsWith(".js")
-				&& !isURL(url)
-			) {
-				const tmp = fileName;
-				fileName = url;
-				url = tmp;
-			}
-
-			if (url.match(/(https?:\/\/(?:www\.|(?!www)))/)) {
-				global.utils.log.dev("install", "url", url);
-				if (!fileName || !fileName.endsWith(".js"))
-					return message.reply(getLang("missingFileNameInstall"));
-
-				const domain = getDomain(url);
-				if (!domain)
-					return message.reply(getLang("invalidUrl"));
-
-				if (domain == "pastebin.com") {
-					const regex = /https:\/\/pastebin\.com\/(?!raw\/)(.*)/;
-					if (url.match(regex))
-						url = url.replace(regex, "https://pastebin.com/raw/$1");
-					if (url.endsWith("/"))
-						url = url.slice(0, -1);
-				}
-				else if (domain == "github.com") {
-					const regex = /https:\/\/github\.com\/(.*)\/blob\/(.*)/;
-					if (url.match(regex))
-						url = url.replace(regex, "https://raw.githubusercontent.com/$1/$2");
-				}
-
-				rawCode = (await axios.get(url)).data;
-
-				if (domain == "savetext.net") {
-					const $ = cheerio.load(rawCode);
-					rawCode = $("#content").text();
-				}
-			}
-			else {
-				global.utils.log.dev("install", "code", args.slice(1).join(" "));
-				if (args[args.length - 1].endsWith(".js")) {
-					fileName = args[args.length - 1];
-					rawCode = event.body.slice(event.body.indexOf('install') + 7, event.body.indexOf(fileName) - 1);
-				}
-				else if (args[1].endsWith(".js")) {
-					fileName = args[1];
-					rawCode = event.body.slice(event.body.indexOf(fileName) + fileName.length + 1);
-				}
-				else
-					return message.reply(getLang("missingFileNameInstall"));
-			}
-
-			if (!rawCode)
-				return message.reply(getLang("invalidUrlOrCode"));
-
-			if (fs.existsSync(path.join(__dirname, fileName)))
-				return message.reply(getLang("alreadExist"), (err, info) => {
-					global.GoatBot.onReaction.set(info.messageID, {
-						commandName,
-						messageID: info.messageID,
-						type: "install",
-						author: event.senderID,
-						data: {
-							fileName,
-							rawCode
-						}
-					});
-				});
-			else {
-				const infoLoad = loadScripts("cmds", fileName, log, configCommands, api, threadModel, userModel, dashBoardModel, globalModel, threadsData, usersData, dashBoardData, globalData, getLang, rawCode);
-				infoLoad.status == "success" ?
-					message.reply(getLang("installed", infoLoad.name, path.join(__dirname, fileName).replace(process.cwd(), ""))) :
-					message.reply(getLang("installedError", infoLoad.name, infoLoad.error.name, infoLoad.error.message));
-			}
-		}
 		else
 			message.SyntaxError();
-	},
-
-	onReaction: async function ({ Reaction, message, event, api, threadModel, userModel, dashBoardModel, globalModel, threadsData, usersData, dashBoardData, globalData, getLang }) {
-		const { loadScripts } = global.utils;
-		const { author, data: { fileName, rawCode } } = Reaction;
-		if (event.userID != author)
-			return;
-		const infoLoad = loadScripts("cmds", fileName, log, configCommands, api, threadModel, userModel, dashBoardModel, globalModel, threadsData, usersData, dashBoardData, globalData, getLang, rawCode);
-		infoLoad.status == "success" ?
-			message.reply(getLang("installed", infoLoad.name, path.join(__dirname, fileName).replace(process.cwd(), ""))) :
-			message.reply(getLang("installedError", infoLoad.name, infoLoad.error.name, infoLoad.error.message));
 	}
 };
 
