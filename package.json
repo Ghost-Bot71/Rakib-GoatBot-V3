@@ -8,7 +8,7 @@
     "npm": ">=7.0.0"
   },
   "dependencies": {
-    "@cexy/rakibfca": "^1.0.1",
+    "@cexy/rakibfca": "^1.0.2",
     "@distube/ytdl-core": "^4.16.12",
     "@google-cloud/text-to-speech": "^5.4.0",
     "@google/genai": "^1.22.0",
