@@ -8,7 +8,7 @@
     "npm": ">=7.0.0"
   },
   "dependencies": {
-    "@neoaz07/nkxfca": "^1.0.9",
+    "@cexy/rakibfca": "^1.0.1",
     "@distube/ytdl-core": "^4.16.12",
     "@google-cloud/text-to-speech": "^5.4.0",
     "@google/genai": "^1.22.0",
@@ -44,7 +44,6 @@
     "express-fileupload": "^1.4.0",
     "express-rate-limit": "^6.5.2",
     "express-session": "^1.17.3",
-    "fca-eryxenx": "1.0.0",
     "fast-speedtest-api": "^0.3.2",
     "fetch-blob": "^4.0.0",
     "figlet": "^1.8.0",
