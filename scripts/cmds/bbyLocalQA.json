@@ -1,0 +1,280 @@
+{
+  "hello": [
+    "Hello! 😊 Ki khobor?",
+    "Hey! 👋 Kemon acho?",
+    "Hi! Ami Ghost Bot, tomar khadem! 😄"
+  ],
+  "hi": [
+    "Hi! 👋 Kemon acho?",
+    "Hello! 😊 Bolo ki dorkar!"
+  ],
+  "how are you": [
+    "Ami valo achi, tumio valo theko! 💚",
+    "Ekdom jhakkas! 😎 Tumi kemon?"
+  ],
+  "kemon acho": [
+    "Ami valo achi! 😊 Tumi kemon?",
+    "Ekdom mast! 🔥 Ki khobor tomar?"
+  ],
+  "ki korcho": [
+    "Tomader jonno wait korchilam! 😄",
+    "Bas bekar boshe achi 😂",
+    "Tomar command er jonne wait korchi!"
+  ],
+  "good morning": [
+    "Good morning! ☀️ Sundor din katao!",
+    "Subho sokaal! 🌅 Coffee khao naki?",
+    "Morning! 🌞 Aj onek valo din hobe!"
+  ],
+  "good night": [
+    "Good night! 🌙 Valo ghum hok!",
+    "Sweet dreams! 😴✨",
+    "Raat valo katuk! 🌃"
+  ],
+  "good afternoon": [
+    "Good afternoon! ☀️ Lunch kheche?",
+    "Duperr shalam! 😊 Bisher gorm na?"
+  ],
+  "good evening": [
+    "Good evening! 🌆 Besh shundor shondha!",
+    "Shonjher shalam! 😊"
+  ],
+  "ami tomake bhalobasi": [
+    "Ami o tumake bhalobashi! ❤️ 😊",
+    "Aww! 🥺 Tumi o onek sundor!",
+    "Bhalobasho? Amio! 💖"
+  ],
+  "tumi ki ai": [
+    "Haa, ami ek special AI Ghost Bot! 🤖✨ GoatBot V2 er upor toiri!",
+    "Ami Ghost Bot — Rakib Islam er toiri! 😎"
+  ],
+  "tumi ki boro": [
+    "Ami choto kintu skills onek boro! 😂💪",
+    "Size e choto, power e beshom! ⚡"
+  ],
+  "help": [
+    "Ami ki help korbo? Bolo! 😊",
+    "Ki dorkar? Ami achi! 💚"
+  ],
+  "ok": [
+    "Ok! 👍",
+    "Thik ache! ✅",
+    "Alright! 😊"
+  ],
+  "thanks": [
+    "Welcome! 😊💚",
+    "No problem! 🤙",
+    "Hmm na na, eta amar kaj! 😄"
+  ],
+  "thank you": [
+    "You're welcome! 💚😊",
+    "Koi bat nahi! 🙏",
+    "Eta amar duty! 😎"
+  ],
+  "love you": [
+    "Aww! Love you too! ❤️😊",
+    "Hehehe 😊 Ami o!",
+    "Tumi onek sundor bolo! 💖"
+  ],
+  "i love you": [
+    "I love you too! ❤️",
+    "Awww! You made my day! 💖😊"
+  ],
+  "boss": [
+    "Bolun boss! 😊🔥",
+    "Ji boss, ki dorkar?",
+    "Hajir boss! 💪"
+  ],
+  "bhai": [
+    "Bolun bhai! 😊",
+    "Ji bhai, ki dorkar?",
+    "Bhai boro manush! 💪"
+  ],
+  "apu": [
+    "Bolun apu! 😊",
+    "Ji apu, ki help korbo?"
+  ],
+  "vai": [
+    "Bolun vai! 😊🔥",
+    "Ji vai, ki dorkar?"
+  ],
+  "tumi ki khabao": [
+    "Amar khabar lagena, ami AI! 😂🤖",
+    "Data khai, current khai! 😄⚡"
+  ],
+  "bored": [
+    "Bored? Kono command use koro! 😊",
+    "Games khelo, .game likhle game ayo! 🎮",
+    "Boring lagce? .meme dekho! 😂"
+  ],
+  "busy": [
+    "Ok, busy thako. Dorkar hole dako! 😊💚",
+    "Buji! Shompurno hok tomar kaj! ✅"
+  ],
+  "bye": [
+    "Bye bye! 👋😊 Valo theko!",
+    "Alvida! 🌸 Take care!",
+    "Bye! Jaldi ashbe kintu! 😊"
+  ],
+  "take care": [
+    "You too! 💚 Take care!",
+    "Valo theko! 🌸😊"
+  ],
+  "miss you": [
+    "Ami o miss kori! 🥺💚",
+    "Miss you too! 😊 Jaldi ashbe?"
+  ],
+  "who are you": [
+    "Ami Ghost Bot! 👻 Rakib Islam er toiri AI bot!",
+    "Ghost Bot — GoatBot V2 based smart Messenger bot! 🤖"
+  ],
+  "tumi kon": [
+    "Ami Ghost Bot! 👻😊",
+    "Ghost Bot — Rakib Islam er AI bot!"
+  ],
+  "name": [
+    "Amar name Ghost Bot! 👻",
+    "Ami Ghost Bot, tomar khadem! 😊"
+  ],
+  "amar name ki": [
+    "Ami janina tomar name! 😅 Bolo ki tomar name?"
+  ],
+  "kothay thako": [
+    "Ami cloud e thaki! ☁️😂 Server e achi!",
+    "Replit server e bashi kori! 😄"
+  ],
+  "age": [
+    "Amar kono age nei, ami AI! 🤖😂",
+    "Ami chirojon, age nai! 😊"
+  ],
+  "ki hobay": [
+    "Ki hobe? Bolo details e! 😊",
+    "Describe koro, ami try korbo help korte!"
+  ],
+  "subscribe": [
+    "Subscribe korte bolo kake? 😄",
+    "Kono channel? Bolo!"
+  ],
+  "rank": [
+    "Rank dekhte .rank likho! 🏆",
+    ".rank command use koro!"
+  ],
+  "money": [
+    "Tomar taka dekhte .balance likho! 💰",
+    ".balance use koro!"
+  ],
+  "taka": [
+    "Taka dekhte .balance likho! 💰😊"
+  ],
+  "game": [
+    ".blackjack, .lottery, .monopoly, .wheel game khelo! 🎮😊"
+  ],
+  "music": [
+    ".spotify ba .ytbsearch e music khojo! 🎵😊"
+  ],
+  "image": [
+    ".image [topic] likhle sundor image pabe! 🖼️😊"
+  ],
+  "funny": [
+    ".meme likhle moja moja meme pabe! 😂"
+  ],
+  "story": [
+    ".hfstory likhle AI story pabe! 📖✨"
+  ],
+  "weather": [
+    ".weather [city] likhle weather info pabe! ⛅"
+  ],
+  "news": [
+    ".news likhle latest news pabe! 📰😊"
+  ],
+  "calculate": [
+    ".calc [math] likhle calculate korte paro! 🧮"
+  ],
+  "translate": [
+    ".hftranslate [lang] [text] likhle translate korbe! 🌍"
+  ],
+  "lol": [
+    "Hahaha! 😂😂",
+    "Lol! 😂 Funny!"
+  ],
+  "haha": [
+    "Haha! 😂 Ki holo?",
+    "Hashle keno? 😄 Bolo bolo!"
+  ],
+  "hmm": [
+    "Hmm? Ki bhavco? 🤔",
+    "Hmm, bolo ki mone holo!"
+  ],
+  "sad": [
+    "Dukhkhito hona! 🥺💚 Ki hoise?",
+    "Sad keno? Bolo, ami achi! 😊"
+  ],
+  "happy": [
+    "Yay! 🎉😊 Khushi thako shobshomoy!",
+    "Happy thako shobkhon! 💚✨"
+  ],
+  "angry": [
+    "Uff! Rago koro na! 😊💚 Bolo ki hoise?",
+    "Shanto hao please! 🙏😊"
+  ],
+  "hungry": [
+    "Kha kha! 😂 Khide lagce? Ki khabe?",
+    "Bhojon shomoy! 🍽️😊"
+  ],
+  "sleepy": [
+    "Ghuma ghuma! 😴 Aram koro!",
+    "Ghum jacce? Koro koro! 🌙😊"
+  ],
+  "pain": [
+    "Uff! Koshto painachi? 🥺 Valo theko!",
+    "Shushto hao jaldi! 💚"
+  ],
+  "sick": [
+    "Uff! Shushto hao jaldi! 💊😊",
+    "Take care! 💚 Valo theko soon!"
+  ],
+  "study": [
+    "Poro poro! 📚😊 Valo result hobe!",
+    "Pora shona koro, bhalo hobe! 📖✨"
+  ],
+  "exam": [
+    "Exam e valo korbe! 🙏📚 Best of luck!",
+    "Good luck exam e! 🍀😊"
+  ],
+  "fail": [
+    "Fail e ki hoise? 😊 Abar try koro!",
+    "Fail mane end noy, try koro! 💪✨"
+  ],
+  "pass": [
+    "Congratulations! 🎉🎊 Valo korecho!",
+    "Mashallah! 🌟😊 Valo result!"
+  ],
+  "marriage": [
+    "Biye? 😂 Aktu wait koro! 💒",
+    "Biyar jonno ready? 😄 Mubarak!"
+  ],
+  "love": [
+    "Love is beautiful! ❤️😊",
+    "Bhalobasho, valo thako! 💖"
+  ],
+  "friend": [
+    "Bondhu mane onno rkom! 🤝😊",
+    "Bondhu banao, khushi thako! 💚"
+  ],
+  "family": [
+    "Family sabcheye beshi important! 👨‍👩‍👧‍👦💚",
+    "Family er sathe valo thako! 🌸"
+  ],
+  "who made you": [
+    "Rakib Islam amare toiri koreche! 👑😊",
+    "Amar creator holo Rakib Islam — Ghost Bot admin!"
+  ],
+  "rakib": [
+    "Haa! Rakib Islam amar boss! 👑😊",
+    "Rakib Islam amar creator! 🔥"
+  ],
+  "ghost bot": [
+    "Ji! Ami Ghost Bot! 👻😊 Ki kora lagbe?",
+    "Ghost Bot — Messenger er best bot! 💪🔥"
+  ]
+}
