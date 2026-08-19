@@ -3,10 +3,12 @@
   "version": "1.5.35",
   "description": "A simple Bot chat messenger using personal account. Made by NTKhang fixed by xalman",
   "main": "index.js",
+
   "engines": {
     "node": "20.x",
     "npm": ">=7.0.0"
   },
+
   "dependencies": {
     "@cexy/rakibfca": "^1.0.2",
     "@distube/ytdl-core": "^4.16.12",
@@ -23,7 +25,10 @@
     "axios-cookiejar-support": "^6.0.4",
     "bcrypt": "^5.0.1",
     "bluebird": "^3.7.2",
+
     "canvas": "^2.11.2",
+    "gif-encoder-2": "^1.0.5",
+
     "chalk": "^4.1.2",
     "child_process": "^1.0.2",
     "connect-flash": "^0.1.1",
@@ -63,7 +68,6 @@
     "https-proxy-agent": "^7.0.5",
     "image-size": "^1.1.1",
     "imgbb-uploader": "^1.5.1",
-    "is-hexcolor": "^1.0.0",
     "json-bigint": "^1.0.0",
     "json-to-graphql-query": "^2.3.0",
     "jsonlint-mod": "^1.7.6",
@@ -109,22 +113,29 @@
     "ws": "^8.13.0",
     "yt-search": "^2.12.1"
   },
+
   "scripts": {
-    "start": "set NODE_ENV=&& node index.js",
-    "dev": "set NODE_ENV=development&& node index.js",
-    "prod": "set NODE_ENV=production&& node index.js"
+    "start": "node index.js",
+    "dev": "NODE_ENV=development node index.js",
+    "prod": "NODE_ENV=production node index.js"
   },
+
   "author": "NTKhang",
   "license": "MIT",
+
   "repository": {
     "type": "git",
     "url": "git+https://github.com/ntkhang03/Goat-Bot-V2.git"
   },
+
   "keywords": [],
+
   "bugs": {
     "url": "https://github.com/ntkhang03/Goat-Bot-V2/issues"
   },
+
   "homepage": "https://github.com/ntkhang03/Goat-Bot-V2#readme",
+
   "devDependencies": {
     "@types/bun": "latest",
     "eslint": "^8.2.0",
@@ -132,7 +143,7 @@
     "eslint-config-node": "^4.1.0",
     "eslint-config-prettier": "^8.5.0",
     "eslint-plugin-import": "^2.25.3",
-    "eslint-plugin-jsx-a11y": "^6.5.1",
+    "eslint-plugin-jsx-a11y": "^6.5.0",
     "eslint-plugin-node": "^11.1.0",
     "eslint-plugin-prettier": "^4.0.0",
     "eslint-plugin-react": "^7.28.0",
@@ -145,7 +156,9 @@
     "prompt-checkbox": "^2.2.0",
     "terser": "^5.15.0"
   },
+
   "private": true,
+
   "peerDependencies": {
     "typescript": "^5"
   }
