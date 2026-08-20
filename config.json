@@ -19,18 +19,19 @@
   },
 
   "adminBot": [
+    "61575436812912",
     "61592104482524",
     "61574231934756",
     "100084104451188"
   ],
 
-    "devUsers": [
-    "61592104482524",
-    "61592661868438"
+  "devUsers": [
+    "61575436812912",
+    "61575436812912"
   ],
 
   "premiumUsers": [
-    "61592104482524"
+    "61575436812912"
   ],
 
   "whiteListMode": {
@@ -45,12 +46,13 @@
     "notes": "if you enable this feature, only the thread in the whiteListThreadIds list can use the bot"
   },
 
-  "nickNameBot": "❀❀❀☞ 𝐓𝐡𝐞 𝐑𝐨𝐛𝐨𝐭 𝐎𝐟 𝐓𝐞𝐬𝐬𝐚 𝐁𝐛𝐳 ☜❀❀❀",
+  "nickNameBot": "Ew'r Hinata 🎀",
+  "ownerUID": "61575436812912",
   "prefix": ".",
 
   "database": {
-    "type": "mongodb",
-    "uriMongodb": "mongodb+srv://GoatBot:goatbot1234@goatbot.an3ugni.mongodb.net/goatbot",
+    "type": "json",
+    "uriMongodb": "",
     "autoSyncWhenStart": false,
     "autoRefreshThreadInfoFirstTime": true,
     "notes": "mongodb recommended"
@@ -60,16 +62,16 @@
 
   "credentials": {
     "gmailAccount": {
-      "email": "ilomikparaphael@gmail.com",
-      "clientId": "707976531024-j0h1m1r5lld2ck2eb0iss8pet8fkiu2g.apps.googleusercontent.com",
-      "clientSecret": "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",
-      "refreshToken": "1//0435VRKIR84KGCgYIARAAGAQSNwF-L9Irq-ndiTGzeY_17lETxH8ccgdXPLS8t9G3WDzioOirdR6kJXEdszdv3O1KFVoHv1r-l_U",
+      "email": "",
+      "clientId": "",
+      "clientSecret": "",
+      "refreshToken": "",
       "apiKey": ""
     },
 
     "gRecaptcha": {
-      "siteKey": "6LcMWCUqAAAAAKzK5DEfrW0mN71Lz1Ot_mU3mRXk",
-      "secretKey": "6LcMWCUqAAAAAMzJ4v_gN3K97cO7gEnZmbU87bT4"
+      "siteKey": "",
+      "secretKey": ""
     }
   },
 
@@ -85,7 +87,7 @@
     "socket": {
       "enable": true,
       "channelName": "uptime",
-      "verifyToken": "https:uptime.eloimekatula7.repl.co"
+      "verifyToken": ""
     }
   },
 
@@ -95,9 +97,9 @@
   },
 
   "autoUptime": {
-    "enable": true,
+    "enable": false,
     "timeInterval": 180,
-    "url": "uptime.betterstack.com/team/167465/monitors/news"
+    "url": ""
   },
 
   "autoLoadScripts": {
@@ -119,8 +121,8 @@
 
   "notiWhenListenMqttError": {
     "gmail": {
-      "enable": true,
-      "emailGetNoti": "ilomikparaphael@gmail.com"
+      "enable": false,
+      "emailGetNoti": ""
     },
 
     "telegram": {
